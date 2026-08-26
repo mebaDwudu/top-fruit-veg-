@@ -1,49 +1,35 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StoreProvider, useStore } from './context/StoreContext';
 import { ActiveTab } from './types/store';
-import { Sidebar } from './components/layout/Sidebar';
-import { PageBanner } from './components/layout/PageBanner';
-import { PosRegister } from './components/pos/PosRegister';
-import { InventoryManager } from './components/inventory/InventoryManager';
-import { SalesHistory } from './components/orders/SalesHistory';
-import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard';
-import { SupplierManager } from './components/suppliers/SupplierManager';
-import { CustomerManager } from './components/customers/CustomerManager';
-import { StoreSettingsView } from './components/settings/StoreSettingsView';
 import { CustomerStorefront } from './components/storefront/CustomerStorefront';
 import { AdminPortal } from './components/admin/AdminPortal';
-import { CashierPortal } from './components/cashier/CashierPortal';
-import { LoginPage } from './components/auth/LoginPage';
-import { LockScreen } from './components/auth/LockScreen';
-import { PinAuthModal } from './components/auth/PinAuthModal';
+import { ShoppingBag, Shield, ArrowRight, ExternalLink, Sparkles } from 'lucide-react';
 
 function StoreAppContent() {
-  const {
-    isAuthenticated,
-    isLocked,
-    currentRole,
-    currentStaff,
-    setDirectRole,
-    settings,
-  } = useStore();
+  const { isOnline } = useStore();
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+  const [activePortal, setActivePortal] = useState<'customer' | 'admin' | 'hub'>(() => {
     const pathname = window.location.pathname.toLowerCase();
     const searchParams = new URLSearchParams(window.location.search);
     const rawHash = window.location.hash.replace('#/', '').replace('#', '').trim().toLowerCase();
 
     if (
       pathname.includes('customer') ||
+      pathname.includes('market') ||
+      pathname.includes('store') ||
       rawHash === 'storefront' ||
       rawHash === 'customer' ||
       rawHash === 'market' ||
       searchParams.get('page') === 'customer' ||
       searchParams.get('view') === 'customer'
     ) {
-      return 'storefront';
+      return 'customer';
     }
+
     if (
       pathname.includes('admin') ||
+      pathname.includes('boss') ||
+      pathname.includes('management') ||
       rawHash === 'admin' ||
       rawHash === 'boss' ||
       rawHash === 'management' ||
@@ -52,255 +38,245 @@ function StoreAppContent() {
     ) {
       return 'admin';
     }
-    if (
-      pathname.includes('cashier') ||
-      rawHash === 'cashier' ||
-      searchParams.get('page') === 'cashier' ||
-      searchParams.get('view') === 'cashier'
-    ) {
-      return 'cashier';
+
+    // Default to Customer Storefront on root if direct, or hub
+    if (pathname === '/' && !rawHash && !searchParams.has('page')) {
+      return 'customer';
     }
-    return 'pos';
+
+    return 'customer';
   });
-  const [redirectNotice, setRedirectNotice] = useState<string | null>(null);
-  const [isBossPinOpen, setIsBossPinOpen] = useState(false);
-  const [pendingTab, setPendingTab] = useState<ActiveTab | null>(null);
 
   // Hash-based and URL routing handler
-  const handleHashChange = useCallback(() => {
+  const handleRouting = useCallback(() => {
     const pathname = window.location.pathname.toLowerCase();
     const searchParams = new URLSearchParams(window.location.search);
     const rawHash = window.location.hash.replace('#/', '').replace('#', '').trim().toLowerCase();
 
     if (
       pathname.includes('customer') ||
+      pathname.includes('market') ||
+      pathname.includes('store') ||
       rawHash === 'storefront' ||
       rawHash === 'customer' ||
       rawHash === 'market' ||
       searchParams.get('page') === 'customer' ||
       searchParams.get('view') === 'customer'
     ) {
-      setActiveTab('storefront');
+      setActivePortal('customer');
       return;
     }
 
     if (
       pathname.includes('admin') ||
+      pathname.includes('boss') ||
+      pathname.includes('management') ||
       rawHash === 'admin' ||
       rawHash === 'boss' ||
       rawHash === 'management' ||
       searchParams.get('page') === 'admin' ||
       searchParams.get('view') === 'admin'
     ) {
-      setActiveTab('admin');
+      setActivePortal('admin');
       return;
     }
 
-    if (
-      pathname.includes('cashier') ||
-      rawHash === 'cashier' ||
-      searchParams.get('page') === 'cashier' ||
-      searchParams.get('view') === 'cashier'
-    ) {
-      setActiveTab('cashier');
+    if (pathname.includes('hub') || rawHash === 'hub' || searchParams.get('page') === 'hub') {
+      setActivePortal('hub');
       return;
     }
 
-    if (!rawHash) {
-      setActiveTab('pos');
-      return;
-    }
-
-    if (rawHash === 'login') {
-      setActiveTab('login');
-      return;
-    }
-
-    const validTabs: ActiveTab[] = [
-      'pos',
-      'cashier',
-      'inventory',
-      'admin',
-      'orders',
-      'analytics',
-      'suppliers',
-      'customers',
-      'settings',
-      'storefront',
-    ];
-
-    if (validTabs.includes(rawHash as ActiveTab)) {
-      const target = rawHash as ActiveTab;
-
-      // Cashier security boundary check for sidebar tabs
-      const adminOnlyTabs: ActiveTab[] = [
-        'orders',
-        'analytics',
-        'suppliers',
-        'customers',
-        'settings',
-      ];
-
-      if (currentRole === 'cashier' && adminOnlyTabs.includes(target)) {
-        setPendingTab(target);
-        setIsBossPinOpen(true);
-        setRedirectNotice(
-          `Boss PIN Required: The "${target.toUpperCase()}" tab is restricted. Enter PIN 1234 to proceed.`
-        );
-        return;
-      }
-
-      setActiveTab(target);
-      setRedirectNotice(null);
-    }
-  }, [currentRole]);
+    setActivePortal('customer');
+  }, []);
 
   useEffect(() => {
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [handleHashChange]);
+    handleRouting();
+    window.addEventListener('popstate', handleRouting);
+    window.addEventListener('hashchange', handleRouting);
+    return () => {
+      window.removeEventListener('popstate', handleRouting);
+      window.removeEventListener('hashchange', handleRouting);
+    };
+  }, [handleRouting]);
 
-  const handleTabChange = (tab: ActiveTab) => {
-    const adminOnlyTabs: ActiveTab[] = [
-      'orders',
-      'analytics',
-      'suppliers',
-      'customers',
-      'settings',
-    ];
-
-    if (currentRole === 'cashier' && adminOnlyTabs.includes(tab)) {
-      setPendingTab(tab);
-      setIsBossPinOpen(true);
-      return;
+  const navigateTo = (portal: 'customer' | 'admin' | 'hub') => {
+    setActivePortal(portal);
+    if (portal === 'customer') {
+      window.history.pushState(null, '', '/customer');
+      window.location.hash = '#/customer';
+    } else if (portal === 'admin') {
+      window.history.pushState(null, '', '/admin');
+      window.location.hash = '#/admin';
+    } else {
+      window.history.pushState(null, '', '/');
+      window.location.hash = '';
     }
-
-    setActiveTab(tab);
-    window.location.hash = `#/${tab}`;
-    setRedirectNotice(null);
   };
 
-  const handleBossUnlockSuccess = () => {
-    setDirectRole('admin');
-    setIsBossPinOpen(false);
-    if (pendingTab) {
-      setActiveTab(pendingTab);
-      window.location.hash = `#/${pendingTab}`;
-      setPendingTab(null);
-    }
-    setRedirectNotice(null);
-  };
-
-  // If on the dedicated Cashier Webpage (#/cashier), render the CashierPortal directly!
-  if (activeTab === 'cashier' || (currentRole === 'cashier' && activeTab === 'pos')) {
-    return (
-      <CashierPortal
-        onSwitchToAdmin={() => {
-          setActiveTab('admin');
-          window.location.hash = '#/admin';
-        }}
-        onSwitchToStorefront={() => {
-          setActiveTab('storefront');
-          window.location.hash = '#/storefront';
-        }}
-      />
-    );
-  }
-
-  // If on the dedicated Admin Webpage (#/admin), render the AdminPortal directly!
-  if (activeTab === 'admin') {
-    return (
-      <AdminPortal
-        onSwitchToPos={() => {
-          setActiveTab('pos');
-          window.location.hash = '#/pos';
-        }}
-        onSwitchToStorefront={() => {
-          setActiveTab('storefront');
-          window.location.hash = '#/storefront';
-        }}
-      />
-    );
-  }
-
-  // If on the public customer storefront, render it directly without requiring staff login!
-  if (activeTab === 'storefront') {
+  // 1. CUSTOMER STOREFRONT PORTAL
+  if (activePortal === 'customer') {
     return (
       <CustomerStorefront
-        onSwitchToStaff={() => {
-          if (!isAuthenticated) {
-            setActiveTab('login');
-            window.location.hash = '#/login';
-          } else {
-            setActiveTab('pos');
-            window.location.hash = '#/pos';
-          }
-        }}
+        onSwitchToStaff={() => navigateTo('admin')}
       />
     );
   }
 
-  // If user is not authenticated or explicitly on the login tab, show LoginPage
-  if (!isAuthenticated || activeTab === 'login') {
+  // 2. ADMIN PORTAL (Matches Customer styling & Left-side navigation)
+  if (activePortal === 'admin') {
     return (
-      <LoginPage
-        onLoginSuccess={() => {
-          setActiveTab('pos');
-          window.location.hash = '#/pos';
-        }}
+      <AdminPortal
+        onSwitchToStorefront={() => navigateTo('customer')}
       />
     );
   }
 
+  // 3. CLEAN HUB SELECTION (If visited explicitly)
   return (
-    <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-row overflow-hidden font-sans selection:bg-emerald-500 selection:text-slate-950">
-      {/* Left Sidebar Navigation (Single-word labels) */}
-      <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} />
+    <div className="min-h-screen bg-emerald-50/40 text-slate-900 flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-white">
+      {/* Top Header */}
+      <header className="border-b border-emerald-100 bg-white/80 backdrop-blur px-6 py-4 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-2xl text-white shadow-sm">
+            🥭
+          </div>
+          <div>
+            <h1 className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">
+              Top Fruit & Vegetables
+            </h1>
+            <p className="text-xs text-emerald-800 font-medium">Pitch 18 Brixton Market, London</p>
+          </div>
+        </div>
 
-      {/* Main Workspace Area (Full Screen Utilization) */}
-      <div className="flex-1 h-screen flex flex-col min-w-0 overflow-hidden bg-slate-950">
-        {/* Page Context Banner & Role Alert */}
-        {redirectNotice && (
-          <PageBanner
-            activeTab={activeTab}
-            onUnlockBoss={() => {
-              setPendingTab(activeTab);
-              setIsBossPinOpen(true);
-            }}
-            redirectNotice={redirectNotice}
-            onClearNotice={() => setRedirectNotice(null)}
-          />
-        )}
+        <div className="flex items-center gap-2 text-xs">
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold ${
+              isOnline
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                : 'bg-rose-100 text-rose-800 border border-rose-300'
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isOnline ? 'bg-emerald-600 animate-pulse' : 'bg-rose-600'
+              }`}
+            />
+            {isOnline ? 'Live Cloud Sync' : 'Offline'}
+          </span>
+        </div>
+      </header>
 
-        {/* Content Workspace */}
-        <main className="flex-1 w-full h-full overflow-y-auto p-2 sm:p-3 lg:p-4 bg-slate-950">
-          {activeTab === 'pos' && <PosRegister />}
-          {activeTab === 'inventory' && (
-            <InventoryManager onNavigateToPO={() => handleTabChange('suppliers')} />
-          )}
-          {activeTab === 'orders' && <SalesHistory />}
-          {activeTab === 'analytics' && <AnalyticsDashboard />}
-          {activeTab === 'suppliers' && <SupplierManager />}
-          {activeTab === 'customers' && <CustomerManager />}
-          {activeTab === 'settings' && <StoreSettingsView />}
-        </main>
-      </div>
+      {/* Main Dual Portal Selection */}
+      <main className="max-w-4xl mx-auto w-full px-6 py-12 flex-1 flex flex-col justify-center">
+        <div className="text-center mb-10">
+          <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+            <Sparkles className="w-3.5 h-3.5" /> 2 Independent Portals
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Top Fruit & Veg Portals
+          </h2>
+          <p className="text-sm text-slate-600 mt-2 max-w-md mx-auto">
+            Choose whether you want to browse as a customer or access administrative store management.
+          </p>
+        </div>
 
-      {/* Screen Lock Overlay */}
-      {isLocked && <LockScreen />}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 1. Customer Portal */}
+          <div
+            onClick={() => navigateTo('customer')}
+            className="group relative bg-white border border-emerald-100 hover:border-emerald-500 rounded-3xl p-6 sm:p-8 transition-all duration-200 hover:shadow-xl hover:shadow-emerald-900/10 cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+                <span className="text-xs bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-full border border-emerald-200">
+                  /customer
+                </span>
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                Customer Storefront
+              </h3>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                Clean customer produce market. Browse fresh seasonal fruits, vegetables, root crops, create grocery bags, and place WhatsApp orders.
+              </p>
+            </div>
 
-      {/* Boss Elevation PIN Modal */}
-      <PinAuthModal
-        isOpen={isBossPinOpen}
-        onClose={() => {
-          setIsBossPinOpen(false);
-          setPendingTab(null);
-        }}
-        onSuccess={handleBossUnlockSuccess}
-        title="Boss Admin Access Required"
-        description="Enter the 4-digit Boss PIN (Default: 1234) to unlock management tabs."
-      />
+            <div className="mt-6 pt-4 border-t border-emerald-50 flex items-center justify-between text-xs font-bold text-emerald-700 group-hover:text-emerald-800">
+              <span className="flex items-center gap-1.5">
+                Open Customer Store <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium">Public</span>
+            </div>
+          </div>
+
+          {/* 2. Admin Portal */}
+          <div
+            onClick={() => navigateTo('admin')}
+            className="group relative bg-white border border-emerald-100 hover:border-emerald-600 rounded-3xl p-6 sm:p-8 transition-all duration-200 hover:shadow-xl hover:shadow-emerald-900/10 cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <span className="text-xs bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-full border border-emerald-200">
+                  /admin
+                </span>
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                Admin & Store Management
+              </h3>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                Full back-office system: Inventory stock manager, price & margin updates, sales history, supplier purchase orders, and profit analytics.
+              </p>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-emerald-50 flex items-center justify-between text-xs font-bold text-emerald-700 group-hover:text-emerald-800">
+              <span className="flex items-center gap-1.5">
+                Open Admin Portal <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium">PIN: 9999 / 1234</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Links Bar */}
+        <div className="mt-8 bg-white border border-emerald-100 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs">
+          <div className="text-slate-500 font-medium">
+            <span className="font-bold text-slate-800">Direct URLs:</span> Bookmark these individual links:
+          </div>
+          <div className="flex items-center gap-4">
+            <a
+              href="/customer"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('customer');
+              }}
+              className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1"
+            >
+              your-domain/customer <ExternalLink className="w-3 h-3" />
+            </a>
+            <span className="text-slate-300">•</span>
+            <a
+              href="/admin"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('admin');
+              }}
+              className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1"
+            >
+              your-domain/admin <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-emerald-100 py-4 text-center text-xs text-slate-500">
+        Top Fruit & Veg • Pitch 18 Brixton Market, London • Retail & Wholesale Management
+      </footer>
     </div>
   );
 }
@@ -314,4 +290,3 @@ export function App() {
 }
 
 export default App;
-
