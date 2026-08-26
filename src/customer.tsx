@@ -7,11 +7,7 @@ import './index.css';
 function CustomerApp() {
   return (
     <StoreProvider>
-      <CustomerStorefront
-        onSwitchToStaff={() => {
-          window.location.href = '/cashier';
-        }}
-      />
+      <CustomerStorefront onSwitchToStaff={() => {}} />
     </StoreProvider>
   );
 }

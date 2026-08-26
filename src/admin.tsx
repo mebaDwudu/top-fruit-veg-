@@ -8,9 +8,6 @@ function AdminApp() {
   return (
     <StoreProvider>
       <AdminPortal
-        onSwitchToPos={() => {
-          window.location.href = '/cashier';
-        }}
         onSwitchToStorefront={() => {
           window.location.href = '/customer';
         }}
