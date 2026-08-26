@@ -94,7 +94,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   lowStockThresholdDefault: 10,
   enableSoundEffects: true,
   cashierName: 'Masgana',
-  adminPin: '1234',
+  adminPin: '091825',
   cashierPin: '1111',
   allowCashierRefunds: true,
   allowCashierDiscounts: true,
