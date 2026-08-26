@@ -1,0 +1,6 @@
+{
+  "name": "Store Management System",
+  "description": "Multi-webpage retail suite with 3 distinct standalone index pages: 1) Dedicated Boss Admin Portal (/admin.html), 2) Cashier POS Register (/cashier.html), and 3) Customer Fresh Produce Storefront (/customer.html) for Top Fruits and Veg, Pitch 18 Brixton Market Pope's Road London.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

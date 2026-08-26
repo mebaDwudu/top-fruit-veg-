@@ -1,0 +1,996 @@
+import React, { useState, useMemo } from 'react';
+import { useStore } from '../../context/StoreContext';
+import { Product } from '../../types/store';
+import { getProduceMeta } from '../../utils/produceImages';
+import { ProductDetailModal } from './ProductDetailModal';
+import { CustomerCartDrawer, CustomerCartItem } from './CustomerCartDrawer';
+import { ShareStoreModal } from '../modals/ShareStoreModal';
+import { sanitizeText, sanitizeEmail, sanitizePhone } from '../../utils/sanitize';
+import { validateHumanSubmission } from '../../utils/security';
+import {
+  Search,
+  ShoppingBag,
+  MapPin,
+  Clock,
+  Phone,
+  MessageCircle,
+  Share2,
+  Sparkles,
+  Store,
+  Leaf,
+  Heart,
+  Globe,
+  Handshake,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  Menu,
+  X,
+  Plus,
+  Minus,
+} from 'lucide-react';
+
+interface CustomerStorefrontProps {
+  onSwitchToStaff: () => void;
+}
+
+type CustomerPageTab = 'home' | 'about_contact';
+
+export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
+  const { products, categories, formatCurrency } = useStore();
+
+  // Navigation & view state
+  const [currentTab, setCurrentTab] = useState<CustomerPageTab>('home');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedOrganicFilter, setSelectedOrganicFilter] = useState<'all' | 'organic' | 'non-organic'>('all');
+  const [selectedAvailabilityFilter, setSelectedAvailabilityFilter] = useState<'all' | 'in-stock' | 'out-of-stock'>('all');
+  const [sortBy, setSortBy] = useState<'name_asc' | 'name_desc' | 'price_asc' | 'price_desc' | 'newest'>('name_asc');
+
+  // Interactive state
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cartItems, setCartItems] = useState<CustomerCartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  // Contact Form State
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+    _website_hp: '', // Honeypot field for bot trap
+  });
+  const [formRenderedAt, setFormRenderedAt] = useState<number>(() => Date.now());
+  const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
+
+  // Cart helper functions
+  const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const cartSubtotal = cartItems.reduce(
+    (acc, item) => acc + item.product.sellingPrice * item.quantity,
+    0
+  );
+
+  const handleAddToCart = (product: Product, quantity: number = 1) => {
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.product.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.product.id === product.id
+            ? { ...item, quantity: Math.min(product.stock, item.quantity + quantity) }
+            : item
+        );
+      }
+      return [...prev, { product, quantity }];
+    });
+  };
+
+  const handleUpdateCartQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveCartItem(productId);
+      return;
+    }
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.product.id === productId ? { ...item, quantity } : item
+      )
+    );
+  };
+
+  const handleRemoveCartItem = (productId: string) => {
+    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
+  };
+
+  const handleClearBag = () => {
+    setCartItems([]);
+  };
+
+  // Filtered products for full-screen display
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter((p) => {
+        const meta = getProduceMeta(p.name, p.category, p.image);
+
+        // Search query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const matchesName = p.name.toLowerCase().includes(q);
+          const matchesCategory = p.category.toLowerCase().includes(q);
+          const matchesSku = p.sku.toLowerCase().includes(q);
+          const matchesDesc = (p.description || '').toLowerCase().includes(q);
+          const matchesOrigin = meta.origin.toLowerCase().includes(q);
+          if (!matchesName && !matchesCategory && !matchesSku && !matchesDesc && !matchesOrigin) {
+            return false;
+          }
+        }
+
+        // Category filter
+        if (selectedCategory !== 'All' && p.category !== selectedCategory) {
+          return false;
+        }
+
+        // Organic filter
+        if (selectedOrganicFilter === 'organic' && !meta.isOrganic) return false;
+        if (selectedOrganicFilter === 'non-organic' && meta.isOrganic) return false;
+
+        // Availability filter
+        if (selectedAvailabilityFilter === 'in-stock' && p.stock <= 0) return false;
+        if (selectedAvailabilityFilter === 'out-of-stock' && p.stock > 0) return false;
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
+        if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
+        if (sortBy === 'price_asc') return a.sellingPrice - b.sellingPrice;
+        if (sortBy === 'price_desc') return b.sellingPrice - a.sellingPrice;
+        if (sortBy === 'newest') {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        }
+        return 0;
+      });
+  }, [
+    products,
+    searchQuery,
+    selectedCategory,
+    selectedOrganicFilter,
+    selectedAvailabilityFilter,
+    sortBy,
+  ]);
+
+  // Category Emoji Helper
+  const getCategoryEmoji = (cat: string) => {
+    if (cat.includes('Roots') || cat.includes('Yams')) return '🍠';
+    if (cat.includes('Tropical') || cat.includes('Plantains')) return '🍌';
+    if (cat.includes('Peppers') || cat.includes('Chillies')) return '🌶️';
+    if (cat.includes('Tomatoes')) return '🍅';
+    if (cat.includes('Citrus') || cat.includes('Fruits')) return '🍊';
+    if (cat.includes('Onions') || cat.includes('Herbs')) return '🧅';
+    if (cat.includes('Vegetables') || cat.includes('Greens')) return '🥬';
+    return '🥭';
+  };
+
+  // Contact form submission
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactError(null);
+
+    // Bot detection check
+    const botCheck = validateHumanSubmission({
+      honeypotValue: contactForm._website_hp,
+      renderedTimestamp: formRenderedAt,
+    });
+
+    if (!botCheck.isHuman) {
+      setContactError('Submission rejected: automated bot behavior detected.');
+      return;
+    }
+
+    const cleanName = sanitizeText(contactForm.name, 100);
+    const cleanEmail = sanitizeEmail(contactForm.email);
+    const cleanPhone = sanitizePhone(contactForm.phone);
+    const cleanMessage = sanitizeText(contactForm.message, 1500);
+
+    if (!cleanName || !cleanEmail || !cleanMessage) {
+      setContactError('Please enter your name, a valid email address, and a message.');
+      return;
+    }
+
+    setContactSuccess(true);
+    setContactError(null);
+    setTimeout(() => {
+      setContactSuccess(false);
+      setContactForm({ name: '', email: '', phone: '', subject: '', message: '', _website_hp: '' });
+      setFormRenderedAt(Date.now());
+    }, 4000);
+  };
+
+  return (
+    <div className="min-h-screen w-screen bg-emerald-50/40 text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white">
+      {/* ========================================================= */}
+      {/* 1. LEFT SIDEBAR (Clean bright solid theme, no scrollbar, no admin login) */}
+      {/* ========================================================= */}
+      
+      {/* Mobile Backdrop */}
+      {isMobileSidebarOpen && (
+        <div
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-900/60 z-40 lg:hidden backdrop-blur-xs transition-opacity"
+        />
+      )}
+
+      <aside
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 max-w-[85vw] bg-white border-r border-emerald-100 shadow-xl lg:shadow-sm flex flex-col justify-between p-3.5 sm:p-4 transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto lg:overflow-hidden ${
+          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col justify-between">
+          <div>
+            {/* Bright Fresh Brand Header */}
+            <div className="flex items-center justify-between border-b border-emerald-100 pb-3 mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-2xl shadow-sm text-white">
+                  🥭
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-base font-extrabold text-slate-900 tracking-tight leading-none truncate">
+                    Fruitopia Fresh
+                  </h1>
+                  <p className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                    <span>Pitch 18 Brixton Market</span>
+                  </p>
+                </div>
+              </div>
+              {/* Mobile close button */}
+              <button
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="lg:hidden p-1.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Primary Navigation Buttons in Left Sidebar */}
+            <nav className="space-y-2">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 flex items-center justify-between">
+                <span>Browse Stall</span>
+                <Sparkles className="w-3 h-3 text-amber-500" />
+              </div>
+
+              {/* Button 1: Home / All Fruits */}
+              <button
+                id="customer-nav-home"
+                onClick={() => {
+                  setCurrentTab('home');
+                  setSelectedCategory('All');
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
+                  currentTab === 'home'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-emerald-50/60 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60'
+                }`}
+              >
+                <div className="flex items-center space-x-2.5">
+                  <span className="text-lg">🥭</span>
+                  <span>All Fresh Fruits</span>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    currentTab === 'home'
+                      ? 'bg-emerald-800 text-white'
+                      : 'bg-white text-emerald-800 border border-emerald-200'
+                  }`}
+                >
+                  {products.length}
+                </span>
+              </button>
+
+              {/* Button 2: About Us & Contacts */}
+              <button
+                id="customer-nav-about-contact"
+                onClick={() => {
+                  setCurrentTab('about_contact');
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
+                  currentTab === 'about_contact'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200'
+                }`}
+              >
+                <div className="flex items-center space-x-2.5">
+                  <span className="text-lg">📍</span>
+                  <span>About Us & Contacts</span>
+                </div>
+                <span className="text-[10px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 font-extrabold">
+                  Pitch 18
+                </span>
+              </button>
+
+              {/* Button 3: Shopping Basket Trigger */}
+              <button
+                id="customer-nav-basket"
+                onClick={() => {
+                  setIsCartOpen(true);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <ShoppingBag className="w-4 h-4 text-amber-600" />
+                  <span>My Basket</span>
+                </div>
+                {totalCartCount > 0 ? (
+                  <div className="flex items-center space-x-1.5">
+                    <span className="px-2 py-0.5 bg-amber-500 text-white rounded-full text-[10px] font-extrabold">
+                      {totalCartCount}
+                    </span>
+                    <span className="text-[11px] text-amber-900 font-extrabold">
+                      {formatCurrency(cartSubtotal)}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-[10px] text-slate-400">0 items</span>
+                )}
+              </button>
+            </nav>
+          </div>
+
+          <div className="space-y-2.5">
+            {/* Brixton Market Quick Info Card */}
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-extrabold text-emerald-900">
+                <div className="flex items-center space-x-1.5">
+                  <Store className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Brixton Market Stall</span>
+                </div>
+                <span className="text-[10px] px-1.5 py-0.2 bg-emerald-200 text-emerald-900 rounded font-bold">Open</span>
+              </div>
+              <p className="text-[11px] text-slate-700 leading-snug">
+                Pitch 18 Pope's Road, London SW9 8PB.
+              </p>
+              <div className="flex items-center space-x-1 text-[11px] text-emerald-800 font-extrabold">
+                <Phone className="w-3 h-3 text-emerald-600" />
+                <a href="tel:+447449338679" className="hover:underline">
+                  +44 7449 338679
+                </a>
+              </div>
+            </div>
+
+            {/* WhatsApp Direct Order CTA (Solid bright green) */}
+            <a
+              href="https://wa.me/447449338679?text=Hello%20Top%20Fruits%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20a%20pre-order."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 px-3 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xs font-extrabold flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-xs active:scale-98"
+            >
+              <MessageCircle className="w-4 h-4 text-white" />
+              <span>WhatsApp Pre-Order</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Sidebar Footer: Share Store QR Code (Admin login completely removed) */}
+        <div className="pt-3 border-t border-emerald-100">
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer border border-slate-200"
+          >
+            <Share2 className="w-3.5 h-3.5 text-slate-600" />
+            <span>Share Stall QR Code</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ========================================================= */}
+      {/* 2. MAIN CONTENT AREA (FULL SCREEN WIDTH) */}
+      {/* ========================================================= */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto bg-transparent">
+        {/* Top Header Bar (Solid bright clean look) */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-center space-x-3">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h2 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight flex items-center gap-2">
+                <span>{currentTab === 'home' ? '🥭 Fresh Tropical Fruits & Produce' : '📍 About Us & Stall Contacts'}</span>
+              </h2>
+              <p className="text-[11px] text-emerald-700 font-bold hidden sm:flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
+                <span>Brixton Market Pitch 18 • Hand-Picked Farm Direct Daily</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Top Right Actions */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Direct WhatsApp Call */}
+            <a
+              href="tel:+447449338679"
+              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-extrabold transition-all shadow-2xs"
+            >
+              <Phone className="w-3.5 h-3.5 text-emerald-600" />
+              <span>+44 7449 338679</span>
+            </a>
+
+            {/* Shopping Basket Drawer Trigger */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="relative py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-extrabold flex items-center space-x-2 transition-all shadow-xs cursor-pointer active:scale-95"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span className="hidden sm:inline">Basket</span>
+              {totalCartCount > 0 && (
+                <span className="px-1.5 py-0.5 bg-white text-emerald-800 rounded-full text-[11px] font-black leading-none shadow-xs">
+                  {totalCartCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </header>
+
+        {/* ========================================================= */}
+        {/* VIEW 1: HOME (ONLY ALL THE FRUITS + TOP CATEGORY BUTTONS) */}
+        {/* ========================================================= */}
+        {currentTab === 'home' && (
+          <main className="flex-1 w-full p-3 sm:p-6 lg:p-8 space-y-6">
+            {/* Top Category Buttons Bar (Clean Solid Styling) */}
+            <section className="w-full bg-white border border-emerald-100 rounded-3xl p-4 sm:p-5 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-100 pb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">🏷️</span>
+                  <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-800">
+                    Filter by Produce Category
+                  </h3>
+                </div>
+                <div className="text-xs text-slate-500 font-bold">
+                  Showing <span className="text-emerald-700 font-black">{filteredProducts.length}</span> of {products.length} fresh items
+                </div>
+              </div>
+
+              {/* Category Pill Buttons with Clean Solid Active States */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-emerald-200">
+                {/* All Fruits Master Button */}
+                <button
+                  onClick={() => setSelectedCategory('All')}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center space-x-2 shadow-2xs ${
+                    selectedCategory === 'All'
+                      ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400/40'
+                      : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  <span className="text-base">🥭</span>
+                  <span>All Fruits & Produce ({products.length})</span>
+                </button>
+
+                {/* Individual Category Buttons */}
+                {categories.map((cat) => {
+                  const emoji = getCategoryEmoji(cat);
+                  const isSelected = selectedCategory === cat;
+                  const catCount = products.filter((p) => p.category === cat).length;
+
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center space-x-2 shadow-2xs ${
+                        isSelected
+                          ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400/40'
+                          : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                      }`}
+                    >
+                      <span className="text-base">{emoji}</span>
+                      <span>{cat}</span>
+                      <span
+                        className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                          isSelected
+                            ? 'bg-emerald-800 text-white font-extrabold'
+                            : 'bg-emerald-100 text-emerald-800 font-bold'
+                        }`}
+                      >
+                        {catCount}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Secondary Fast Filters & Search Row */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-emerald-100 text-xs">
+                {/* Quick Search */}
+                <div className="relative flex-1 min-w-[200px] max-w-md">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search sweet mangoes, plantains, yams, citrus..."
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Filter Pills */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() =>
+                      setSelectedOrganicFilter((prev) => (prev === 'organic' ? 'all' : 'organic'))
+                    }
+                    className={`px-3 py-2 rounded-xl font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
+                      selectedOrganicFilter === 'organic'
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
+                    }`}
+                  >
+                    <Leaf className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Organic Only</span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setSelectedAvailabilityFilter((prev) =>
+                        prev === 'in-stock' ? 'all' : 'in-stock'
+                      )
+                    }
+                    className={`px-3 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+                      selectedAvailabilityFilter === 'in-stock'
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
+                    }`}
+                  >
+                    <span>In Stock Only</span>
+                  </button>
+
+                  {/* Sort Selection */}
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-extrabold focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                  >
+                    <option value="name_asc">Sort: A–Z</option>
+                    <option value="name_desc">Sort: Z–A</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="newest">Sort: New Arrivals</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            {/* FULL SCREEN FRUITS GRID (Solid clean white cards with full width) */}
+            <section className="w-full">
+              {filteredProducts.length === 0 ? (
+                <div className="w-full bg-white border border-emerald-100 rounded-3xl p-12 text-center my-6 shadow-2xs">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-3xl mx-auto mb-3">
+                    🔍
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900 mb-1">No fruits matched your filter</h4>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Try clearing your search query or selecting "All Fruits".
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('All');
+                      setSelectedOrganicFilter('all');
+                      setSelectedAvailabilityFilter('all');
+                    }}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 lg:gap-5">
+                  {filteredProducts.map((prod) => {
+                    const meta = getProduceMeta(prod.name, prod.category, prod.image);
+                    const isOutOfStock = prod.stock <= 0;
+                    const isLowStock = prod.stock > 0 && prod.stock <= prod.minStockLevel;
+                    const existingCartItem = cartItems.find((item) => item.product.id === prod.id);
+                    const cartQty = existingCartItem?.quantity || 0;
+
+                    return (
+                      <div
+                        key={prod.id}
+                        className="group bg-white hover:border-emerald-500 border border-slate-200/90 rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-200 flex flex-col shadow-2xs hover:shadow-md hover:-translate-y-0.5"
+                      >
+                        {/* Fruit Image Container (Full card width & rich vivid photography) */}
+                        <div
+                          onClick={() => setSelectedProduct(prod)}
+                          className="relative w-full h-40 sm:h-48 md:h-52 bg-emerald-50/50 overflow-hidden cursor-pointer flex items-center justify-center"
+                        >
+                          <img
+                            src={meta.imageUrl}
+                            alt={prod.name}
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+
+                          {/* Organic Badge */}
+                          {meta.isOrganic && (
+                            <span className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-extrabold rounded-lg shadow-xs flex items-center gap-0.5">
+                              <Leaf className="w-3 h-3" />
+                              <span className="hidden sm:inline">Organic</span>
+                            </span>
+                          )}
+
+                          {/* Origin Country Flag / Badge */}
+                          <span className="absolute top-2 right-2 px-2 py-0.5 bg-white/95 text-amber-900 border border-amber-200 text-[10px] font-extrabold rounded-lg uppercase tracking-wider shadow-2xs">
+                            {meta.origin}
+                          </span>
+
+                          {/* Stock Status Badge */}
+                          <div className="absolute bottom-2 left-2">
+                            {isOutOfStock ? (
+                              <span className="px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-extrabold rounded-lg">
+                                Out of Stock
+                              </span>
+                            ) : isLowStock ? (
+                              <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold rounded-lg">
+                                {prod.stock} left
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {/* Fruit Info & Pricing */}
+                        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
+                          <div>
+                            <span className="text-[10px] sm:text-[11px] font-extrabold text-emerald-700 block truncate">
+                              {prod.category}
+                            </span>
+                            <h4
+                              onClick={() => setSelectedProduct(prod)}
+                              className="font-extrabold text-xs sm:text-sm md:text-base text-slate-900 group-hover:text-emerald-700 transition-colors cursor-pointer mt-0.5 truncate"
+                              title={prod.name}
+                            >
+                              {prod.name}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 hidden sm:block">
+                              {prod.description || `Fresh top grade ${prod.name}`}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+                            <div>
+                              <div className="text-sm sm:text-base font-black text-slate-900">
+                                {formatCurrency(prod.sellingPrice)}
+                              </div>
+                              <div className="text-[9px] sm:text-[10px] text-slate-400 font-bold">
+                                per {prod.unit || 'kg'}
+                              </div>
+                            </div>
+
+                            {/* Add / Quantity Stepper Button */}
+                            {cartQty > 0 ? (
+                              <div className="flex items-center space-x-1 bg-emerald-50 border border-emerald-300 rounded-xl p-0.5 shadow-2xs">
+                                <button
+                                  onClick={() => handleUpdateCartQuantity(prod.id, cartQty - 1)}
+                                  className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-700 hover:bg-white transition-colors cursor-pointer"
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </button>
+                                <span className="w-4 text-center font-black text-xs text-emerald-800">
+                                  {cartQty}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                   handleUpdateCartQuantity(
+                                      prod.id,
+                                      Math.min(prod.stock, cartQty + 1)
+                                    )
+                                  }
+                                  className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-700 hover:bg-white transition-colors cursor-pointer"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleAddToCart(prod, 1)}
+                                disabled={isOutOfStock}
+                                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center space-x-1 transition-all cursor-pointer shadow-2xs ${
+                                  isOutOfStock
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95'
+                                }`}
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </main>
+        )}
+
+        {/* ========================================================= */}
+        {/* VIEW 2: ABOUT US & CONTACTS (Clean Solid Look) */}
+        {/* ========================================================= */}
+        {currentTab === 'about_contact' && (
+          <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-8">
+            {/* Top Stall Details Header */}
+            <section className="w-full bg-white border border-emerald-100 rounded-3xl p-6 sm:p-10 shadow-2xs">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="inline-flex items-center space-x-2 px-3.5 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-800 text-xs font-extrabold">
+                    <Store className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Pitch 18 Pope's Road • Brixton Market Stall</span>
+                  </div>
+
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                    Brixton's Premier Hub for <span className="text-emerald-700">Authentic Fresh Produce</span>
+                  </h2>
+
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+                    Serving South London since 2010. We specialize in authentic African, Caribbean, and European
+                    fruits, vegetables, yams, and plantains direct from trusted organic growers.
+                  </p>
+
+                  {/* 4 Stall Details Blocks */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 text-xs">
+                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
+                      <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-slate-900 block">Market Stall Location</span>
+                        <span className="text-slate-600">Pitch 18 Pope's Road, Brixton Market, London SW9 8PB</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
+                      <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-slate-900 block">Telephone / Hotline</span>
+                        <a href="tel:+447449338679" className="text-emerald-700 font-extrabold hover:underline">
+                          +44 7449 338679
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
+                      <Clock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-slate-900 block">Opening Hours</span>
+                        <span className="text-slate-600">Mon–Sat: 8:00 AM – 6:30 PM | Sun: 9:00 AM – 5:00 PM</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold text-slate-900 block">Live Stall Stock</span>
+                        <span className="text-emerald-700 font-bold">{products.length} fruit & veg varieties stocked today</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-5 bg-emerald-50 border border-emerald-200 rounded-3xl p-6 sm:p-8 text-center space-y-4 shadow-2xs">
+                  <div className="w-14 h-14 rounded-2xl bg-green-600 flex items-center justify-center text-white mx-auto text-2xl shadow-sm">
+                    <MessageCircle className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-extrabold text-slate-900">Direct WhatsApp Pre-Order</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Message us with your produce list for swift click & collect at Pitch 18 or wholesale carton orders.
+                  </p>
+                  <a
+                    href="https://wa.me/447449338679?text=Hello%20Top%20Fruits%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20a%20produce%20order."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-xs font-extrabold flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-sm"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Open WhatsApp (+44 7449 338679)</span>
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            {/* Our Story, Heritage & Core Values */}
+            <section className="w-full grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="p-6 bg-white border border-emerald-100 rounded-3xl space-y-3 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl">
+                  <Heart className="w-6 h-6" />
+                </div>
+                <h4 className="font-extrabold text-lg text-slate-900">Uncompromising Freshness</h4>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Every crate of mangoes, plantains, scotch bonnets, and tubers is hand-inspected daily for peak ripeness and flavor.
+                </p>
+              </div>
+
+              <div className="p-6 bg-white border border-emerald-100 rounded-3xl space-y-3 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl">
+                  <Globe className="w-6 h-6" />
+                </div>
+                <h4 className="font-extrabold text-lg text-slate-900">Global Farm Partners</h4>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Direct relationships with smallholder family farms in Ghana, Nigeria, Jamaica, Uganda, and local British growers.
+                </p>
+              </div>
+
+              <div className="p-6 bg-white border border-emerald-100 rounded-3xl space-y-3 shadow-2xs">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+                  <Handshake className="w-6 h-6" />
+                </div>
+                <h4 className="font-extrabold text-lg text-slate-900">Community Trust</h4>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Transparent weights, honest pricing, and friendly market service to all our South London neighbors.
+                </p>
+              </div>
+            </section>
+
+            {/* Interactive Contact & Message Form */}
+            <section className="w-full bg-white border border-emerald-100 rounded-3xl p-6 sm:p-8 shadow-2xs">
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="text-center space-y-1">
+                  <h3 className="text-2xl font-extrabold text-slate-900">Send Us a Direct Message</h3>
+                  <p className="text-xs text-slate-600">
+                    Have questions about seasonal fruit arrivals, wholesale crates, or order reservations?
+                  </p>
+                </div>
+
+                {contactSuccess && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-emerald-800 text-xs flex items-center space-x-2 animate-in fade-in">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Thank you! Your message has been received. Our team will contact you shortly.</span>
+                  </div>
+                )}
+
+                {contactError && (
+                  <div className="p-4 bg-rose-50 border border-rose-300 rounded-2xl text-rose-800 text-xs flex items-center space-x-2 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>{contactError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  {/* Honeypot Bot Trap Field */}
+                  <div className="hidden" aria-hidden="true" style={{ display: 'none', opacity: 0, position: 'absolute', left: '-9999px' }}>
+                    <label htmlFor="website_hp_sidebar">Website</label>
+                    <input
+                      id="website_hp_sidebar"
+                      type="text"
+                      name="_website_hp"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={contactForm._website_hp}
+                      onChange={(e) => setContactForm({ ...contactForm, _website_hp: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Your Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={contactForm.name}
+                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        placeholder="e.g. Samuel Ade"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Email Address *</label>
+                      <input
+                        type="email"
+                        required
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        placeholder="name@example.com"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number (Optional)</label>
+                      <input
+                        type="tel"
+                        value={contactForm.phone}
+                        onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                        placeholder="+44 7123 456789"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">Subject</label>
+                      <select
+                        value={contactForm.subject}
+                        onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                      >
+                        <option value="">Select inquiry topic...</option>
+                        <option value="Product Availability">Product / Seasonal Fruit Availability</option>
+                        <option value="Wholesale Crates">Wholesale / Bulk Crate Inquiries</option>
+                        <option value="Click and Collect">Click & Collect Pickup</option>
+                        <option value="General Question">General Stall Question</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">Message *</label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      placeholder="Let us know what fruits or quantities you need..."
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center space-x-2 transition-all cursor-pointer shadow-xs"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Send Direct Stall Message</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </section>
+          </main>
+        )}
+      </div>
+
+      {/* ========================================================= */}
+      {/* 3. MODALS & DRAWERS */}
+      {/* ========================================================= */}
+
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onAddToBag={(prod, qty) => handleAddToCart(prod, qty)}
+          currentBagQuantity={
+            cartItems.find((item) => item.product.id === selectedProduct.id)?.quantity || 0
+          }
+        />
+      )}
+
+      {/* Shopping Bag Slide-Over Drawer */}
+      <CustomerCartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemoveItem={handleRemoveCartItem}
+        onClearBag={handleClearBag}
+      />
+
+      {/* Share QR Code Modal */}
+      <ShareStoreModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
+    </div>
+  );
+};
