@@ -81,7 +81,7 @@ export const INITIAL_CATEGORIES = [
 ];
 
 export const INITIAL_SETTINGS: StoreSettings = {
-  storeName: 'Top Fruits and Veg',
+  storeName: 'Top Fruit and Veg',
   storeAddress: 'PITCH LOCATION: Pitch 18 Brixton Market Pope\'s Road London',
   storePhone: '+44 7449 338679',
   storeEmail: 'Mesgnabahta68@gmail.com',
@@ -89,7 +89,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   currency: 'GBP',
   currencySymbol: '£',
   taxRatePercent: 0,
-  receiptHeaderMessage: 'Top Fruits and Veg • BRIXTON FOOD 🌶🍆🍌',
+  receiptHeaderMessage: 'Top Fruit and Veg • BRIXTON FOOD 🌶🍆🍌',
   receiptFooterMessage: 'Thank you for shopping at Pitch 18 Brixton Market Pope\'s Road! Contact: +44 7449 338679 / Masgana',
   lowStockThresholdDefault: 10,
   enableSoundEffects: true,

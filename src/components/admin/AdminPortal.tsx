@@ -293,7 +293,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 </div>
                 <p className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
-                  <span>Top Fruit & Veg • Pitch 18</span>
+                  <span>Top Fruit and Veg • Pitch 18</span>
                 </p>
               </div>
             </div>

@@ -37,7 +37,7 @@ export const ShareStoreModal: React.FC<ShareStoreModalProps> = ({ isOpen, onClos
     }
   };
 
-  const shareText = `Check out today's fresh fruits, vegetables, yams & plantains at ${settings.storeName || 'Top Fruits and Veg'} (Pitch 18 Brixton Market Pope's Road London): ${customerUrl}`;
+  const shareText = `Check out today's fresh fruits, vegetables, yams & plantains at ${settings.storeName || 'Top Fruit and Veg'} (Pitch 18 Brixton Market Pope's Road London): ${customerUrl}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
   const qrCodeImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
@@ -64,7 +64,7 @@ export const ShareStoreModal: React.FC<ShareStoreModalProps> = ({ isOpen, onClos
             Share Stall QR Code
           </h3>
           <p className="text-xs text-emerald-800 font-bold mt-0.5">
-            Top Fruit & Veg • Pitch 18 Brixton Market
+            Top Fruit and Veg • Pitch 18 Brixton Market
           </p>
         </div>
 

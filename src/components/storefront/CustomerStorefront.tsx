@@ -239,7 +239,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-base font-extrabold text-slate-900 tracking-tight leading-none truncate">
-                    Fruitopia Fresh
+                    Top Fruit and Veg
                   </h1>
                   <p className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
@@ -725,145 +725,107 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 2: ABOUT US & CONTACTS (Clean Solid Look) */}
+        {/* VIEW 2: ABOUT US & CONTACTS (Compact 2-Column Layout, No Scroll) */}
         {/* ========================================================= */}
         {currentTab === 'about_contact' && (
-          <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-8">
-            {/* Top Stall Details Header */}
-            <section className="w-full bg-white border border-emerald-100 rounded-3xl p-6 sm:p-10 shadow-2xs">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="inline-flex items-center space-x-2 px-3.5 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-800 text-xs font-extrabold">
+          <main className="flex-1 w-full p-4 sm:p-6 lg:p-8">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column: Stall Profile & Details */}
+              <section className="lg:col-span-6 bg-white border border-emerald-100 rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-800 text-xs font-extrabold">
                     <Store className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Pitch 18 Pope's Road • Brixton Market Stall</span>
+                    <span>Pitch 18 Pope's Road • Brixton Market</span>
                   </div>
 
-                  <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                    Brixton's Premier Hub for <span className="text-emerald-700">Authentic Fresh Produce</span>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                    Top Fruit and Veg
                   </h2>
 
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
-                    Serving South London since 2010. We specialize in authentic African, Caribbean, and European
-                    fruits, vegetables, yams, and plantains direct from trusted organic growers.
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Brixton's trusted family produce stall. We supply fresh seasonal tropical fruits, root vegetables, yams, plantains, scotch bonnets, and seasonings daily.
                   </p>
+                </div>
 
-                  {/* 4 Stall Details Blocks */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 text-xs">
-                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
-                      <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-slate-900 block">Market Stall Location</span>
-                        <span className="text-slate-600">Pitch 18 Pope's Road, Brixton Market, London SW9 8PB</span>
-                      </div>
+                {/* 4 Compact Detail Rows */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="flex items-start space-x-2.5 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-900 block">Stall Location</span>
+                      <span className="text-slate-600 text-[11px]">Pitch 18 Pope's Road, Brixton SW9 8PB</span>
                     </div>
+                  </div>
 
-                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
-                      <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-slate-900 block">Telephone / Hotline</span>
-                        <a href="tel:+447449338679" className="text-emerald-700 font-extrabold hover:underline">
-                          +44 7449 338679
-                        </a>
-                      </div>
+                  <div className="flex items-start space-x-2.5 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-900 block">Phone Hotline</span>
+                      <a href="tel:+447449338679" className="text-emerald-700 font-extrabold hover:underline text-[11px]">
+                        +44 7449 338679
+                      </a>
                     </div>
+                  </div>
 
-                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
-                      <Clock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-slate-900 block">Opening Hours</span>
-                        <span className="text-slate-600">Mon–Sat: 8:00 AM – 6:30 PM | Sun: 9:00 AM – 5:00 PM</span>
-                      </div>
+                  <div className="flex items-start space-x-2.5 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <Clock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-900 block">Opening Hours</span>
+                      <span className="text-slate-600 text-[11px]">Mon–Sat: 8am–6:30pm | Sun: 9am–5pm</span>
                     </div>
+                  </div>
 
-                    <div className="flex items-start space-x-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold text-slate-900 block">Live Stall Stock</span>
-                        <span className="text-emerald-700 font-bold">{products.length} fruit & veg varieties stocked today</span>
-                      </div>
+                  <div className="flex items-start space-x-2.5 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-slate-900 block">Produce In Stock</span>
+                      <span className="text-emerald-700 font-bold text-[11px]">{products.length} Fresh Varieties</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 bg-emerald-50 border border-emerald-200 rounded-3xl p-6 sm:p-8 text-center space-y-4 shadow-2xs">
-                  <div className="w-14 h-14 rounded-2xl bg-green-600 flex items-center justify-center text-white mx-auto text-2xl shadow-sm">
-                    <MessageCircle className="w-7 h-7" />
+                {/* Direct WhatsApp Callout */}
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="font-bold text-xs text-slate-900 block">Click & Collect via WhatsApp</span>
+                    <span className="text-[11px] text-slate-600 block">Pre-order bags or wholesale boxes for fast pickup</span>
                   </div>
-                  <h3 className="text-xl font-extrabold text-slate-900">Direct WhatsApp Pre-Order</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Message us with your produce list for swift click & collect at Pitch 18 or wholesale carton orders.
-                  </p>
                   <a
-                    href="https://wa.me/447449338679?text=Hello%20Top%20Fruits%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20a%20produce%20order."
+                    href="https://wa.me/447449338679?text=Hello%20Top%20Fruit%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20an%20order."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 px-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-xs font-extrabold flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-sm"
+                    className="py-2 px-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shrink-0 transition-colors shadow-xs"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Open WhatsApp (+44 7449 338679)</span>
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>WhatsApp</span>
                   </a>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            {/* Our Story, Heritage & Core Values */}
-            <section className="w-full grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-6 bg-white border border-emerald-100 rounded-3xl space-y-3 shadow-2xs">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl">
-                  <Heart className="w-6 h-6" />
-                </div>
-                <h4 className="font-extrabold text-lg text-slate-900">Uncompromising Freshness</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Every crate of mangoes, plantains, scotch bonnets, and tubers is hand-inspected daily for peak ripeness and flavor.
-                </p>
-              </div>
-
-              <div className="p-6 bg-white border border-emerald-100 rounded-3xl space-y-3 shadow-2xs">
-                <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl">
-                  <Globe className="w-6 h-6" />
-                </div>
-                <h4 className="font-extrabold text-lg text-slate-900">Global Farm Partners</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Direct relationships with smallholder family farms in Ghana, Nigeria, Jamaica, Uganda, and local British growers.
-                </p>
-              </div>
-
-              <div className="p-6 bg-white border border-emerald-100 rounded-3xl space-y-3 shadow-2xs">
-                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
-                  <Handshake className="w-6 h-6" />
-                </div>
-                <h4 className="font-extrabold text-lg text-slate-900">Community Trust</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Transparent weights, honest pricing, and friendly market service to all our South London neighbors.
-                </p>
-              </div>
-            </section>
-
-            {/* Interactive Contact & Message Form */}
-            <section className="w-full bg-white border border-emerald-100 rounded-3xl p-6 sm:p-8 shadow-2xs">
-              <div className="max-w-3xl mx-auto space-y-6">
-                <div className="text-center space-y-1">
-                  <h3 className="text-2xl font-extrabold text-slate-900">Send Us a Direct Message</h3>
-                  <p className="text-xs text-slate-600">
-                    Have questions about seasonal fruit arrivals, wholesale crates, or order reservations?
+              {/* Right Column: Direct Message Form */}
+              <section className="lg:col-span-6 bg-white border border-emerald-100 rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
+                <div className="space-y-1">
+                  <h3 className="text-xl font-extrabold text-slate-900">Send Stall Message</h3>
+                  <p className="text-xs text-slate-500">
+                    Have questions about seasonal fruit availability or bulk wholesale crates?
                   </p>
                 </div>
 
                 {contactSuccess && (
-                  <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-emerald-800 text-xs flex items-center space-x-2 animate-in fade-in">
+                  <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-800 text-xs flex items-center space-x-2 animate-in fade-in">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Thank you! Your message has been received. Our team will contact you shortly.</span>
+                    <span>Message received! We will contact you shortly.</span>
                   </div>
                 )}
 
                 {contactError && (
-                  <div className="p-4 bg-rose-50 border border-rose-300 rounded-2xl text-rose-800 text-xs flex items-center space-x-2 animate-in fade-in">
+                  <div className="p-3 bg-rose-50 border border-rose-300 rounded-xl text-rose-800 text-xs flex items-center space-x-2 animate-in fade-in">
                     <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                     <span>{contactError}</span>
                   </div>
                 )}
 
-                <form onSubmit={handleContactSubmit} className="space-y-4">
+                <form onSubmit={handleContactSubmit} className="space-y-3">
                   {/* Honeypot Bot Trap Field */}
                   <div className="hidden" aria-hidden="true" style={{ display: 'none', opacity: 0, position: 'absolute', left: '-9999px' }}>
                     <label htmlFor="website_hp_sidebar">Website</label>
@@ -878,84 +840,70 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Your Name *</label>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Your Name *</label>
                       <input
                         type="text"
                         required
                         value={contactForm.name}
                         onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                         placeholder="e.g. Samuel Ade"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Email Address *</label>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Email / Phone *</label>
                       <input
-                        type="email"
+                        type="text"
                         required
                         value={contactForm.email}
                         onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                        placeholder="name@example.com"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                        placeholder="email@example.com or phone"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                       />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number (Optional)</label>
-                      <input
-                        type="tel"
-                        value={contactForm.phone}
-                        onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                        placeholder="+44 7123 456789"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Subject</label>
-                      <select
-                        value={contactForm.subject}
-                        onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
-                      >
-                        <option value="">Select inquiry topic...</option>
-                        <option value="Product Availability">Product / Seasonal Fruit Availability</option>
-                        <option value="Wholesale Crates">Wholesale / Bulk Crate Inquiries</option>
-                        <option value="Click and Collect">Click & Collect Pickup</option>
-                        <option value="General Question">General Stall Question</option>
-                      </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Message *</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Subject</label>
+                    <select
+                      value={contactForm.subject}
+                      onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                    >
+                      <option value="Product Availability">Product / Seasonal Fruit Availability</option>
+                      <option value="Wholesale Crates">Wholesale / Bulk Crate Inquiries</option>
+                      <option value="Click and Collect">Click & Collect Pickup</option>
+                      <option value="General Question">General Stall Question</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Message *</label>
                     <textarea
-                      rows={4}
+                      rows={3}
                       required
                       value={contactForm.message}
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                      placeholder="Let us know what fruits or quantities you need..."
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                      placeholder="Let us know what produce or quantities you need..."
+                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                     />
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="flex justify-end pt-1">
                     <button
                       type="submit"
-                      className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center space-x-2 transition-all cursor-pointer shadow-xs"
+                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer shadow-xs"
                     >
-                      <Send className="w-4 h-4" />
-                      <span>Send Direct Stall Message</span>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Send Message</span>
                     </button>
                   </div>
                 </form>
-              </div>
-            </section>
+              </section>
+            </div>
           </main>
         )}
       </div>
