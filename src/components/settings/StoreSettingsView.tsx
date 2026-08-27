@@ -415,9 +415,9 @@ export const StoreSettingsView: React.FC = () => {
                 <input
                   type="text"
                   maxLength={6}
-                  value={formState.adminPin || '1234'}
+                  value={formState.adminPin || '091825'}
                   onChange={(e) => setFormState({ ...formState, adminPin: e.target.value })}
-                  placeholder="1234"
+                  placeholder="091825"
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-indigo-500"
                 />
                 <span className="text-[10px] text-slate-400">Used to unlock Financial Reports and Settings.</span>

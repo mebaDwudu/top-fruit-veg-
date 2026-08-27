@@ -20,7 +20,7 @@ export const INITIAL_STAFF: StaffMember[] = [
     id: 'staff-boss-1',
     name: 'Masgana',
     role: 'admin',
-    pin: '1234',
+    pin: '091825',
     email: 'Mesgnabahta68@gmail.com',
     phone: '+44 7449 338679',
     avatarColor: 'bg-emerald-600',
@@ -56,7 +56,7 @@ export const INITIAL_USERS: UserAccount[] = [
     role: 'admin',
     status: 'Active',
     lastLogin: 'Today, Just now',
-    pin: '1234',
+    pin: '091825',
     email: 'Mesgnabahta68@gmail.com',
   },
   {

@@ -129,8 +129,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       setPin(nextPin);
       setError(null);
 
-      // Auto-submit on 4th digit
-      if (nextPin.length === 4) {
+      const targetLength = selectedStaff?.pin?.length || (selectedStaff?.role === 'admin' ? 6 : 4);
+
+      // Auto-submit when length reached or matches
+      if (
+        nextPin.length === targetLength ||
+        nextPin === selectedStaff?.pin ||
+        (selectedStaff?.role === 'admin' && nextPin === '091825')
+      ) {
         attemptLogin(selectedStaffId, nextPin);
       }
     }
@@ -357,14 +363,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </span>
             </div>
             <div className="text-[11px] text-slate-400 font-mono">
-              PINs: Boss (<span className="text-indigo-400">1234</span>) • C1 (<span className="text-emerald-400">1111</span>) • C2 (<span className="text-teal-400">2222</span>)
+              PINs: Boss (<span className="text-indigo-400">091825</span>) • C1 (<span className="text-emerald-400">1111</span>) • C2 (<span className="text-teal-400">2222</span>)
             </div>
           </div>
         </div>
 
         {/* Right Column: PIN Keypad for Active Selected Account */}
         <div className="lg:col-span-5">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
+          <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-[32px] p-6 sm:p-8 shadow-2xl space-y-6 text-center">
             {/* Active User Header */}
             <div>
               <div className="inline-flex items-center justify-center space-x-2 mb-2">
@@ -389,8 +395,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
             {/* PIN Dots Display */}
             <div className="space-y-2">
-              <div className="flex justify-center space-x-3.5 py-1">
-                {[0, 1, 2, 3].map((idx) => {
+              <div className="flex justify-center space-x-3 sm:space-x-3.5 py-1">
+                {Array.from({
+                  length: selectedStaff.pin?.length || (selectedStaff.role === 'admin' ? 6 : 4),
+                }).map((_, idx) => {
                   const isFilled = pin.length > idx;
                   return (
                     <div
@@ -415,8 +423,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 </div>
               ) : (
                 <p className="text-[11px] text-slate-400">
-                  Enter 4-digit PIN for {selectedStaff.name.split(' ')[0]} (Default:{' '}
-                  <span className="font-mono font-bold text-white">{selectedStaff.pin}</span>)
+                  Enter {selectedStaff.pin?.length || (selectedStaff.role === 'admin' ? '6-digit' : '4-digit')} PIN for {selectedStaff.name.split(' ')[0]} (Default:{' '}
+                  <span className="font-mono font-bold text-white">{selectedStaff.pin || '091825'}</span>)
                 </p>
               )}
             </div>

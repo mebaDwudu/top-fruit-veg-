@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { AnalyticsDashboard } from '../analytics/AnalyticsDashboard';
 import { InventoryManager } from '../inventory/InventoryManager';
@@ -35,6 +35,11 @@ import {
   ShoppingBag,
   Star,
   MessageSquare,
+  Eye,
+  EyeOff,
+  Delete,
+  Shield,
+  Fingerprint,
 } from 'lucide-react';
 
 interface AdminPortalProps {
@@ -76,6 +81,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Boss PIN Gate state
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
+  const [showPin, setShowPin] = useState(false);
 
   const pendingCustomerOrdersCount = useMemo(
     () => customerOrders.filter((o) => o.status === 'pending').length,
@@ -121,23 +127,72 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     [customers]
   );
 
-  const handleUnlockWithPin = (e?: React.FormEvent) => {
+  const handleUnlockWithPin = (customPin?: string, e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const cleanPin = pinInput.trim();
+    const pinToTest = (customPin !== undefined ? customPin : pinInput).trim();
     if (
-      cleanPin === (settings.bossPin || '1234') ||
-      cleanPin === '1234' ||
-      cleanPin === '9999' ||
-      cleanPin === '0000'
+      pinToTest === '091825' ||
+      pinToTest === (settings.adminPin || '091825') ||
+      pinToTest === (settings.bossPin || '091825') ||
+      pinToTest === '1234' ||
+      pinToTest === '9999' ||
+      pinToTest === '0000'
     ) {
       setDirectRole('admin');
       setPinError(false);
       setPinInput('');
     } else {
       setPinError(true);
-      setPinInput('');
     }
   };
+
+  const handleKeypadPress = (digit: string) => {
+    if (pinInput.length < 6) {
+      const nextPin = pinInput + digit;
+      setPinInput(nextPin);
+      setPinError(false);
+
+      if (
+        nextPin === '091825' ||
+        nextPin === settings.adminPin ||
+        (nextPin.length === 6 && (nextPin === '091825' || nextPin === settings.adminPin || nextPin === '1234'))
+      ) {
+        handleUnlockWithPin(nextPin);
+      }
+    }
+  };
+
+  const handleKeypadBackspace = () => {
+    setPinInput((prev) => prev.slice(0, -1));
+    setPinError(false);
+  };
+
+  const handleKeypadClear = () => {
+    setPinInput('');
+    setPinError(false);
+  };
+
+  // Keyboard listener for PIN entry
+  useEffect(() => {
+    if (currentRole === 'admin') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        handleKeypadPress(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleKeypadBackspace();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        handleUnlockWithPin();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentRole, pinInput, settings.adminPin, settings.bossPin]);
 
   // Nav item list for clean left sidebar
   const navItems: {
@@ -229,81 +284,214 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     },
   ];
 
-  // 1. BOSS ADMIN LOGIN SCREEN (Same clean emerald-50/40 background as customer storefront)
+  // 1. BOSS ADMIN LOGIN SCREEN (Curved Rectangle Card & Ambient Background)
   if (currentRole !== 'admin') {
     return (
-      <div className="min-h-screen w-full bg-emerald-50/40 text-slate-900 flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-white font-sans">
-        <div className="w-full max-w-md bg-white border border-emerald-200/80 rounded-3xl p-6 sm:p-8 shadow-xl relative z-10 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center text-white mx-auto shadow-md">
-              <ShieldCheck className="w-8 h-8" />
-            </div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-              Admin & Boss Portal
-            </h2>
-            <p className="text-xs text-slate-500 font-medium">
-              {settings.storeName || 'Top Fruits and Veg'} • Pitch 18 Brixton Market
-            </p>
-          </div>
+      <div className="min-h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/90 text-slate-100 flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden font-sans selection:bg-emerald-500 selection:text-white">
+        {/* Ambient Decorative Lighting & Grid Mesh */}
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 text-xs text-slate-700 space-y-2">
-            <div className="flex items-center space-x-2 text-emerald-800 font-bold">
-              <Lock className="w-4 h-4 text-emerald-700" />
-              <span>Admin PIN Authentication Required</span>
-            </div>
-            <p className="text-slate-600 leading-relaxed">
-              Enter your master PIN to access inventory, sales reports, supplier purchase orders, and profit margins.
-            </p>
-          </div>
+        {/* Subtle Organic Background Grid Pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 1px 1px, #10b981 1px, transparent 0)',
+            backgroundSize: '28px 28px',
+          }}
+        />
 
-          <form onSubmit={handleUnlockWithPin} className="space-y-4">
+        {/* Top Return Link */}
+        <div className="w-full max-w-md flex items-center justify-between mb-4 relative z-10 px-2">
+          <button
+            onClick={onSwitchToStorefront}
+            className="text-xs font-bold text-slate-400 hover:text-emerald-400 flex items-center space-x-1.5 transition-colors cursor-pointer group"
+          >
+            <Globe className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition-colors" />
+            <span>← Return to Customer Storefront</span>
+          </button>
+          <span className="text-[11px] font-semibold text-emerald-400/80 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 rounded-full">
+            Pitch 18 Brixton
+          </span>
+        </div>
+
+        {/* Curved Rectangle Admin Card */}
+        <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-2xl border border-emerald-500/30 rounded-[32px] sm:rounded-[36px] p-6 sm:p-8 shadow-2xl shadow-emerald-950/80 relative z-10 space-y-5 ring-1 ring-white/10 animate-in fade-in zoom-in-95 duration-200">
+          {/* Header & Logo */}
+          <div className="text-center space-y-2.5">
+            <div className="relative inline-block">
+              <div className="w-16 h-16 rounded-[22px] bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-400 flex items-center justify-center text-white mx-auto shadow-lg shadow-emerald-600/30 ring-4 ring-emerald-500/20">
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+              <span className="absolute -bottom-1 -right-1 bg-amber-500 text-slate-950 p-1 rounded-full text-[10px] shadow-xs">
+                🥭
+              </span>
+            </div>
+
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Enter Master PIN (Default: 9999 or 1234)
-              </label>
-              <input
-                type="password"
-                maxLength={6}
-                value={pinInput}
-                onChange={(e) => {
-                  setPinInput(e.target.value);
-                  setPinError(false);
-                }}
-                autoFocus
-                placeholder="••••"
-                className={`w-full text-center tracking-[0.5em] text-2xl py-3 px-4 bg-white border rounded-2xl text-slate-900 font-mono focus:outline-hidden transition-colors ${
-                  pinError
-                    ? 'border-rose-500 ring-2 ring-rose-400/30'
-                    : 'border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20'
-                }`}
-              />
-              {pinError && (
-                <p className="text-rose-600 text-xs font-bold mt-1.5 text-center">
-                  Incorrect PIN. Please enter 9999 or 1234.
-                </p>
-              )}
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                {settings.storeName || 'Top Fruit and Veg'}
+              </h2>
+              <p className="text-xs text-emerald-400 font-semibold mt-0.5 flex items-center justify-center gap-1.5">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Admin & Boss Management Portal</span>
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Pitch 18 Pope's Road, Brixton Market, London SW9 8PB
+              </p>
+            </div>
+          </div>
+
+          {/* 6-Digit PIN Visual Display */}
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center justify-between text-xs px-1">
+              <span className="text-slate-300 font-bold flex items-center space-x-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Enter Master PIN</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPin(!showPin)}
+                className="text-[11px] font-semibold text-slate-400 hover:text-emerald-300 flex items-center space-x-1 transition-colors cursor-pointer"
+              >
+                {showPin ? (
+                  <>
+                    <EyeOff className="w-3.5 h-3.5" />
+                    <span>Hide PIN</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Show PIN</span>
+                  </>
+                )}
+              </button>
             </div>
 
+            {/* 6 Digit Curved Slots */}
+            <div className="flex items-center justify-center gap-2 sm:gap-2.5 py-1">
+              {[0, 1, 2, 3, 4, 5].map((index) => {
+                const hasDigit = pinInput.length > index;
+                const isCurrent = pinInput.length === index;
+                const digitChar = pinInput[index];
+
+                return (
+                  <div
+                    key={index}
+                    className={`w-11 h-13 sm:w-12 sm:h-14 rounded-2xl flex items-center justify-center text-lg sm:text-xl font-mono font-bold transition-all duration-150 border ${
+                      hasDigit
+                        ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300 shadow-md shadow-emerald-900/30'
+                        : isCurrent
+                        ? 'bg-slate-800/80 border-emerald-400 ring-2 ring-emerald-500/30 text-slate-400 animate-pulse'
+                        : 'bg-slate-800/40 border-slate-700/70 text-slate-600'
+                    }`}
+                  >
+                    {hasDigit ? (
+                      showPin ? (
+                        <span>{digitChar}</span>
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400/50" />
+                      )
+                    ) : isCurrent ? (
+                      <div className="w-1.5 h-4 bg-emerald-400/60 rounded-full animate-pulse" />
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Error Message */}
+            {pinError && (
+              <div className="bg-rose-950/80 border border-rose-800 text-rose-300 px-3.5 py-2 rounded-xl text-xs font-semibold text-center animate-in fade-in flex items-center justify-center space-x-1.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+                <span>Incorrect PIN. Please enter master PIN: 091825</span>
+              </div>
+            )}
+          </div>
+
+          {/* Tactile Numeric Keypad */}
+          <div className="grid grid-cols-3 gap-2.5 pt-1">
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+              <button
+                key={num}
+                type="button"
+                id={`btn-keypad-${num}`}
+                onClick={() => handleKeypadPress(num)}
+                className="h-12 sm:h-13 bg-slate-800/80 hover:bg-emerald-600/25 active:bg-emerald-600/40 border border-slate-700/70 hover:border-emerald-500/60 text-white font-extrabold text-lg rounded-2xl transition-all active:scale-95 shadow-xs cursor-pointer flex items-center justify-center"
+              >
+                {num}
+              </button>
+            ))}
+
+            {/* Clear Button */}
             <button
-              type="submit"
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl text-sm transition-all shadow-md shadow-emerald-700/20 cursor-pointer flex items-center justify-center space-x-2"
+              type="button"
+              id="btn-keypad-clear"
+              onClick={handleKeypadClear}
+              className="h-12 sm:h-13 bg-slate-800/50 hover:bg-rose-900/30 border border-slate-700/70 hover:border-rose-600/40 text-slate-400 hover:text-rose-300 font-bold text-xs rounded-2xl transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+            >
+              Clear
+            </button>
+
+            {/* Zero Button */}
+            <button
+              type="button"
+              id="btn-keypad-0"
+              onClick={() => handleKeypadPress('0')}
+              className="h-12 sm:h-13 bg-slate-800/80 hover:bg-emerald-600/25 active:bg-emerald-600/40 border border-slate-700/70 hover:border-emerald-500/60 text-white font-extrabold text-lg rounded-2xl transition-all active:scale-95 shadow-xs cursor-pointer flex items-center justify-center"
+            >
+              0
+            </button>
+
+            {/* Backspace Button */}
+            <button
+              type="button"
+              id="btn-keypad-backspace"
+              onClick={handleKeypadBackspace}
+              className="h-12 sm:h-13 bg-slate-800/50 hover:bg-slate-700/70 border border-slate-700/70 hover:border-slate-600 text-slate-300 font-bold text-sm rounded-2xl transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+            >
+              ⌫
+            </button>
+          </div>
+
+          {/* Quick Actions & Submit */}
+          <div className="space-y-3 pt-1">
+            <button
+              type="button"
+              id="btn-unlock-admin"
+              onClick={() => handleUnlockWithPin()}
+              className="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl text-sm transition-all shadow-lg shadow-emerald-700/30 cursor-pointer flex items-center justify-center space-x-2 active:scale-[0.99]"
             >
               <KeyRound className="w-4 h-4" />
               <span>Unlock Admin Portal</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
-          </form>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-            <button
-              onClick={onSwitchToStorefront}
-              className="text-emerald-700 hover:text-emerald-900 font-bold transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>Open Customer Storefront</span>
-            </button>
-            <span className="text-[11px] text-slate-400 font-medium">Pitch 18 Brixton</span>
+            {/* Quick Master PIN Hint Pill */}
+            <div className="flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setPinInput('091825');
+                  setPinError(false);
+                  handleUnlockWithPin('091825');
+                }}
+                className="text-[11px] text-slate-400 hover:text-emerald-400 transition-colors font-medium bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 px-3 py-1 rounded-full cursor-pointer flex items-center space-x-1.5"
+              >
+                <span>Master Boss PIN:</span>
+                <span className="font-mono font-bold text-emerald-400">091825</span>
+                <span className="text-slate-500 text-[10px]">(Click to Autofill)</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Footer details */}
+        <p className="text-center text-[11px] text-slate-500 mt-4 relative z-10">
+          Top Fruit and Veg POS & Management Terminal • Pitch 18 Pope's Road London
+        </p>
       </div>
     );
   }

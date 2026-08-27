@@ -16,7 +16,7 @@ export const PinAuthModal: React.FC<PinAuthModalProps> = ({
   onClose,
   onSuccess,
   title = 'Boss / Admin Authentication Required',
-  description = 'Enter your 4-digit Boss Admin PIN to unlock management views, cost margins, and reports.',
+  description = 'Enter your Master Boss PIN (091825) to unlock management views, cost margins, and reports.',
 }) => {
   const { verifyAdminPin, staffMembers, settings } = useStore();
   const [pin, setPin] = useState('');
@@ -57,25 +57,23 @@ export const PinAuthModal: React.FC<PinAuthModalProps> = ({
       setPin(newPin);
       setError(null);
 
-      // Auto check when 4 digits
-      if (newPin.length >= 4) {
-        if (verifyAdminPin(newPin)) {
-          resetRateLimit('admin-pin-auth');
-          setTimeout(() => {
-            onSuccess();
-            onClose();
-            setPin('');
-          }, 150);
-        } else {
-          const attempt = recordFailedAttempt('admin-pin-auth');
-          if (attempt.isLocked) {
-            setLockoutRemaining(attempt.remainingSeconds);
-            setError(`Account temporarily locked for ${attempt.remainingSeconds}s due to 5 failed attempts.`);
-          } else {
-            setError(`Invalid PIN. (${attempt.attemptsLeft} attempts remaining)`);
-          }
+      // Check if valid PIN matched
+      if (verifyAdminPin(newPin)) {
+        resetRateLimit('admin-pin-auth');
+        setTimeout(() => {
+          onSuccess();
+          onClose();
           setPin('');
+        }, 150);
+      } else if (newPin.length >= 6) {
+        const attempt = recordFailedAttempt('admin-pin-auth');
+        if (attempt.isLocked) {
+          setLockoutRemaining(attempt.remainingSeconds);
+          setError(`Account temporarily locked for ${attempt.remainingSeconds}s due to 5 failed attempts.`);
+        } else {
+          setError(`Invalid PIN. (${attempt.attemptsLeft} attempts remaining)`);
         }
+        setPin('');
       }
     }
   };

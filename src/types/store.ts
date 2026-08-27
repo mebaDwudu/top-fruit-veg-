@@ -215,6 +215,7 @@ export interface StoreSettings {
   enableSoundEffects: boolean;
   cashierName: string;
   adminPin: string;
+  bossPin?: string;
   cashierPin: string;
   allowCashierRefunds: boolean;
   allowCashierDiscounts: boolean;
