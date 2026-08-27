@@ -4,6 +4,7 @@ import { Product } from '../../types/store';
 import { getProduceMeta } from '../../utils/produceImages';
 import { ProductDetailModal } from './ProductDetailModal';
 import { CustomerCartDrawer, CustomerCartItem } from './CustomerCartDrawer';
+import { CustomerFeedbackModal } from '../modals/CustomerFeedbackModal';
 import { ShareStoreModal } from '../modals/ShareStoreModal';
 import { sanitizeText, sanitizeEmail, sanitizePhone } from '../../utils/sanitize';
 import { validateHumanSubmission } from '../../utils/security';
@@ -28,6 +29,7 @@ import {
   X,
   Plus,
   Minus,
+  Star,
 } from 'lucide-react';
 
 interface CustomerStorefrontProps {
@@ -37,7 +39,7 @@ interface CustomerStorefrontProps {
 type CustomerPageTab = 'home' | 'about_contact';
 
 export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
-  const { products, categories, formatCurrency } = useStore();
+  const { products, categories, formatCurrency, settings } = useStore();
 
   // Navigation & view state
   const [currentTab, setCurrentTab] = useState<CustomerPageTab>('home');
@@ -52,7 +54,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartItems, setCartItems] = useState<CustomerCartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  const showPrices = settings.showPricesToCustomers ?? false;
 
   // Contact Form State
   const [contactForm, setContactForm] = useState({
@@ -292,7 +297,54 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
                 </span>
               </button>
 
-              {/* Button 2: About Us & Contacts */}
+              {/* Button 2: Place Order / Basket */}
+              <button
+                id="customer-nav-basket"
+                onClick={() => {
+                  setIsCartOpen(true);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <ShoppingBag className="w-4 h-4 text-amber-600" />
+                  <span>Order List</span>
+                </div>
+                {totalCartCount > 0 ? (
+                  <div className="flex items-center space-x-1.5">
+                    <span className="px-2 py-0.5 bg-amber-500 text-white rounded-full text-[10px] font-extrabold">
+                      {totalCartCount}
+                    </span>
+                    {showPrices && (
+                      <span className="text-[11px] text-amber-900 font-extrabold">
+                        {formatCurrency(cartSubtotal)}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-[10px] text-slate-400">0 items</span>
+                )}
+              </button>
+
+              {/* Button 3: Customer Feedback */}
+              <button
+                id="customer-nav-feedback"
+                onClick={() => {
+                  setIsFeedbackModalOpen(true);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                  <span>Leave Feedback</span>
+                </div>
+                <span className="text-[10px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full border border-amber-200">
+                  Review
+                </span>
+              </button>
+
+              {/* Button 4: About Us & Contacts */}
               <button
                 id="customer-nav-about-contact"
                 onClick={() => {
@@ -307,38 +359,11 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
               >
                 <div className="flex items-center space-x-2.5">
                   <span className="text-lg">📍</span>
-                  <span>About Us & Contacts</span>
+                  <span>About & Contact</span>
                 </div>
                 <span className="text-[10px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 font-extrabold">
                   Pitch 18
                 </span>
-              </button>
-
-              {/* Button 3: Shopping Basket Trigger */}
-              <button
-                id="customer-nav-basket"
-                onClick={() => {
-                  setIsCartOpen(true);
-                  setIsMobileSidebarOpen(false);
-                }}
-                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="flex items-center space-x-2.5">
-                  <ShoppingBag className="w-4 h-4 text-amber-600" />
-                  <span>My Basket</span>
-                </div>
-                {totalCartCount > 0 ? (
-                  <div className="flex items-center space-x-1.5">
-                    <span className="px-2 py-0.5 bg-amber-500 text-white rounded-full text-[10px] font-extrabold">
-                      {totalCartCount}
-                    </span>
-                    <span className="text-[11px] text-amber-900 font-extrabold">
-                      {formatCurrency(cartSubtotal)}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-[10px] text-slate-400">0 items</span>
-                )}
               </button>
             </nav>
           </div>
@@ -418,7 +443,17 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
 
           {/* Top Right Actions */}
           <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Direct WhatsApp Call */}
+            {/* Customer Feedback Button in Header */}
+            <button
+              id="header-btn-feedback"
+              onClick={() => setIsFeedbackModalOpen(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 text-xs font-extrabold transition-all shadow-2xs cursor-pointer"
+            >
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+              <span>Feedback</span>
+            </button>
+
+            {/* Direct Stall Call */}
             <a
               href="tel:+447449338679"
               className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-extrabold transition-all shadow-2xs"
@@ -429,11 +464,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
 
             {/* Shopping Basket Drawer Trigger */}
             <button
+              id="header-btn-orders"
               onClick={() => setIsCartOpen(true)}
-              className="relative py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-extrabold flex items-center space-x-2 transition-all shadow-xs cursor-pointer active:scale-95"
+              className="relative py-2 px-3.5 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-extrabold flex items-center space-x-2 transition-all shadow-xs cursor-pointer active:scale-95"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span className="hidden sm:inline">Basket</span>
+              <span>Orders</span>
               {totalCartCount > 0 && (
                 <span className="px-1.5 py-0.5 bg-white text-emerald-800 rounded-full text-[11px] font-black leading-none shadow-xs">
                   {totalCartCount}
@@ -562,8 +598,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
                   >
                     <option value="name_asc">Sort: A–Z</option>
                     <option value="name_desc">Sort: Z–A</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
+                    {showPrices && (
+                      <>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                      </>
+                    )}
                     <option value="newest">Sort: New Arrivals</option>
                   </select>
                 </div>
@@ -667,12 +707,25 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
 
                           <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
                             <div>
-                              <div className="text-sm sm:text-base font-black text-slate-900">
-                                {formatCurrency(prod.sellingPrice)}
-                              </div>
-                              <div className="text-[9px] sm:text-[10px] text-slate-400 font-bold">
-                                per {prod.unit || 'kg'}
-                              </div>
+                              {showPrices ? (
+                                <>
+                                  <div className="text-sm sm:text-base font-black text-slate-900">
+                                    {formatCurrency(prod.sellingPrice)}
+                                  </div>
+                                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-bold">
+                                    per {prod.unit || 'kg'}
+                                  </div>
+                                </>
+                              ) : (
+                                <div>
+                                  <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
+                                    per {prod.unit || 'kg'}
+                                  </span>
+                                  <div className="text-[9px] text-slate-400 font-medium mt-0.5">
+                                    Pitch 18 Fresh
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             {/* Add / Quantity Stepper Button */}
@@ -906,11 +959,61 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
             </div>
           </main>
         )}
+
+        {/* Minimal Storefront Footer */}
+        <footer className="mt-auto border-t border-emerald-100 bg-white/90 px-4 sm:px-6 lg:px-8 py-4 text-slate-600">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="flex items-center space-x-2 text-center sm:text-left">
+              <span className="text-base">🥭</span>
+              <div>
+                <span className="font-extrabold text-slate-900">Top Fruit and Veg</span>
+                <span className="text-slate-400 mx-1.5">•</span>
+                <span>Pitch 18 Pope's Road, Brixton Market, London SW9 8PB</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <button
+                id="footer-btn-feedback"
+                onClick={() => setIsFeedbackModalOpen(true)}
+                className="text-amber-800 hover:text-amber-950 font-extrabold flex items-center space-x-1 cursor-pointer bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition-colors shadow-2xs"
+              >
+                <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                <span>Leave Feedback</span>
+              </button>
+
+              <button
+                id="footer-btn-orders"
+                onClick={() => setIsCartOpen(true)}
+                className="text-emerald-800 hover:text-emerald-950 font-extrabold flex items-center space-x-1 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors shadow-2xs"
+              >
+                <ShoppingBag className="w-3 h-3 text-emerald-600" />
+                <span>Order List ({totalCartCount})</span>
+              </button>
+
+              <a
+                href="https://wa.me/447449338679"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center space-x-1 px-2 py-1 hover:bg-slate-50 rounded-lg transition-colors"
+              >
+                <MessageCircle className="w-3 h-3" />
+                <span>WhatsApp Stall</span>
+              </a>
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* ========================================================= */}
       {/* 3. MODALS & DRAWERS */}
       {/* ========================================================= */}
+
+      {/* Customer Feedback Modal */}
+      <CustomerFeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
 
       {/* Product Detail Modal */}
       {selectedProduct && (
@@ -924,7 +1027,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = () => {
         />
       )}
 
-      {/* Shopping Bag Slide-Over Drawer */}
+      {/* Shopping Bag / Order List Slide-Over Drawer */}
       <CustomerCartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}

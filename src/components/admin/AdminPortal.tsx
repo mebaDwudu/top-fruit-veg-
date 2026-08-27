@@ -6,6 +6,8 @@ import { SalesHistory } from '../orders/SalesHistory';
 import { SupplierManager } from '../suppliers/SupplierManager';
 import { CustomerManager } from '../customers/CustomerManager';
 import { StoreSettingsView } from '../settings/StoreSettingsView';
+import { CustomerOrdersView } from './CustomerOrdersView';
+import { CustomerFeedbackView } from './CustomerFeedbackView';
 import { ShareStoreModal } from '../modals/ShareStoreModal';
 import {
   ShieldCheck,
@@ -30,6 +32,9 @@ import {
   ExternalLink,
   Store,
   Sparkles,
+  ShoppingBag,
+  Star,
+  MessageSquare,
 } from 'lucide-react';
 
 interface AdminPortalProps {
@@ -38,6 +43,8 @@ interface AdminPortalProps {
 
 export type AdminSection =
   | 'overview'
+  | 'orders'
+  | 'feedback'
   | 'inventory'
   | 'sales'
   | 'suppliers'
@@ -55,6 +62,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     orders,
     customers,
     suppliers,
+    customerOrders,
+    feedbacks,
     lowStockProducts,
     outOfStockProducts,
     formatCurrency,
@@ -67,6 +76,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Boss PIN Gate state
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
+
+  const pendingCustomerOrdersCount = useMemo(
+    () => customerOrders.filter((o) => o.status === 'pending').length,
+    [customerOrders]
+  );
+  const newFeedbacksCount = useMemo(
+    () => feedbacks.filter((f) => f.status === 'new').length,
+    [feedbacks]
+  );
 
   // Financial aggregates
   const completedOrders = useMemo(
@@ -135,6 +153,38 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       label: 'Overview & Reports',
       description: 'Key metrics & performance',
       icon: <BarChart3 className="w-5 h-5" />,
+    },
+    {
+      id: 'orders',
+      label: 'Customer Orders',
+      description: 'Storefront reservations',
+      icon: <ShoppingBag className="w-5 h-5" />,
+      badge:
+        pendingCustomerOrdersCount > 0
+          ? `${pendingCustomerOrdersCount} Pending`
+          : customerOrders.length > 0
+          ? customerOrders.length
+          : undefined,
+      badgeColor:
+        pendingCustomerOrdersCount > 0
+          ? 'bg-amber-500 text-white font-black'
+          : 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      id: 'feedback',
+      label: 'Customer Feedback',
+      description: 'Reviews & star ratings',
+      icon: <Star className="w-5 h-5" />,
+      badge:
+        newFeedbacksCount > 0
+          ? `${newFeedbacksCount} New`
+          : feedbacks.length > 0
+          ? feedbacks.length
+          : undefined,
+      badgeColor:
+        newFeedbacksCount > 0
+          ? 'bg-amber-500 text-white font-black'
+          : 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
       id: 'inventory',
@@ -538,6 +588,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
                 <AnalyticsDashboard />
               </div>
+            </div>
+          )}
+
+          {/* CUSTOMER STOREFRONT ORDERS */}
+          {activeSection === 'orders' && (
+            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+              <CustomerOrdersView />
+            </div>
+          )}
+
+          {/* CUSTOMER FEEDBACK & REVIEWS */}
+          {activeSection === 'feedback' && (
+            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+              <CustomerFeedbackView />
             </div>
           )}
 

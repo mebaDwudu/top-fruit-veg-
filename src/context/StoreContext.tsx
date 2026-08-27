@@ -18,6 +18,8 @@ import {
   AdminTab,
   CashierTab,
   ActiveTab,
+  CustomerFeedback,
+  CustomerOnlineOrder,
 } from '../types/store';
 import {
   INITIAL_CATEGORIES,
@@ -33,6 +35,8 @@ import {
   INITIAL_EXPENSES,
   INITIAL_AUDIT_LOGS,
   INITIAL_USERS,
+  INITIAL_CUSTOMER_ORDERS,
+  INITIAL_FEEDBACKS,
 } from '../data/initialData';
 import confetti from 'canvas-confetti';
 
@@ -148,6 +152,28 @@ interface StoreContextType {
   openShift: (startingCash: number) => void;
   closeShift: (actualCashInDrawer: number, notes?: string) => void;
 
+  // Customer Online Orders
+  customerOrders: CustomerOnlineOrder[];
+  addCustomerOrder: (
+    order: Omit<CustomerOnlineOrder, 'id' | 'createdAt' | 'orderNumber' | 'status'>
+  ) => CustomerOnlineOrder;
+  updateCustomerOrderStatus: (
+    orderId: string,
+    status: CustomerOnlineOrder['status'],
+    adminNotes?: string
+  ) => void;
+  deleteCustomerOrder: (orderId: string) => void;
+
+  // Customer Feedback & Reviews
+  feedbacks: CustomerFeedback[];
+  addFeedback: (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' | 'status'>) => CustomerFeedback;
+  updateFeedbackStatus: (
+    feedbackId: string,
+    status: CustomerFeedback['status'],
+    adminNote?: string
+  ) => void;
+  deleteFeedback: (feedbackId: string) => void;
+
   // Cloud & Sync
   dbStatus: 'online' | 'syncing' | 'local';
   isCloudConnected: boolean;
@@ -187,6 +213,8 @@ const STORAGE_KEYS = {
   CURRENT_ROLE: 'topfruit_current_role_v4',
   IS_AUTHENTICATED: 'topfruit_is_authenticated_v4',
   DARK_MODE: 'topfruit_dark_mode_v4',
+  CUSTOMER_ORDERS: 'topfruit_customer_orders_v4',
+  FEEDBACKS: 'topfruit_feedbacks_v4',
 };
 
 function loadStorage<T>(key: string, fallback: T): T {
@@ -274,6 +302,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadStorage('em_stock_movements_v2', INITIAL_MOVEMENTS)
   );
 
+  const [customerOrders, setCustomerOrders] = useState<CustomerOnlineOrder[]>(() =>
+    loadStorage(STORAGE_KEYS.CUSTOMER_ORDERS, INITIAL_CUSTOMER_ORDERS)
+  );
+
+  const [feedbacks, setFeedbacks] = useState<CustomerFeedback[]>(() =>
+    loadStorage(STORAGE_KEYS.FEEDBACKS, INITIAL_FEEDBACKS)
+  );
+
   // POS Active Cart
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -324,6 +360,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => saveStorage(STORAGE_KEYS.EXPENSES, expenses), [expenses]);
   useEffect(() => saveStorage(STORAGE_KEYS.AUDIT_LOGS, auditLogs), [auditLogs]);
   useEffect(() => saveStorage('em_stock_movements_v2', stockMovements), [stockMovements]);
+  useEffect(() => saveStorage(STORAGE_KEYS.CUSTOMER_ORDERS, customerOrders), [customerOrders]);
+  useEffect(() => saveStorage(STORAGE_KEYS.FEEDBACKS, feedbacks), [feedbacks]);
 
   const [isLocked, setIsLocked] = useState<boolean>(false);
 
@@ -1007,6 +1045,106 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     logActivity('User Deleted', `Removed user ${id}`);
   };
 
+  // Customer Online Orders Handlers
+  const addCustomerOrder = (
+    orderData: Omit<CustomerOnlineOrder, 'id' | 'createdAt' | 'orderNumber' | 'status'>
+  ): CustomerOnlineOrder => {
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const newOrder: CustomerOnlineOrder = {
+      ...orderData,
+      id: `cust-ord-${Date.now()}`,
+      orderNumber: `ORD-${randomNum}`,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setCustomerOrders((prev) => [newOrder, ...prev]);
+    logActivity(
+      'Customer Order Received',
+      `New order ${newOrder.orderNumber} from ${newOrder.customerName || 'Customer'} (${newOrder.totalItems} items)`
+    );
+    playBeep(980, 'triangle', 0.18);
+    try {
+      confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+    } catch {
+      // Ignore confetti if unsupported
+    }
+    return newOrder;
+  };
+
+  const updateCustomerOrderStatus = (
+    orderId: string,
+    status: CustomerOnlineOrder['status'],
+    adminNotes?: string
+  ) => {
+    setCustomerOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status,
+              adminNotes: adminNotes !== undefined ? adminNotes : o.adminNotes,
+              updatedAt: new Date().toISOString(),
+            }
+          : o
+      )
+    );
+    logActivity('Order Status Updated', `Order ${orderId} changed to ${status.toUpperCase()}`);
+  };
+
+  const deleteCustomerOrder = (orderId: string) => {
+    setCustomerOrders((prev) => prev.filter((o) => o.id !== orderId));
+    logActivity('Customer Order Deleted', `Removed customer order ${orderId}`);
+  };
+
+  // Customer Feedback Handlers
+  const addFeedback = (
+    feedbackData: Omit<CustomerFeedback, 'id' | 'createdAt' | 'status'>
+  ): CustomerFeedback => {
+    const newFeedback: CustomerFeedback = {
+      ...feedbackData,
+      id: `fb-${Date.now()}`,
+      status: 'new',
+      createdAt: new Date().toISOString(),
+    };
+    setFeedbacks((prev) => [newFeedback, ...prev]);
+    logActivity(
+      'Customer Feedback Received',
+      `${newFeedback.rating}★ Review from ${newFeedback.customerName || 'Customer'} [${newFeedback.category}]`
+    );
+    playBeep(880, 'sine', 0.15);
+    try {
+      confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
+    } catch {
+      // Ignore confetti
+    }
+    return newFeedback;
+  };
+
+  const updateFeedbackStatus = (
+    feedbackId: string,
+    status: CustomerFeedback['status'],
+    adminNote?: string
+  ) => {
+    setFeedbacks((prev) =>
+      prev.map((f) =>
+        f.id === feedbackId
+          ? {
+              ...f,
+              status,
+              adminNote: adminNote !== undefined ? adminNote : f.adminNote,
+            }
+          : f
+      )
+    );
+    logActivity('Feedback Status Updated', `Feedback ${feedbackId} marked as ${status.toUpperCase()}`);
+  };
+
+  const deleteFeedback = (feedbackId: string) => {
+    setFeedbacks((prev) => prev.filter((f) => f.id !== feedbackId));
+    logActivity('Feedback Deleted', `Removed feedback ${feedbackId}`);
+  };
+
   // Reset & Backup
   const resetToDefaultData = () => {
     setProducts(INITIAL_PRODUCTS);
@@ -1021,8 +1159,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setStaffMembers(INITIAL_STAFF);
     setSettings(INITIAL_SETTINGS);
     setStockMovements(INITIAL_MOVEMENTS);
+    setCustomerOrders(INITIAL_CUSTOMER_ORDERS);
+    setFeedbacks(INITIAL_FEEDBACKS);
     setCart([]);
-    logActivity('Database Reset', 'Reset all records to initial ElectroManage demo catalog');
+    logActivity('Database Reset', 'Reset all records to initial catalog & feedback');
   };
 
   const exportDatabaseJSON = () => {
@@ -1038,13 +1178,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       auditLogs,
       users,
       staffMembers,
+      customerOrders,
+      feedbacks,
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `electromanage-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `topfruit-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
     logActivity('Backup Exported', 'Full database JSON backup created');
@@ -1063,6 +1205,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (data.suppliers && Array.isArray(data.suppliers)) setSuppliers(data.suppliers);
       if (data.purchases && Array.isArray(data.purchases)) setPurchases(data.purchases);
       if (data.expenses && Array.isArray(data.expenses)) setExpenses(data.expenses);
+      if (data.customerOrders && Array.isArray(data.customerOrders)) setCustomerOrders(data.customerOrders);
+      if (data.feedbacks && Array.isArray(data.feedbacks)) setFeedbacks(data.feedbacks);
       if (data.settings) setSettings(data.settings);
       if (data.users) setUsers(data.users);
       logActivity('Backup Restored', 'Restored database from uploaded JSON backup');
@@ -1154,6 +1298,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         currentShift,
         openShift,
         closeShift,
+        customerOrders,
+        addCustomerOrder,
+        updateCustomerOrderStatus,
+        deleteCustomerOrder,
+        feedbacks,
+        addFeedback,
+        updateFeedbackStatus,
+        deleteFeedback,
         dbStatus,
         isCloudConnected,
         lastSyncedAt,

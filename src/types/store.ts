@@ -218,6 +218,47 @@ export interface StoreSettings {
   cashierPin: string;
   allowCashierRefunds: boolean;
   allowCashierDiscounts: boolean;
+  showPricesToCustomers?: boolean;
+}
+
+export interface CustomerFeedback {
+  id: string;
+  customerName: string;
+  customerContact?: string;
+  rating: number; // 1 to 5
+  category: 'Produce Quality' | 'Customer Service' | 'Stall Experience' | 'Fruit Request' | 'General';
+  productId?: string;
+  productName?: string;
+  comment: string;
+  status: 'new' | 'reviewed' | 'resolved';
+  adminNote?: string;
+  createdAt: string;
+}
+
+export interface CustomerOnlineOrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unit: string;
+  category?: string;
+  image?: string;
+  notes?: string;
+}
+
+export interface CustomerOnlineOrder {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  pickupTime?: string;
+  notes?: string;
+  items: CustomerOnlineOrderItem[];
+  totalItems: number;
+  totalAmount?: number;
+  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface RegisterShift {

@@ -314,6 +314,41 @@ export const StoreSettingsView: React.FC = () => {
                 </div>
               </div>
 
+              {/* Customer Storefront Display Preferences */}
+              <div className="space-y-3 pt-3 border-t border-slate-100">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
+                  Customer Storefront Configuration
+                </h4>
+                <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-slate-900 block">
+                      Show Prices to Customers in Storefront
+                    </span>
+                    <p className="text-[11px] text-slate-500 max-w-md">
+                      When turned off (disabled), customers will browse catalog items and submit order lists without seeing unit prices.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormState({
+                        ...formState,
+                        showPricesToCustomers: !formState.showPricesToCustomers,
+                      })
+                    }
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+                      formState.showPricesToCustomers ? 'bg-emerald-600' : 'bg-slate-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        formState.showPricesToCustomers ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
               {/* Receipt Messages */}
               <div className="space-y-3 pt-3 border-t border-slate-100">
                 <div>

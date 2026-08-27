@@ -11,6 +11,8 @@ import {
   Expense,
   AuditLog,
   UserAccount,
+  CustomerFeedback,
+  CustomerOnlineOrder,
 } from '../types/store';
 
 export const INITIAL_STAFF: StaffMember[] = [
@@ -98,6 +100,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   cashierPin: '1111',
   allowCashierRefunds: true,
   allowCashierDiscounts: true,
+  showPricesToCustomers: false,
 };
 
 export const INITIAL_SUPPLIERS: Supplier[] = [
@@ -2098,3 +2101,139 @@ export const INITIAL_SHIFT: RegisterShift = {
   isOpen: true,
   notes: 'Brixton Market Pope\'s Road Daily Morning & Afternoon Shift',
 };
+
+export const INITIAL_CUSTOMER_ORDERS: CustomerOnlineOrder[] = [
+  {
+    id: 'cust-ord-1',
+    orderNumber: 'ORD-1082',
+    customerName: 'Amina Diallo',
+    customerPhone: '+44 7921 445890',
+    pickupTime: 'Today ~3:30 PM',
+    notes: 'Please pack firm ripe plantains and 2 big yams for family dinner.',
+    items: [
+      {
+        productId: 'prod-10',
+        productName: 'White yam',
+        quantity: 2,
+        unit: 'kg',
+        category: 'Roots, Tubers & Yams',
+      },
+      {
+        productId: 'prod-39',
+        productName: 'Ripe plantain',
+        quantity: 4,
+        unit: 'bunch',
+        category: 'Tropical & Plantains',
+      },
+      {
+        productId: 'prod-50',
+        productName: 'Fresh Scotch Bonnet',
+        quantity: 1,
+        unit: 'bowl',
+        category: 'Peppers, Chillies & Squashes',
+      },
+    ],
+    totalItems: 7,
+    status: 'pending',
+    createdAt: '2026-08-26T14:20:00.000Z',
+  },
+  {
+    id: 'cust-ord-2',
+    orderNumber: 'ORD-1081',
+    customerName: 'David O\'Connor',
+    customerPhone: '+44 7712 908123',
+    pickupTime: 'Saturday morning 10am',
+    notes: 'Sweet mangoes crate if possible. Thank you!',
+    items: [
+      {
+        productId: 'prod-38',
+        productName: 'Green plantain',
+        quantity: 3,
+        unit: 'bunch',
+        category: 'Tropical & Plantains',
+      },
+      {
+        productId: 'prod-40',
+        productName: 'Sweet Mangoes',
+        quantity: 6,
+        unit: 'piece',
+        category: 'Tropical & Plantains',
+      },
+    ],
+    totalItems: 9,
+    status: 'preparing',
+    createdAt: '2026-08-26T11:45:00.000Z',
+  },
+  {
+    id: 'cust-ord-3',
+    orderNumber: 'ORD-1080',
+    customerName: 'Grace Mensah',
+    customerPhone: '+44 7843 671290',
+    pickupTime: 'Collected yesterday',
+    notes: 'Collected on Pope\'s Road stall.',
+    items: [
+      {
+        productId: 'prod-12',
+        productName: 'Yellow yam',
+        quantity: 1,
+        unit: 'kg',
+        category: 'Roots, Tubers & Yams',
+      },
+      {
+        productId: 'prod-70',
+        productName: 'Fresh ginger root',
+        quantity: 1,
+        unit: 'bowl',
+        category: 'Onions, Garlic & Herbs',
+      },
+    ],
+    totalItems: 2,
+    status: 'completed',
+    createdAt: '2026-08-25T16:10:00.000Z',
+  },
+];
+
+export const INITIAL_FEEDBACKS: CustomerFeedback[] = [
+  {
+    id: 'fb-1',
+    customerName: 'Kofi Boateng',
+    customerContact: 'kofi.boateng@gmail.com',
+    rating: 5,
+    category: 'Produce Quality',
+    productName: 'White Yam & Ripe Plantains',
+    comment: 'The yams from Pitch 18 were super fresh and cooked soft immediately! Best quality in Brixton Market.',
+    status: 'new',
+    createdAt: '2026-08-26T12:30:00.000Z',
+  },
+  {
+    id: 'fb-2',
+    customerName: 'Brenda Campbell',
+    customerContact: '+44 7912 345678',
+    rating: 5,
+    category: 'Customer Service',
+    comment: 'Masgana and the stall team are always so warm, helpful, and generous. They helped pick the sweetest mangoes.',
+    status: 'reviewed',
+    adminNote: 'Thanked customer in person at Pitch 18.',
+    createdAt: '2026-08-25T15:10:00.000Z',
+  },
+  {
+    id: 'fb-3',
+    customerName: 'Marcus Bennett',
+    customerContact: 'm.bennett@outlook.com',
+    rating: 4,
+    category: 'Fruit Request',
+    comment: 'Could you stock more fresh soursop and passion fruit when available? We love reserving from your website.',
+    status: 'new',
+    createdAt: '2026-08-24T18:40:00.000Z',
+  },
+  {
+    id: 'fb-4',
+    customerName: 'Fatima Al-Hassan',
+    customerContact: '+44 7789 543210',
+    rating: 5,
+    category: 'Stall Experience',
+    comment: 'Very clean stall, great selection of fresh chillies, seasonings, and greens. The online order pickup is very handy!',
+    status: 'reviewed',
+    createdAt: '2026-08-23T11:20:00.000Z',
+  },
+];

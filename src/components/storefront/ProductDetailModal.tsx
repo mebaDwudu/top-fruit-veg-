@@ -139,19 +139,35 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </h2>
               </div>
 
-              {/* Price Display */}
-              <div className="p-3 bg-emerald-50/60 border border-emerald-100 rounded-2xl flex items-baseline justify-between">
-                <div>
-                  <span className="text-xs text-slate-500 font-medium block">Price</span>
-                  <div className="text-2xl sm:text-3xl font-black text-emerald-700">
-                    {formatCurrency(product.sellingPrice)}
+              {/* Price / Produce Unit Display */}
+              {settings.showPricesToCustomers ? (
+                <div className="p-3 bg-emerald-50/60 border border-emerald-100 rounded-2xl flex items-baseline justify-between">
+                  <div>
+                    <span className="text-xs text-slate-500 font-medium block">Price</span>
+                    <div className="text-2xl sm:text-3xl font-black text-emerald-700">
+                      {formatCurrency(product.sellingPrice)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-slate-700 block">per {product.unit}</span>
+                    <span className="text-[11px] text-slate-500">{meta.estimatedWeight}</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs font-bold text-slate-700 block">per {product.unit}</span>
-                  <span className="text-[11px] text-slate-500">{meta.estimatedWeight}</span>
+              ) : (
+                <div className="p-3 bg-emerald-50/60 border border-emerald-100 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-slate-500 font-medium block">Unit / Portion</span>
+                    <div className="text-lg sm:text-xl font-extrabold text-emerald-800">
+                      Sold per {product.unit || 'kg'}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-2.5 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-lg text-xs font-extrabold">
+                      Pitch 18 Daily Fresh
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Live Market Stall Availability */}
               <div
@@ -289,9 +305,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       <h5 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 truncate">
                         {rel.name}
                       </h5>
-                      <span className="text-xs font-black text-emerald-700">
-                        {formatCurrency(rel.sellingPrice)}
-                      </span>
+                      {settings.showPricesToCustomers ? (
+                        <span className="text-xs font-black text-emerald-700">
+                          {formatCurrency(rel.sellingPrice)}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded">
+                          per {rel.unit || 'kg'}
+                        </span>
+                      )}
                     </div>
                   );
                 })}
@@ -344,7 +366,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <>
                 <ShoppingBag className="w-4 h-4" />
                 <span>
-                  Add {qty} to Basket • {formatCurrency(product.sellingPrice * qty)}
+                  {settings.showPricesToCustomers
+                    ? `Add ${qty} to Basket • ${formatCurrency(product.sellingPrice * qty)}`
+                    : `Add ${qty} ${product.unit || 'unit'}${qty > 1 ? 's' : ''} to Order List`}
                 </span>
               </>
             )}
