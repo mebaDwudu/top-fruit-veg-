@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Product } from '../../types/store';
 import { getProduceMeta } from '../../utils/produceImages';
@@ -73,6 +73,42 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   const [formRenderedAt, setFormRenderedAt] = useState<number>(() => Date.now());
   const [contactSuccess, setContactSuccess] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
+
+  // Secret Admin Access Trigger (Keyboard shortcut & Triple-click on logo/footer)
+  const [secretClickCount, setSecretClickCount] = useState(0);
+  const secretClickTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSecretAdminTrigger = () => {
+    if (secretClickTimerRef.current) {
+      clearTimeout(secretClickTimerRef.current);
+    }
+    const nextCount = secretClickCount + 1;
+    setSecretClickCount(nextCount);
+    if (nextCount >= 3) {
+      setSecretClickCount(0);
+      onSwitchToStaff();
+    } else {
+      secretClickTimerRef.current = setTimeout(() => {
+        setSecretClickCount(0);
+      }, 1500);
+    }
+  };
+
+  // Keyboard shortcut: Ctrl+Shift+A or Cmd+Shift+A or Alt+Shift+B
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey || e.altKey) &&
+        e.shiftKey &&
+        (e.key === 'A' || e.key === 'a' || e.key === 'B' || e.key === 'b')
+      ) {
+        e.preventDefault();
+        onSwitchToStaff();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onSwitchToStaff]);
 
   // Cart helper functions
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -238,10 +274,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       >
         <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col justify-between">
           <div>
-            {/* Bright Fresh Brand Header */}
+            {/* Bright Fresh Brand Header with Secret 3-Click Admin Trigger */}
             <div className="flex items-center justify-between border-b border-emerald-100 pb-3 mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs text-2xl">
+              <div
+                onClick={handleSecretAdminTrigger}
+                className="flex items-center space-x-3 cursor-pointer group select-none"
+                title="Top Fruit and Veg"
+              >
+                <div className="w-11 h-11 rounded-2xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-xs text-2xl">
                   🥭
                 </div>
                 <div className="min-w-0">
@@ -404,7 +444,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           </div>
         </div>
 
-        {/* Sidebar Footer: Share Store QR Code and Staff Access */}
+        {/* Sidebar Footer: Share Store QR Code & Discreet Stall Details */}
         <div className="pt-3 border-t border-emerald-100 space-y-2">
           <button
             onClick={() => setIsShareModalOpen(true)}
@@ -414,13 +454,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             <span>Share Stall QR Code</span>
           </button>
 
-          <button
-            onClick={onSwitchToStaff}
-            className="w-full py-1.5 px-3 rounded-lg text-slate-400 hover:text-emerald-700 text-[11px] font-semibold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer hover:bg-emerald-50"
+          {/* Discreet copyright trigger (Triple click secret) */}
+          <div
+            onClick={handleSecretAdminTrigger}
+            className="py-1 text-center text-[10px] text-slate-400 select-none cursor-pointer hover:text-slate-600 transition-colors"
+            title="Pitch 18 Brixton Market"
           >
-            <Lock className="w-3 h-3" />
-            <span>Boss / Staff Portal</span>
-          </button>
+            <span>Pitch 18 Pope's Road • Brixton</span>
+          </div>
         </div>
       </aside>
 
@@ -983,10 +1024,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         {/* Minimal Storefront Footer */}
         <footer className="mt-auto border-t border-emerald-100 bg-white/90 px-4 sm:px-6 lg:px-8 py-4 text-slate-600">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <div className="flex items-center space-x-2 text-center sm:text-left">
-              <Store className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div
+              onClick={handleSecretAdminTrigger}
+              className="flex items-center space-x-2 text-center sm:text-left cursor-pointer select-none group"
+              title="Top Fruit and Veg • Pitch 18"
+            >
+              <Store className="w-4 h-4 text-emerald-600 group-hover:text-emerald-700 shrink-0" />
               <div>
-                <span className="font-extrabold text-slate-900">Top Fruit and Veg</span>
+                <span className="font-extrabold text-slate-900 group-hover:text-emerald-950">Top Fruit and Veg</span>
                 <span className="text-slate-400 mx-1.5">•</span>
                 <span>Pitch 18 Pope's Road, Brixton Market, London SW9 8PB</span>
               </div>

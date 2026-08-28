@@ -285,14 +285,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
                         setIsStaffMenuOpen(false);
                         setPinPromptReason({
                           title: 'Boss Admin Access',
-                          desc: 'Enter 4-digit Boss PIN to unlock Admin mode.',
+                          desc: 'Enter 6-digit Boss PIN (091825) to unlock Admin mode.',
                         });
                         setIsPinModalOpen(true);
                       }}
                       className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-center flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
                     >
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Unlock Boss Mode (PIN 1234)</span>
+                      <span>Unlock Boss Mode</span>
                     </button>
                   ) : (
                     <button

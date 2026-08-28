@@ -438,7 +438,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const cleanPin = pin.trim();
     if (
       cleanPin === '091825' ||
-      cleanPin === '1234' ||
       cleanPin === settings.adminPin ||
       cleanPin === settings.bossPin
     )
@@ -489,7 +488,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (
       pin === '091825' ||
-      pin === '1234' ||
       pin === settings.adminPin ||
       pin === settings.bossPin
     ) {
@@ -559,7 +557,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const isMasterAdminMatch =
         staff.role === 'admin' &&
         (pin === '091825' ||
-          pin === '1234' ||
           pin === settings.adminPin ||
           pin === settings.bossPin);
       if (staff.pin !== pin && !isMasterAdminMatch) {

@@ -125,11 +125,11 @@ export const PinAuthModal: React.FC<PinAuthModalProps> = ({
         </div>
 
         {/* PIN Indicators */}
-        <div className="flex justify-center space-x-3 py-2">
-          {[0, 1, 2, 3].map((idx) => (
+        <div className="flex justify-center space-x-2.5 py-2">
+          {[0, 1, 2, 3, 4, 5].map((idx) => (
             <div
               key={idx}
-              className={`w-4 h-4 rounded-full transition-all duration-150 ${
+              className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
                 pin.length > idx
                   ? 'bg-indigo-600 scale-110 ring-4 ring-indigo-100'
                   : 'bg-slate-200 border border-slate-300'
