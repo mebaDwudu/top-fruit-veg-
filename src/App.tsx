@@ -3,7 +3,7 @@ import { StoreProvider, useStore } from './context/StoreContext';
 import { ActiveTab } from './types/store';
 import { CustomerStorefront } from './components/storefront/CustomerStorefront';
 import { AdminPortal } from './components/admin/AdminPortal';
-import { ShoppingBag, Shield, ArrowRight, ExternalLink, Sparkles } from 'lucide-react';
+import { ShoppingBag, Shield, ArrowRight, ExternalLink, Sparkles, Store } from 'lucide-react';
 
 function StoreAppContent() {
   const { isOnline } = useStore();
@@ -137,8 +137,8 @@ function StoreAppContent() {
       {/* Top Header */}
       <header className="border-b border-emerald-100 bg-white/80 backdrop-blur px-6 py-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-2xl text-white shadow-sm">
-            🥭
+          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs">
+            <Store className="w-5 h-5 text-white" />
           </div>
           <div>
             <h1 className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">
@@ -237,7 +237,7 @@ function StoreAppContent() {
               <span className="flex items-center gap-1.5">
                 Open Admin Portal <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </span>
-              <span className="text-[11px] text-slate-400 font-medium">PIN: 9999 / 1234</span>
+              <span className="text-[11px] text-slate-400 font-medium">Protected Access</span>
             </div>
           </div>
         </div>

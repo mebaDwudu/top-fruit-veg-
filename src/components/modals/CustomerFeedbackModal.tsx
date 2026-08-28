@@ -43,15 +43,15 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
   const getRatingLabel = (r: number) => {
     switch (r) {
       case 5:
-        return '⭐⭐⭐⭐⭐ 5/5 - Outstanding Produce & Service!';
+        return '5/5 - Outstanding Quality & Service';
       case 4:
-        return '⭐⭐⭐⭐ 4/5 - Very Good Quality!';
+        return '4/5 - Very Good Quality';
       case 3:
-        return '⭐⭐⭐ 3/5 - Good & Fresh';
+        return '3/5 - Good & Fresh';
       case 2:
-        return '⭐⭐ 2/5 - Could Be Better';
+        return '2/5 - Fair Quality';
       case 1:
-        return '⭐ 1/5 - Needs Improvement';
+        return '1/5 - Needs Improvement';
       default:
         return '';
     }
@@ -130,8 +130,8 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
         {/* Content */}
         {isSubmitted ? (
           <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 mx-auto text-3xl">
-              ✨
+            <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 mx-auto">
+              <Sparkles className="w-8 h-8 text-emerald-600" />
             </div>
             <div className="space-y-1.5">
               <h4 className="text-xl font-black text-slate-900">Thank You For Your Feedback!</h4>
@@ -201,11 +201,11 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
                 onChange={(e) => setCategory(e.target.value as any)}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:outline-hidden focus:border-emerald-500 focus:bg-white"
               >
-                <option value="Produce Quality">Produce Freshness & Quality 🥭</option>
-                <option value="Customer Service">Customer Service & Friendliness 😊</option>
-                <option value="Stall Experience">Stall Location & Collection 🏪</option>
-                <option value="Fruit Request">Request a New Fruit / Vegetable 📦</option>
-                <option value="General">General Comment / Suggestion 💬</option>
+                <option value="Produce Quality">Produce Freshness & Quality</option>
+                <option value="Customer Service">Customer Service & Friendliness</option>
+                <option value="Stall Experience">Stall Location & Collection</option>
+                <option value="Fruit Request">Request a New Fruit / Vegetable</option>
+                <option value="General">General Comment / Suggestion</option>
               </select>
             </div>
 

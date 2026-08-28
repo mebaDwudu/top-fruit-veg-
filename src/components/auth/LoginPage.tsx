@@ -359,11 +359,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <div className="flex items-center space-x-2">
               <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>
-                <strong className="text-slate-200">Role Separation Rule:</strong> Cashier 1 & 2 are restricted from Sales Reports, Orders, POs, and Store Settings.
+                <strong className="text-slate-200">Role Separation Rule:</strong> Cashiers are restricted from Sales Reports, Orders, POs, and Store Settings.
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 font-mono">
-              PINs: Boss (<span className="text-indigo-400">091825</span>) • C1 (<span className="text-emerald-400">1111</span>) • C2 (<span className="text-teal-400">2222</span>)
+            <div className="text-[11px] text-slate-400 font-medium">
+              Secure PIN Authentication
             </div>
           </div>
         </div>
@@ -423,8 +423,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 </div>
               ) : (
                 <p className="text-[11px] text-slate-400">
-                  Enter {selectedStaff.pin?.length || (selectedStaff.role === 'admin' ? '6-digit' : '4-digit')} PIN for {selectedStaff.name.split(' ')[0]} (Default:{' '}
-                  <span className="font-mono font-bold text-white">{selectedStaff.pin || '091825'}</span>)
+                  Enter {selectedStaff.pin?.length || (selectedStaff.role === 'admin' ? '6-digit' : '4-digit')} PIN for {selectedStaff.name.split(' ')[0]}
                 </p>
               )}
             </div>

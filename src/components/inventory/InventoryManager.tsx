@@ -403,8 +403,8 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ onNavigateTo
                               className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0 border border-slate-200"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center shrink-0 border border-emerald-100 text-base">
-                              🥦
+                            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                              <Boxes className="w-5 h-5 text-emerald-600" />
                             </div>
                           )}
                           <div>

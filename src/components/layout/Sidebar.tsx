@@ -149,8 +149,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
       <div className="p-3.5 space-y-3">
         {/* Brand Header */}
         <div className="flex items-center space-x-2.5 px-1 py-1">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-lg shrink-0 shadow-xs">
-            🌶
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-xs">
+            <Store className="w-5 h-5 text-emerald-400" />
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="text-white font-black text-sm tracking-tight leading-tight truncate">

@@ -410,17 +410,17 @@ export const StoreSettingsView: React.FC = () => {
               <div>
                 <label className="text-xs font-bold text-indigo-900 block mb-1 flex items-center space-x-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Master Boss Admin PIN (Overrides All)</span>
+                  <span>Master Boss Admin PIN</span>
                 </label>
                 <input
-                  type="text"
-                  maxLength={6}
-                  value={formState.adminPin || '091825'}
-                  onChange={(e) => setFormState({ ...formState, adminPin: e.target.value })}
-                  placeholder="091825"
+                  type="password"
+                  maxLength={8}
+                  value={formState.adminPin || ''}
+                  onChange={(e) => setFormState({ ...formState, adminPin: e.target.value.replace(/\D/g, '') })}
+                  placeholder="••••••"
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-indigo-500"
                 />
-                <span className="text-[10px] text-slate-400">Used to unlock Financial Reports and Settings.</span>
+                <span className="text-[10px] text-slate-400">Used to unlock Financial Reports, Settings, and Admin Portal.</span>
               </div>
 
               <div>
@@ -429,14 +429,14 @@ export const StoreSettingsView: React.FC = () => {
                   <span>Default Cashier Quick PIN</span>
                 </label>
                 <input
-                  type="text"
-                  maxLength={6}
-                  value={formState.cashierPin || '0000'}
-                  onChange={(e) => setFormState({ ...formState, cashierPin: e.target.value })}
-                  placeholder="0000"
+                  type="password"
+                  maxLength={8}
+                  value={formState.cashierPin || ''}
+                  onChange={(e) => setFormState({ ...formState, cashierPin: e.target.value.replace(/\D/g, '') })}
+                  placeholder="••••"
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-emerald-500"
                 />
-                <span className="text-[10px] text-slate-400">Used for fast shifts and terminal unlocking.</span>
+                <span className="text-[10px] text-slate-400">Used for quick terminal unlocking.</span>
               </div>
             </div>
 
@@ -480,7 +480,7 @@ export const StoreSettingsView: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-3 font-mono font-bold text-slate-700">
-                        •••• ({staff.pin})
+                        ••••••
                       </td>
                       <td className="p-3 text-slate-500">
                         {staff.role === 'admin' ? (

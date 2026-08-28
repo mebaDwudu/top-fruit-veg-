@@ -337,7 +337,7 @@ export const PosRegister: React.FC = () => {
                           }}
                         />
                       ) : (
-                        <span className="text-3xl">🥬</span>
+                        <Package className="w-8 h-8 text-emerald-600/70" />
                       )}
                     </div>
 
@@ -487,8 +487,8 @@ export const PosRegister: React.FC = () => {
                           className="w-10 h-10 rounded-md object-cover bg-slate-100 shrink-0 border border-slate-200"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-sm border border-emerald-100 font-bold">
-                          🥬
+                        <div className="w-10 h-10 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 font-bold">
+                          <Package className="w-5 h-5 text-emerald-600" />
                         </div>
                       )}
                       <div className="flex-1 pr-2">

@@ -54,6 +54,7 @@ interface StoreContextType {
   loginStaff: (staffId: string, pin?: string) => { success: boolean; error?: string };
   loginWithRoleAndPin: (role: UserRole, pin: string) => { success: boolean; error?: string };
   loginWithPin: (pin: string) => { success: boolean; error?: string };
+  loginAdminWithPin: (pin: string) => { success: boolean; error?: string };
   verifyAdminPin: (pin: string) => boolean;
   quickLoginStaff: (staffId: string) => void;
   logout: () => void;
@@ -238,11 +239,11 @@ function saveStorage<T>(key: string, data: T): void {
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Role & Auth State
   const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() =>
-    loadStorage(STORAGE_KEYS.IS_AUTHENTICATED, true)
+    loadStorage(STORAGE_KEYS.IS_AUTHENTICATED, false)
   );
 
   const [currentRole, setCurrentRoleState] = useState<UserRole>(() =>
-    loadStorage(STORAGE_KEYS.CURRENT_ROLE, 'admin')
+    loadStorage(STORAGE_KEYS.CURRENT_ROLE, 'cashier')
   );
 
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>(() =>
@@ -408,14 +409,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const verifyAdminPin = (pin: string): boolean => {
+    const cleanPin = pin.trim();
     if (
-      pin === '091825' ||
-      pin === '1234' ||
-      pin === settings.adminPin ||
-      pin === settings.bossPin
+      cleanPin === '091825' ||
+      cleanPin === '1234' ||
+      cleanPin === settings.adminPin ||
+      cleanPin === settings.bossPin
     )
       return true;
-    return staffMembers.some((s) => s.role === 'admin' && s.pin === pin);
+    return staffMembers.some((s) => s.role === 'admin' && s.pin === cleanPin);
+  };
+
+  const loginAdminWithPin = (pin: string): { success: boolean; error?: string } => {
+    const cleanPin = pin.trim();
+    if (verifyAdminPin(cleanPin)) {
+      const boss = staffMembers.find((s) => s.role === 'admin') || staffMembers[0];
+      setCurrentStaffId(boss.id);
+      setCurrentRoleState('admin');
+      setIsAuthenticatedState(true);
+      setIsLocked(false);
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'admin');
+      logActivity('Login', 'Administrator authenticated via PIN');
+      return { success: true };
+    }
+    return { success: false, error: 'Incorrect PIN. Please try again.' };
   };
 
   const loginWithPin = (pin: string): { success: boolean; error?: string } => {
@@ -539,8 +557,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const logout = () => {
     logActivity('Logout', `${currentStaff.name} logged out`);
     setIsAuthenticatedState(false);
+    setCurrentRoleState('customer');
+    saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, false);
+    saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'customer');
     setCart([]);
-    window.location.hash = '#/login';
   };
 
   const addStaffMember = (staff: Omit<StaffMember, 'id'>) => {
@@ -1251,6 +1271,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         loginStaff,
         loginWithRoleAndPin,
         loginWithPin,
+        loginAdminWithPin,
         verifyAdminPin,
         quickLoginStaff,
         logout,

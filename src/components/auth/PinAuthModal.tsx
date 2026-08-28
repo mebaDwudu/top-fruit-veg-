@@ -15,8 +15,8 @@ export const PinAuthModal: React.FC<PinAuthModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  title = 'Boss / Admin Authentication Required',
-  description = 'Enter your Master Boss PIN (091825) to unlock management views, cost margins, and reports.',
+  title = 'Admin Authentication Required',
+  description = 'Enter your PIN to unlock management views, cost margins, and reports.',
 }) => {
   const { verifyAdminPin, staffMembers, settings } = useStore();
   const [pin, setPin] = useState('');
@@ -179,11 +179,6 @@ export const PinAuthModal: React.FC<PinAuthModalProps> = ({
           >
             <Check className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* Fast Hint */}
-        <div className="pt-2 text-[11px] text-slate-400">
-          Default Boss PIN is <span className="font-mono font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">1234</span> (or custom in Settings)
         </div>
       </div>
     </div>

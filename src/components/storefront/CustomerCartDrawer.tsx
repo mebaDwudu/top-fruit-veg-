@@ -274,8 +274,8 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
           </div>
         ) : items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-3xl mb-3 text-slate-400">
-              🛒
+            <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+              <ShoppingBag className="w-8 h-8 text-slate-400" />
             </div>
             <h4 className="font-bold text-slate-800 text-base mb-1">Your Order List is Empty</h4>
             <p className="text-xs text-slate-500 max-w-xs mb-6">
@@ -314,7 +314,7 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                           }}
                         />
                       ) : (
-                        <span className="text-xl">🥬</span>
+                        <Store className="w-5 h-5 text-emerald-600" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
