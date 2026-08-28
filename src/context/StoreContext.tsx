@@ -323,11 +323,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!settings.enableSoundEffects) return;
     try {
       if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (typeof AudioCtx === 'function') {
+          try {
+            audioCtxRef.current = new AudioCtx();
+          } catch {
+            audioCtxRef.current = null;
+          }
+        }
       }
       const ctx = audioCtxRef.current;
+      if (!ctx) return;
       if (ctx.state === 'suspended') {
-        ctx.resume();
+        ctx.resume().catch(() => {});
       }
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -339,8 +347,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch (e) {
-      // Ignore audio failure
+    } catch {
+      // Ignore audio failure safely
     }
   };
 

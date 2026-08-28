@@ -76,7 +76,11 @@ export function sanitizeURL(url: string | null | undefined): string {
 
   // Strictly validate HTTP / HTTPS protocols
   try {
-    const parsed = new URL(trimmed, window.location.origin);
+    let origin = 'https://localhost';
+    if (typeof window !== 'undefined' && window.location && typeof window.location.origin === 'string' && window.location.origin !== 'null' && window.location.origin !== '') {
+      origin = window.location.origin;
+    }
+    const parsed = new URL(trimmed, origin);
     if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
       // Return absolute or valid URL
       return parsed.href;

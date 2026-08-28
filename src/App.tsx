@@ -101,15 +101,16 @@ function StoreAppContent() {
 
   const navigateTo = (portal: 'customer' | 'admin' | 'hub') => {
     setActivePortal(portal);
-    if (portal === 'customer') {
-      window.history.pushState(null, '', '/customer');
-      window.location.hash = '#/customer';
-    } else if (portal === 'admin') {
-      window.history.pushState(null, '', '/admin');
-      window.location.hash = '#/admin';
-    } else {
-      window.history.pushState(null, '', '/');
-      window.location.hash = '';
+    try {
+      if (portal === 'customer') {
+        window.location.hash = '#/customer';
+      } else if (portal === 'admin') {
+        window.location.hash = '#/admin';
+      } else {
+        window.location.hash = '';
+      }
+    } catch {
+      // Safe fallback
     }
   };
 
