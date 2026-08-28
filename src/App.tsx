@@ -5,13 +5,22 @@ import { CustomerStorefront } from './components/storefront/CustomerStorefront';
 import { AdminPortal } from './components/admin/AdminPortal';
 import { ShoppingBag, Shield, ArrowRight, ExternalLink, Sparkles, Store } from 'lucide-react';
 
-function StoreAppContent() {
-  const { isOnline } = useStore();
-
-  const [activePortal, setActivePortal] = useState<'customer' | 'admin' | 'hub'>(() => {
-    const pathname = window.location.pathname.toLowerCase();
-    const searchParams = new URLSearchParams(window.location.search);
-    const rawHash = window.location.hash.replace('#/', '').replace('#', '').trim().toLowerCase();
+function parseCurrentRoute(): 'customer' | 'admin' | 'hub' {
+  try {
+    const pathname = (window?.location?.pathname || '').toLowerCase();
+    const rawHash = (window?.location?.hash || '').replace('#/', '').replace('#', '').trim().toLowerCase();
+    
+    let searchPage = '';
+    let searchView = '';
+    try {
+      if (window?.location?.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        searchPage = searchParams.get('page') || '';
+        searchView = searchParams.get('view') || '';
+      }
+    } catch {
+      // Fallback
+    }
 
     if (
       pathname.includes('customer') ||
@@ -20,8 +29,8 @@ function StoreAppContent() {
       rawHash === 'storefront' ||
       rawHash === 'customer' ||
       rawHash === 'market' ||
-      searchParams.get('page') === 'customer' ||
-      searchParams.get('view') === 'customer'
+      searchPage === 'customer' ||
+      searchView === 'customer'
     ) {
       return 'customer';
     }
@@ -33,60 +42,30 @@ function StoreAppContent() {
       rawHash === 'admin' ||
       rawHash === 'boss' ||
       rawHash === 'management' ||
-      searchParams.get('page') === 'admin' ||
-      searchParams.get('view') === 'admin'
+      searchPage === 'admin' ||
+      searchView === 'admin'
     ) {
       return 'admin';
     }
 
-    // Default to Customer Storefront on root if direct, or hub
-    if (pathname === '/' && !rawHash && !searchParams.has('page')) {
-      return 'customer';
+    if (pathname.includes('hub') || rawHash === 'hub' || searchPage === 'hub') {
+      return 'hub';
     }
 
     return 'customer';
-  });
+  } catch {
+    return 'customer';
+  }
+}
+
+function StoreAppContent() {
+  const { isOnline } = useStore();
+
+  const [activePortal, setActivePortal] = useState<'customer' | 'admin' | 'hub'>(() => parseCurrentRoute());
 
   // Hash-based and URL routing handler
   const handleRouting = useCallback(() => {
-    const pathname = window.location.pathname.toLowerCase();
-    const searchParams = new URLSearchParams(window.location.search);
-    const rawHash = window.location.hash.replace('#/', '').replace('#', '').trim().toLowerCase();
-
-    if (
-      pathname.includes('customer') ||
-      pathname.includes('market') ||
-      pathname.includes('store') ||
-      rawHash === 'storefront' ||
-      rawHash === 'customer' ||
-      rawHash === 'market' ||
-      searchParams.get('page') === 'customer' ||
-      searchParams.get('view') === 'customer'
-    ) {
-      setActivePortal('customer');
-      return;
-    }
-
-    if (
-      pathname.includes('admin') ||
-      pathname.includes('boss') ||
-      pathname.includes('management') ||
-      rawHash === 'admin' ||
-      rawHash === 'boss' ||
-      rawHash === 'management' ||
-      searchParams.get('page') === 'admin' ||
-      searchParams.get('view') === 'admin'
-    ) {
-      setActivePortal('admin');
-      return;
-    }
-
-    if (pathname.includes('hub') || rawHash === 'hub' || searchParams.get('page') === 'hub') {
-      setActivePortal('hub');
-      return;
-    }
-
-    setActivePortal('customer');
+    setActivePortal(parseCurrentRoute());
   }, []);
 
   useEffect(() => {

@@ -129,6 +129,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     onSwitchToStorefront();
   };
 
+  // 1. DEDICATED ADMIN PIN ACCESS SCREEN
+  if (!isAuthenticated || currentRole !== 'admin') {
+    return (
+      <AdminPinPage
+        onSuccess={() => {}}
+        onBackToHome={onSwitchToStorefront}
+      />
+    );
+  }
+
   // Nav item list for clean left sidebar
   const navItems: {
     id: AdminSection;

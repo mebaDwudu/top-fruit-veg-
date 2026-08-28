@@ -31,6 +31,7 @@ import {
   Minus,
   Star,
   Tag,
+  Lock,
 } from 'lucide-react';
 
 interface CustomerStorefrontProps {

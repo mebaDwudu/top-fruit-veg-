@@ -7,7 +7,15 @@ import './index.css';
 function CustomerApp() {
   return (
     <StoreProvider>
-      <CustomerStorefront onSwitchToStaff={() => {}} />
+      <CustomerStorefront
+        onSwitchToStaff={() => {
+          try {
+            window.location.href = '/admin';
+          } catch {
+            window.location.hash = '#/admin';
+          }
+        }}
+      />
     </StoreProvider>
   );
 }

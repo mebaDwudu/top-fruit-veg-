@@ -22,9 +22,17 @@ export const ShareStoreModal: React.FC<ShareStoreModalProps> = ({ isOpen, onClos
 
   if (!isOpen) return null;
 
-  const origin = window.location.origin;
-  // Customer Storefront direct URL
-  const customerUrl = `${origin}/customer`;
+  let customerUrl = '/customer';
+  try {
+    const rawOrigin = window?.location?.origin;
+    if (rawOrigin && rawOrigin !== 'null' && rawOrigin !== '') {
+      customerUrl = `${rawOrigin}/customer`;
+    } else if (window?.location?.href) {
+      customerUrl = window.location.href.split('#')[0].split('?')[0];
+    }
+  } catch {
+    customerUrl = '/customer';
+  }
 
   const copyUrl = async () => {
     try {

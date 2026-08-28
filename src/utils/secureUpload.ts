@@ -142,7 +142,7 @@ export async function validateAndProcessImageUpload(
         return;
       }
 
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = () => {
         try {
           // Render to off-screen canvas to strip any EXIF tags or embedded script injections
