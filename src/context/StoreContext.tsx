@@ -239,11 +239,11 @@ function saveStorage<T>(key: string, data: T): void {
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Role & Auth State
   const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() =>
-    loadStorage(STORAGE_KEYS.IS_AUTHENTICATED, false)
+    loadStorage(STORAGE_KEYS.IS_AUTHENTICATED, true)
   );
 
   const [currentRole, setCurrentRoleState] = useState<UserRole>(() =>
-    loadStorage(STORAGE_KEYS.CURRENT_ROLE, 'cashier')
+    loadStorage(STORAGE_KEYS.CURRENT_ROLE, 'admin')
   );
 
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>(() =>

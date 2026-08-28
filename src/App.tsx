@@ -137,8 +137,8 @@ function StoreAppContent() {
       {/* Top Header */}
       <header className="border-b border-emerald-100 bg-white/80 backdrop-blur px-6 py-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs">
-            <Store className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs text-xl">
+            🥭
           </div>
           <div>
             <h1 className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">

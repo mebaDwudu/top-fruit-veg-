@@ -169,6 +169,18 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
     sortBy,
   ]);
 
+  // Category Emoji & Icon Helper for rich colorful market presentation
+  const getCategoryEmoji = (cat: string) => {
+    if (cat.includes('Roots') || cat.includes('Yams')) return '🍠';
+    if (cat.includes('Tropical') || cat.includes('Plantains')) return '🍌';
+    if (cat.includes('Peppers') || cat.includes('Chillies') || cat.includes('Squashes')) return '🌶️';
+    if (cat.includes('Tomatoes')) return '🍅';
+    if (cat.includes('Citrus') || cat.includes('Fruits') || cat.includes('Orchard')) return '🍊';
+    if (cat.includes('Onions') || cat.includes('Herbs') || cat.includes('Garlic')) return '🧅';
+    if (cat.includes('Vegetables') || cat.includes('Greens')) return '🥬';
+    return '🥭';
+  };
+
   // Contact form submission
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,8 +240,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             {/* Bright Fresh Brand Header */}
             <div className="flex items-center justify-between border-b border-emerald-100 pb-3 mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs">
-                  <Store className="w-6 h-6 text-white" />
+                <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs text-2xl">
+                  🥭
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-base font-extrabold text-slate-900 tracking-tight leading-none truncate">
@@ -272,7 +284,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <ShoppingBag className="w-4 h-4" />
+                  <span className="text-base">🥭</span>
                   <span>All Fresh Produce</span>
                 </div>
                 <span
@@ -296,7 +308,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 transition-all cursor-pointer shadow-2xs"
               >
                 <div className="flex items-center space-x-2.5">
-                  <ShoppingBag className="w-4 h-4 text-amber-600" />
+                  <span className="text-base">🧺</span>
                   <span>Order List</span>
                 </div>
                 {totalCartCount > 0 ? (
@@ -325,7 +337,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
               >
                 <div className="flex items-center space-x-2.5">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                  <span className="text-base">⭐</span>
                   <span>Leave Feedback</span>
                 </div>
                 <span className="text-[10px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full border border-amber-200">
@@ -347,7 +359,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <MapPin className="w-4 h-4 text-slate-500" />
+                  <span className="text-base">📍</span>
                   <span>About & Contact</span>
                 </div>
                 <span className="text-[10px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 font-extrabold">
@@ -516,12 +528,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                   }`}
                 >
-                  <Leaf className="w-4 h-4" />
+                  <span className="text-base">🥭</span>
                   <span>All Fresh Produce ({products.length})</span>
                 </button>
 
                 {/* Individual Category Buttons */}
                 {categories.map((cat) => {
+                  const emoji = getCategoryEmoji(cat);
                   const isSelected = selectedCategory === cat;
                   const catCount = products.filter((p) => p.category === cat).length;
 
@@ -535,7 +548,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                           : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                       }`}
                     >
-                      <Tag className="w-3.5 h-3.5 opacity-80" />
+                      <span className="text-base">{emoji}</span>
                       <span>{cat}</span>
                       <span
                         className={`px-1.5 py-0.2 rounded-full text-[10px] ${
