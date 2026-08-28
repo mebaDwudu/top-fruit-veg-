@@ -126,7 +126,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   const handleLogoutAndLock = () => {
     logout();
-    onSwitchToStorefront();
   };
 
   // 1. DEDICATED ADMIN PIN ACCESS SCREEN

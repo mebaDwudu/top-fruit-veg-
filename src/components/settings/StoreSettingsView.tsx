@@ -42,6 +42,7 @@ export const StoreSettingsView: React.FC = () => {
     currentShift,
     openShift,
     closeShift,
+    clearAllSalesAndTransactions,
     resetToDemoData,
     exportDataJSON,
     formatCurrency,
@@ -697,14 +698,31 @@ export const StoreSettingsView: React.FC = () => {
 
               <button
                 onClick={() => {
-                  if (confirm('Are you sure you want to reset all data back to the demo store dataset? Current local changes will be replaced.')) {
+                  if (
+                    confirm(
+                      'Clear all sales history, customer orders, and revenue records? Your product inventory and store settings will remain intact, with £0 total revenue for a clean client start.'
+                    )
+                  ) {
+                    clearAllSalesAndTransactions();
+                    alert('All sales history, revenue records, and order transactions have been cleared to £0.00.');
+                  }
+                }}
+                className="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-colors flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+              >
+                <Trash2 className="w-4 h-4 text-amber-600" />
+                <span>Clear All Sales & Revenue Data (Fresh Slate for Client)</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (confirm('Are you sure you want to reset all data back to the default store catalog? Current local changes will be replaced.')) {
                     resetToDemoData();
                   }
                 }}
                 className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center space-x-2 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>Reset to Clean Demo Store</span>
+                <span>Reset to Clean Catalog & Initial State</span>
               </button>
             </div>
           </div>

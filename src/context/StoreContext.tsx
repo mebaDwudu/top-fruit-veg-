@@ -188,6 +188,7 @@ interface StoreContextType {
   stockMovements: StockMovement[];
 
   // Utilities
+  clearAllSalesAndTransactions: () => void;
   resetToDefaultData: () => void;
   resetToDemoData: () => void;
   exportDatabaseJSON: () => void;
@@ -199,23 +200,25 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  SETTINGS: 'topfruit_store_settings_v4',
-  PRODUCTS: 'topfruit_products_v4',
-  CATEGORIES: 'topfruit_categories_v4',
-  ORDERS: 'topfruit_orders_v4',
-  CUSTOMERS: 'topfruit_customers_v4',
-  SUPPLIERS: 'topfruit_suppliers_v4',
-  PURCHASES: 'topfruit_purchases_v4',
-  EXPENSES: 'topfruit_expenses_v4',
-  AUDIT_LOGS: 'topfruit_audit_logs_v4',
-  USERS: 'topfruit_users_v4',
-  STAFF: 'topfruit_staff_v4',
-  CURRENT_STAFF_ID: 'topfruit_current_staff_id_v4',
-  CURRENT_ROLE: 'topfruit_current_role_v4',
-  IS_AUTHENTICATED: 'topfruit_is_authenticated_v4',
-  DARK_MODE: 'topfruit_dark_mode_v4',
-  CUSTOMER_ORDERS: 'topfruit_customer_orders_v4',
-  FEEDBACKS: 'topfruit_feedbacks_v4',
+  SETTINGS: 'topfruit_store_settings_v5',
+  PRODUCTS: 'topfruit_products_v5',
+  CATEGORIES: 'topfruit_categories_v5',
+  ORDERS: 'topfruit_orders_v5',
+  CUSTOMERS: 'topfruit_customers_v5',
+  SUPPLIERS: 'topfruit_suppliers_v5',
+  PURCHASES: 'topfruit_purchases_v5',
+  EXPENSES: 'topfruit_expenses_v5',
+  AUDIT_LOGS: 'topfruit_audit_logs_v5',
+  USERS: 'topfruit_users_v5',
+  STAFF: 'topfruit_staff_v5',
+  CURRENT_STAFF_ID: 'topfruit_current_staff_id_v5',
+  CURRENT_ROLE: 'topfruit_current_role_v5',
+  IS_AUTHENTICATED: 'topfruit_is_authenticated_v5',
+  DARK_MODE: 'topfruit_dark_mode_v5',
+  CUSTOMER_ORDERS: 'topfruit_customer_orders_v5',
+  FEEDBACKS: 'topfruit_feedbacks_v5',
+  CURRENT_SHIFT: 'topfruit_current_shift_v5',
+  STOCK_MOVEMENTS: 'topfruit_stock_movements_v5',
 };
 
 function loadStorage<T>(key: string, fallback: T): T {
@@ -237,14 +240,28 @@ function saveStorage<T>(key: string, data: T): void {
 }
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Role & Auth State
-  const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() =>
-    loadStorage(STORAGE_KEYS.IS_AUTHENTICATED, false)
-  );
+  // Role & Auth State - default to unauthenticated so PIN is required when opening Admin
+  const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() => {
+    try {
+      const sessionAuth = sessionStorage.getItem('topfruit_admin_session_auth');
+      return sessionAuth === 'true';
+    } catch {
+      return false;
+    }
+  });
 
-  const [currentRole, setCurrentRoleState] = useState<UserRole>(() =>
-    loadStorage(STORAGE_KEYS.CURRENT_ROLE, 'cashier')
-  );
+  const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
+    try {
+      const sessionAuth = sessionStorage.getItem('topfruit_admin_session_auth');
+      if (sessionAuth === 'true') {
+        const savedRole = sessionStorage.getItem('topfruit_current_role');
+        if (savedRole === 'admin' || savedRole === 'cashier') return savedRole as UserRole;
+      }
+    } catch {
+      // ignore
+    }
+    return 'customer';
+  });
 
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>(() =>
     loadStorage(STORAGE_KEYS.STAFF, INITIAL_STAFF)
@@ -300,7 +317,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 
   const [stockMovements, setStockMovements] = useState<StockMovement[]>(() =>
-    loadStorage('em_stock_movements_v2', INITIAL_MOVEMENTS)
+    loadStorage(STORAGE_KEYS.STOCK_MOVEMENTS, INITIAL_MOVEMENTS)
   );
 
   const [customerOrders, setCustomerOrders] = useState<CustomerOnlineOrder[]>(() =>
@@ -368,15 +385,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => saveStorage(STORAGE_KEYS.PURCHASES, purchases), [purchases]);
   useEffect(() => saveStorage(STORAGE_KEYS.EXPENSES, expenses), [expenses]);
   useEffect(() => saveStorage(STORAGE_KEYS.AUDIT_LOGS, auditLogs), [auditLogs]);
-  useEffect(() => saveStorage('em_stock_movements_v2', stockMovements), [stockMovements]);
+  useEffect(() => saveStorage(STORAGE_KEYS.STOCK_MOVEMENTS, stockMovements), [stockMovements]);
   useEffect(() => saveStorage(STORAGE_KEYS.CUSTOMER_ORDERS, customerOrders), [customerOrders]);
   useEffect(() => saveStorage(STORAGE_KEYS.FEEDBACKS, feedbacks), [feedbacks]);
 
   const [isLocked, setIsLocked] = useState<boolean>(false);
 
   const [currentShift, setCurrentShift] = useState<RegisterShift>(() =>
-    loadStorage('em_current_shift_v2', INITIAL_SHIFT)
+    loadStorage(STORAGE_KEYS.CURRENT_SHIFT, INITIAL_SHIFT)
   );
+  useEffect(() => saveStorage(STORAGE_KEYS.CURRENT_SHIFT, currentShift), [currentShift]);
 
   const [dbStatus] = useState<'online' | 'syncing' | 'local'>('online');
   const [isCloudConnected] = useState<boolean>(true);
@@ -436,6 +454,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState('admin');
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', 'admin');
+      } catch {
+        // ignore
+      }
       saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
       saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'admin');
       logActivity('Login', 'Administrator authenticated via PIN');
@@ -451,6 +475,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState(staff.role);
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', staff.role);
+      } catch {
+        // ignore
+      }
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, staff.role);
       logActivity('Login', `${staff.name} signed in (${staff.role.toUpperCase()})`);
       return { success: true };
     }
@@ -466,6 +498,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState('admin');
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', 'admin');
+      } catch {
+        // ignore
+      }
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'admin');
       logActivity('Login', 'Boss signed in via master PIN');
       return { success: true };
     }
@@ -476,6 +516,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState('cashier');
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', 'cashier');
+      } catch {
+        // ignore
+      }
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'cashier');
       logActivity('Login', `${cashier.name} signed in via cashier PIN`);
       return { success: true };
     }
@@ -490,6 +538,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState(staff.role);
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', staff.role);
+      } catch {
+        // ignore
+      }
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, staff.role);
       logActivity('Quick Login', `${staff.name} signed in`);
     }
   };
@@ -514,6 +570,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCurrentRoleState(staff.role);
     setIsAuthenticatedState(true);
     setIsLocked(false);
+    try {
+      sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+      sessionStorage.setItem('topfruit_current_role', staff.role);
+    } catch {
+      // ignore
+    }
+    saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+    saveStorage(STORAGE_KEYS.CURRENT_ROLE, staff.role);
     logActivity('Login', `${staff.name} logged in (${staff.role.toUpperCase()})`);
     return { success: true };
   };
@@ -525,6 +589,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState(matchingStaff.role);
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', matchingStaff.role);
+      } catch {
+        // ignore
+      }
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, matchingStaff.role);
       logActivity('Login', `${matchingStaff.name} logged in`);
       return { success: true };
     }
@@ -536,6 +608,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState('admin');
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', 'admin');
+      } catch {
+        // ignore
+      }
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'admin');
       logActivity('Login', 'Admin User logged in');
       return { success: true };
     }
@@ -546,6 +626,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentRoleState('cashier');
       setIsAuthenticatedState(true);
       setIsLocked(false);
+      try {
+        sessionStorage.setItem('topfruit_admin_session_auth', 'true');
+        sessionStorage.setItem('topfruit_current_role', 'cashier');
+      } catch {
+        // ignore
+      }
+      saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, true);
+      saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'cashier');
       logActivity('Login', `${cashierStaff.name} logged in`);
       return { success: true };
     }
@@ -566,6 +654,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     logActivity('Logout', `${currentStaff.name} logged out`);
     setIsAuthenticatedState(false);
     setCurrentRoleState('customer');
+    try {
+      sessionStorage.removeItem('topfruit_admin_session_auth');
+      sessionStorage.removeItem('topfruit_current_role');
+    } catch {
+      // ignore
+    }
     saveStorage(STORAGE_KEYS.IS_AUTHENTICATED, false);
     saveStorage(STORAGE_KEYS.CURRENT_ROLE, 'customer');
     setCart([]);
@@ -1192,6 +1286,57 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     logActivity('Feedback Deleted', `Removed feedback ${feedbackId}`);
   };
 
+  // Clear Sales History & Financial Transactions (Clean slate for client)
+  const clearAllSalesAndTransactions = () => {
+    setOrders([]);
+    setCustomerOrders([]);
+    setExpenses([]);
+    setPurchases([]);
+    setStockMovements([]);
+    setFeedbacks([]);
+    setCart([]);
+    setLastCompletedOrder(null);
+    setAuditLogs([
+      {
+        id: `log-${Date.now()}`,
+        timestamp: new Date().toLocaleString(),
+        user: currentStaff.name || 'Admin',
+        action: 'Financial History Cleared',
+        details: 'All sales history, revenue records, and customer orders reset to clean zero state for client use.',
+      },
+    ]);
+    setCustomers((prev) =>
+      prev.map((c) => ({
+        ...c,
+        totalSpent: 0,
+        totalOrders: 0,
+        loyaltyPoints: 0,
+      }))
+    );
+    const freshShift: RegisterShift = {
+      id: `shift-${Date.now()}`,
+      openedAt: new Date().toISOString(),
+      startingCash: 0,
+      cashSales: 0,
+      cardSales: 0,
+      mobileSales: 0,
+      totalSales: 0,
+      expectedCashInDrawer: 0,
+      cashierName: currentStaff.name || 'Masgana',
+      isOpen: false,
+      notes: 'Fresh register shift',
+    };
+    setCurrentShift(freshShift);
+    saveStorage(STORAGE_KEYS.ORDERS, []);
+    saveStorage(STORAGE_KEYS.CUSTOMER_ORDERS, []);
+    saveStorage(STORAGE_KEYS.EXPENSES, []);
+    saveStorage(STORAGE_KEYS.PURCHASES, []);
+    saveStorage(STORAGE_KEYS.STOCK_MOVEMENTS, []);
+    saveStorage(STORAGE_KEYS.FEEDBACKS, []);
+    saveStorage(STORAGE_KEYS.CURRENT_SHIFT, freshShift);
+    logActivity('Reset', 'Cleared all sales history, revenue, orders, and financial records for client launch');
+  };
+
   // Reset & Backup
   const resetToDefaultData = () => {
     setProducts(INITIAL_PRODUCTS);
@@ -1360,6 +1505,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         auditLogs,
         logActivity,
         stockMovements,
+        clearAllSalesAndTransactions,
         resetToDefaultData,
         resetToDemoData: resetToDefaultData,
         exportDatabaseJSON,
