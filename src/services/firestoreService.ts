@@ -7,6 +7,8 @@ import {
   deleteDoc,
   writeBatch,
   Unsubscribe,
+  query,
+  orderBy,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import {
@@ -19,12 +21,16 @@ import {
   StoreSettings,
   RegisterShift,
   StaffMember,
+  CustomerOnlineOrder,
+  CustomerFeedback,
 } from '../types/store';
 
 export const COLLECTIONS = {
   PRODUCTS: 'products',
   CATEGORIES: 'categories',
   ORDERS: 'orders',
+  CUSTOMER_ORDERS: 'customer_orders',
+  FEEDBACKS: 'feedbacks',
   CUSTOMERS: 'customers',
   SUPPLIERS: 'suppliers',
   PURCHASE_ORDERS: 'purchase_orders',
@@ -55,6 +61,138 @@ export function subscribeCollection<T extends { id: string }>(
       if (onError) onError(err);
     }
   );
+}
+
+// Subscribe to Customer Online Orders (Cross-device real-time sync)
+export function subscribeCustomerOrders(
+  onUpdate: (orders: CustomerOnlineOrder[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.CUSTOMER_ORDERS);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const orders: CustomerOnlineOrder[] = [];
+      snapshot.forEach((docSnap) => {
+        orders.push({ ...(docSnap.data() as CustomerOnlineOrder), id: docSnap.id });
+      });
+      // Sort newest first
+      orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      onUpdate(orders);
+    },
+    (err) => {
+      console.warn('[Firestore] Customer orders subscription error:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+// Save or update Customer Online Order in Firestore
+export async function saveCustomerOrder(order: CustomerOnlineOrder): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, order.id);
+  await setDoc(docRef, order, { merge: true });
+}
+
+// Update Customer Online Order status in Firestore
+export async function updateCustomerOrderStatusInFirestore(
+  orderId: string,
+  status: CustomerOnlineOrder['status'],
+  adminNotes?: string
+): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
+  const updates: Partial<CustomerOnlineOrder> = {
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+  if (adminNotes !== undefined) {
+    updates.adminNotes = adminNotes;
+  }
+  await setDoc(docRef, updates, { merge: true });
+}
+
+// Delete Customer Online Order from Firestore
+export async function deleteCustomerOrderFromFirestore(orderId: string): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
+  await deleteDoc(docRef);
+}
+
+// Subscribe to POS Store Orders (Sales ledger)
+export function subscribeOrders(
+  onUpdate: (orders: Order[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.ORDERS);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const orders: Order[] = [];
+      snapshot.forEach((docSnap) => {
+        orders.push({ ...(docSnap.data() as Order), id: docSnap.id });
+      });
+      // Sort newest first
+      orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      onUpdate(orders);
+    },
+    (err) => {
+      console.warn('[Firestore] Orders subscription error:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+// Save POS Order in Firestore
+export async function saveOrderInFirestore(order: Order): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.ORDERS, order.id);
+  await setDoc(docRef, order, { merge: true });
+}
+
+// Subscribe to Customer Feedbacks & Reviews
+export function subscribeFeedbacks(
+  onUpdate: (feedbacks: CustomerFeedback[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.FEEDBACKS);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const items: CustomerFeedback[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ ...(docSnap.data() as CustomerFeedback), id: docSnap.id });
+      });
+      items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      onUpdate(items);
+    },
+    (err) => {
+      console.warn('[Firestore] Feedbacks subscription error:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+// Save Customer Feedback in Firestore
+export async function saveFeedbackInFirestore(feedback: CustomerFeedback): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedback.id);
+  await setDoc(docRef, feedback, { merge: true });
+}
+
+// Update Feedback Status in Firestore
+export async function updateFeedbackStatusInFirestore(
+  feedbackId: string,
+  status: CustomerFeedback['status'],
+  adminNote?: string
+): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedbackId);
+  const updates: Partial<CustomerFeedback> = { status };
+  if (adminNote !== undefined) {
+    updates.adminNote = adminNote;
+  }
+  await setDoc(docRef, updates, { merge: true });
+}
+
+// Delete Customer Feedback from Firestore
+export async function deleteFeedbackFromFirestore(feedbackId: string): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedbackId);
+  await deleteDoc(docRef);
 }
 
 // Single document subscriber

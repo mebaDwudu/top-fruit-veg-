@@ -100,6 +100,33 @@
         "isOpen": { "type": "boolean" },
         "totalSales": { "type": "number" }
       }
+    },
+    "customerOrders": {
+      "fields": {
+        "id": { "type": "string" },
+        "orderCode": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "fulfillmentType": { "type": "string" },
+        "deliveryLocation": { "type": "string" },
+        "items": { "type": "array" },
+        "totalItems": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "feedbacks": {
+      "fields": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "rating": { "type": "number" },
+        "category": { "type": "string" },
+        "comment": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
     }
   }
 }

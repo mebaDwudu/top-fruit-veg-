@@ -3,9 +3,10 @@ import { StoreProvider, useStore } from './context/StoreContext';
 import { ActiveTab } from './types/store';
 import { CustomerStorefront } from './components/storefront/CustomerStorefront';
 import { AdminPortal } from './components/admin/AdminPortal';
+import { CustomerOrdersPage } from './components/admin/CustomerOrdersPage';
 import { ShoppingBag, Shield, ArrowRight, ExternalLink, Sparkles, Store } from 'lucide-react';
 
-function parseCurrentRoute(): 'customer' | 'admin' | 'hub' {
+function parseCurrentRoute(): 'customer' | 'admin' | 'customer-orders' | 'hub' {
   try {
     const pathname = (window?.location?.pathname || '').toLowerCase();
     const rawHash = (window?.location?.hash || '').replace('#/', '').replace('#', '').trim().toLowerCase();
@@ -20,6 +21,18 @@ function parseCurrentRoute(): 'customer' | 'admin' | 'hub' {
       }
     } catch {
       // Fallback
+    }
+
+    if (
+      pathname.includes('customer-orders') ||
+      pathname.includes('orders') ||
+      rawHash === 'orders' ||
+      rawHash === 'customer-orders' ||
+      rawHash === 'admin/orders' ||
+      searchPage === 'orders' ||
+      searchView === 'orders'
+    ) {
+      return 'customer-orders';
     }
 
     if (
@@ -61,7 +74,7 @@ function parseCurrentRoute(): 'customer' | 'admin' | 'hub' {
 function StoreAppContent() {
   const { isOnline } = useStore();
 
-  const [activePortal, setActivePortal] = useState<'customer' | 'admin' | 'hub'>(() => parseCurrentRoute());
+  const [activePortal, setActivePortal] = useState<'customer' | 'admin' | 'customer-orders' | 'hub'>(() => parseCurrentRoute());
 
   // Hash-based and URL routing handler
   const handleRouting = useCallback(() => {
@@ -78,13 +91,15 @@ function StoreAppContent() {
     };
   }, [handleRouting]);
 
-  const navigateTo = (portal: 'customer' | 'admin' | 'hub') => {
+  const navigateTo = (portal: 'customer' | 'admin' | 'customer-orders' | 'hub') => {
     setActivePortal(portal);
     try {
       if (portal === 'customer') {
         window.location.hash = '#/customer';
       } else if (portal === 'admin') {
         window.location.hash = '#/admin';
+      } else if (portal === 'customer-orders') {
+        window.location.hash = '#/admin/orders';
       } else {
         window.location.hash = '';
       }
@@ -93,7 +108,17 @@ function StoreAppContent() {
     }
   };
 
-  // 1. CUSTOMER STOREFRONT PORTAL
+  // 1. DEDICATED CUSTOMER ORDERS PAGE
+  if (activePortal === 'customer-orders') {
+    return (
+      <CustomerOrdersPage
+        onBackToAdmin={() => navigateTo('admin')}
+        onSwitchToStorefront={() => navigateTo('customer')}
+      />
+    );
+  }
+
+  // 2. CUSTOMER STOREFRONT PORTAL
   if (activePortal === 'customer') {
     return (
       <CustomerStorefront
@@ -102,11 +127,12 @@ function StoreAppContent() {
     );
   }
 
-  // 2. ADMIN PORTAL (Matches Customer styling & Left-side navigation)
+  // 3. ADMIN PORTAL (Matches Customer styling & Left-side navigation)
   if (activePortal === 'admin') {
     return (
       <AdminPortal
         onSwitchToStorefront={() => navigateTo('customer')}
+        onOpenCustomerOrders={() => navigateTo('customer-orders')}
       />
     );
   }

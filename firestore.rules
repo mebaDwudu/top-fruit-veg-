@@ -144,6 +144,46 @@ service cloud.firestore {
       allow delete: if isValidId(staffId);
     }
 
+    // --- Customer Online Orders Collection (Real-Time Customer -> Admin Sync) ---
+    match /customer_orders/{orderId} {
+      function isValidCustomerOrder(data) {
+        return data.customerName is string && data.customerName.size() > 0
+          && data.items is list && data.items.size() <= 200
+          && (!('status' in data) || data.status is string)
+          && (!('orderCode' in data) || data.orderCode is string)
+          && (!('orderNumber' in data) || data.orderNumber is string)
+          && (!('fulfillmentType' in data) || data.fulfillmentType is string);
+      }
+
+      allow read: if true;
+      allow create: if isValidId(orderId) && isValidCustomerOrder(request.resource.data);
+      allow update: if isValidId(orderId) && isValidCustomerOrder(request.resource.data);
+      allow delete: if isValidId(orderId);
+    }
+
+    // --- Customer Feedbacks & Reviews Collection ---
+    match /feedbacks/{feedbackId} {
+      function isValidFeedback(data) {
+        return data.rating is number && data.rating >= 1 && data.rating <= 5
+          && data.comment is string && data.comment.size() > 0 && data.comment.size() <= 2000;
+      }
+
+      allow read: if true;
+      allow create: if isValidId(feedbackId) && isValidFeedback(request.resource.data);
+      allow update: if isValidId(feedbackId);
+      allow delete: if isValidId(feedbackId);
+    }
+
+    // --- Expenses Collection ---
+    match /expenses/{expenseId} {
+      allow read, write: if isValidId(expenseId);
+    }
+
+    // --- Audit Logs Collection ---
+    match /audit_logs/{logId} {
+      allow read, write: if isValidId(logId);
+    }
+
     // --- Shifts Collection ---
     match /shifts/{shiftId} {
       function isValidShift(data) {

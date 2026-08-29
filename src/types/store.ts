@@ -249,14 +249,17 @@ export interface CustomerOnlineOrderItem {
 export interface CustomerOnlineOrder {
   id: string;
   orderNumber: string;
+  orderCode?: string;
   customerName: string;
-  customerPhone: string;
+  customerPhone?: string;
+  fulfillmentType: 'pickup' | 'delivery';
+  deliveryLocation?: string;
   pickupTime?: string;
   notes?: string;
   items: CustomerOnlineOrderItem[];
   totalItems: number;
   totalAmount?: number;
-  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'cancelled';
   adminNotes?: string;
   createdAt: string;
   updatedAt?: string;

@@ -1824,47 +1824,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   },
 ];
 
-export const INITIAL_CUSTOMERS: Customer[] = [
-  {
-    id: 'cust-1',
-    name: 'Leroy Campbell',
-    phone: '+44 7911 123456',
-    email: 'leroy.c@gmail.com',
-    tier: 'VIP',
-    loyaltyPoints: 0,
-    totalSpent: 0,
-    totalOrders: 0,
-    status: 'Active',
-    notes: 'Regular customer from Brixton Hill, buys yams and plantains weekly.',
-    createdAt: '2026-07-01T00:00:00.000Z',
-  },
-  {
-    id: 'cust-2',
-    name: 'Aisha Sesay',
-    phone: '+44 7922 987654',
-    email: 'aisha.sesay@yahoo.co.uk',
-    tier: 'Gold',
-    loyaltyPoints: 0,
-    totalSpent: 0,
-    totalOrders: 0,
-    status: 'Active',
-    notes: 'Buys Scotch bonnet peppers, garden eggs and cassava in bulk.',
-    createdAt: '2026-07-10T00:00:00.000Z',
-  },
-  {
-    id: 'cust-3',
-    name: 'Marcus Sterling',
-    phone: '+44 7933 555888',
-    email: 'm.sterling@hotmail.co.uk',
-    tier: 'Silver',
-    loyaltyPoints: 0,
-    totalSpent: 0,
-    totalOrders: 0,
-    status: 'Active',
-    notes: 'Local chef, buys fresh herbs, ginger and lime.',
-    createdAt: '2026-07-15T00:00:00.000Z',
-  },
-];
+export const INITIAL_CUSTOMERS: Customer[] = [];
 
 export const INITIAL_PURCHASES: PurchaseOrder[] = [];
 

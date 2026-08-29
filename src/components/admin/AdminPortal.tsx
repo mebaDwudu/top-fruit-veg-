@@ -45,6 +45,7 @@ import {
 
 interface AdminPortalProps {
   onSwitchToStorefront: () => void;
+  onOpenCustomerOrders?: () => void;
 }
 
 export type AdminSection =
@@ -59,6 +60,7 @@ export type AdminSection =
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({
   onSwitchToStorefront,
+  onOpenCustomerOrders,
 }) => {
   const {
     currentRole,
@@ -308,7 +310,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <button
                   key={item.id}
                   onClick={() => {
-                    setActiveSection(item.id);
+                    if (item.id === 'orders' && onOpenCustomerOrders) {
+                      onOpenCustomerOrders();
+                    } else {
+                      setActiveSection(item.id);
+                    }
                     setIsMobileSidebarOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-left transition-all cursor-pointer ${
@@ -521,7 +527,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           {/* CUSTOMER STOREFRONT ORDERS */}
           {activeSection === 'orders' && (
             <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
-              <CustomerOrdersView />
+              <CustomerOrdersView onOpenDedicatedPage={onOpenCustomerOrders} />
             </div>
           )}
 

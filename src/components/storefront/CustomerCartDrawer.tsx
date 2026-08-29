@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { Product, CustomerOnlineOrder } from '../../types/store';
 import { useStore } from '../../context/StoreContext';
-import { sanitizeText, sanitizePhone } from '../../utils/sanitize';
+import { sanitizeText } from '../../utils/sanitize';
 import {
   X,
   Plus,
   Minus,
   Trash2,
-  MessageCircle,
-  Phone,
   MapPin,
   Clock,
   Sparkles,
@@ -17,9 +15,10 @@ import {
   Check,
   ShoppingBag,
   Send,
-  ArrowRight,
   AlertCircle,
   Store,
+  Truck,
+  User,
 } from 'lucide-react';
 
 export interface CustomerCartItem {
@@ -44,12 +43,14 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
   onRemoveItem,
   onClearBag,
 }) => {
-  const { formatCurrency, settings, addCustomerOrder } = useStore();
+  const { formatCurrency, settings, addCustomerOrder, customerOrders } = useStore();
+  const [fulfillmentType, setFulfillmentType] = useState<'pickup' | 'delivery'>('pickup');
   const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [pickupNote, setPickupNote] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [submittedOrder, setSubmittedOrder] = useState<CustomerOnlineOrder | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [addressError, setAddressError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,27 +63,18 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
     0
   );
 
-  const marketPhone = settings.storePhone || '+44 7449 338679';
+  // Construct structured text summary for Clipboard
+  const generateOrderText = (orderCode?: string) => {
+    const cleanName = sanitizeText(customerName, 80) || 'Customer';
+    const cleanAddress = sanitizeText(deliveryAddress, 200);
 
-  // Construct structured text summary for WhatsApp or Clipboard
-  const generateOrderText = (orderNum?: string) => {
-    const cleanName = sanitizeText(customerName, 80);
-    const cleanPhone = sanitizePhone(customerPhone);
-    const cleanNote = sanitizeText(pickupNote, 300);
-
-    let text = `🛒 *NEW ORDER / CLICK & COLLECT INQUIRY*`;
-    if (orderNum) text += ` (${orderNum})`;
+    let text = `🛒 *NEW ORDER (${orderCode || 'FR-0000'})*`;
     text += `\n*Stall:* ${settings.storeName || 'Top Fruit and Veg'}\n`;
     text += `*Location:* Pitch 18 Brixton Market Pope's Road London SW9\n\n`;
-
-    if (cleanName) {
-      text += `👤 *Customer:* ${cleanName}\n`;
-    }
-    if (cleanPhone) {
-      text += `📞 *Phone:* ${cleanPhone}\n`;
-    }
-    if (cleanNote) {
-      text += `📝 *Pickup Note:* ${cleanNote}\n`;
+    text += `👤 *Customer Name:* ${cleanName}\n`;
+    text += `📦 *Fulfillment:* ${fulfillmentType === 'delivery' ? '🚚 Delivery' : '🏪 Pick Up Myself'}\n`;
+    if (fulfillmentType === 'delivery' && cleanAddress) {
+      text += `📍 *Delivery Address:* ${cleanAddress}\n`;
     }
 
     text += `\n*ITEMS ORDERED:*\n`;
@@ -97,28 +89,71 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
     if (showPrices) {
       text += `\n*TOTAL ESTIMATE:* £${totalAmount.toFixed(2)}\n`;
     }
-    text += `*Collection Point:* Pitch 18 Pope's Road, Brixton Market\n`;
+    if (fulfillmentType === 'pickup') {
+      text += `*Collection Point:* Pitch 18 Pope's Road, Brixton Market\n`;
+    }
     text += `Thank you!`;
     return text;
   };
 
-  // Direct submit to Admin orders list
-  const handleSendOrderToAdmin = () => {
+  // Generate unique order code (FR-XXXX) ensuring no collision with existing orders
+  const generateUniqueOrderCode = (): string => {
+    const existingCodes = new Set(
+      customerOrders.map((o) => (o.orderCode || o.orderNumber || '').toUpperCase())
+    );
+    let code = '';
+    let attempts = 0;
+    do {
+      const randNum = Math.floor(1000 + Math.random() * 9000);
+      code = `FR-${randNum}`;
+      attempts++;
+    } while (existingCodes.has(code) && attempts < 200);
+    return code;
+  };
+
+  // Direct submit to Firestore with unique Order Code
+  const handlePlaceOrder = () => {
     if (items.length === 0) return;
+    
+    // Clear previous errors
+    setNameError(null);
+    setAddressError(null);
     setSubmitError(null);
+
+    const trimmedName = customerName.trim();
+    const trimmedAddress = deliveryAddress.trim();
+
+    let hasValidationError = false;
+
+    // Validate Customer Name (Required for both Pickup and Delivery)
+    if (!trimmedName) {
+      setNameError('Please enter your name.');
+      hasValidationError = true;
+    }
+
+    // Validate Delivery Address (Required for Delivery)
+    if (fulfillmentType === 'delivery' && !trimmedAddress) {
+      setAddressError('Please enter your delivery address.');
+      hasValidationError = true;
+    }
+
+    if (hasValidationError) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-      const orderNumber = `ORD-${randomSuffix}`;
+      const orderCode = generateUniqueOrderCode();
 
-      const newOrder: CustomerOnlineOrder = {
-        id: `cust_order_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        orderNumber,
-        customerName: sanitizeText(customerName.trim() || 'Walk-in Customer', 80),
-        customerPhone: sanitizePhone(customerPhone.trim() || 'Not provided'),
-        pickupTime: sanitizeText(pickupNote.trim() || 'Today at Pitch 18', 200),
-        notes: sanitizeText(pickupNote.trim(), 400),
+      const newOrder = addCustomerOrder({
+        orderCode,
+        customerName: sanitizeText(trimmedName, 80),
+        customerPhone: 'Not provided',
+        fulfillmentType,
+        deliveryLocation: fulfillmentType === 'delivery' ? sanitizeText(trimmedAddress, 200) : undefined,
+        pickupTime: fulfillmentType === 'pickup' ? 'Pitch 18 Collection' : undefined,
+        notes: '',
         items: items.map((i) => ({
           productId: i.product.id,
           productName: i.product.name,
@@ -129,11 +164,8 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
         })),
         totalItems: totalItemsCount,
         totalAmount,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      addCustomerOrder(newOrder);
       setSubmittedOrder(newOrder);
       setIsSubmitting(false);
     } catch (err: any) {
@@ -142,15 +174,8 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
     }
   };
 
-  const handleWhatsAppSend = () => {
-    const text = generateOrderText(submittedOrder?.orderNumber);
-    const cleanPhone = marketPhone.replace(/[^0-9]/g, '');
-    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-  };
-
   const handleCopyOrder = async () => {
-    const text = generateOrderText(submittedOrder?.orderNumber);
+    const text = generateOrderText(submittedOrder?.orderCode || submittedOrder?.orderNumber);
     try {
       await navigator.clipboard.writeText(text);
       setCopiedSummary(true);
@@ -166,8 +191,11 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
       onClearBag();
       setSubmittedOrder(null);
       setCustomerName('');
-      setCustomerPhone('');
-      setPickupNote('');
+      setDeliveryAddress('');
+      setNameError(null);
+      setAddressError(null);
+      setSubmitError(null);
+      setFulfillmentType('pickup');
     }
     onClose();
   };
@@ -183,10 +211,10 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
             </div>
             <div>
               <h3 className="font-black text-sm tracking-tight text-white">
-                Customer Order List
+                Customer Order Basket
               </h3>
               <p className="text-[11px] text-emerald-200 font-medium">
-                {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} for Pitch 18 collection
+                {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} ready to order
               </p>
             </div>
           </div>
@@ -194,6 +222,7 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
           <button
             onClick={handleCloseAndReset}
             className="p-2 text-emerald-200 hover:text-white rounded-xl hover:bg-emerald-800 transition-colors cursor-pointer"
+            aria-label="Close basket"
           >
             <X className="w-5 h-5" />
           </button>
@@ -202,40 +231,76 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
         {/* ORDER SUCCESS SCREEN */}
         {submittedOrder ? (
           <div className="flex-1 p-6 flex flex-col justify-between overflow-y-auto space-y-6">
-            <div className="text-center space-y-3 pt-4">
+            <div className="text-center space-y-3 pt-2">
               <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl mx-auto shadow-sm animate-in zoom-in-90 duration-300">
                 <CheckCircle2 className="w-9 h-9 text-emerald-600" />
               </div>
               <h3 className="text-xl font-black text-slate-900 tracking-tight">
-                Order Sent to Stall Admin!
+                Order placed successfully!
               </h3>
-              <div className="inline-block px-3 py-1 bg-emerald-50 border border-emerald-300 rounded-full font-mono text-xs font-black text-emerald-900">
-                {submittedOrder.orderNumber}
+              
+              {/* Prominent Order Code Badge */}
+              <div className="inline-flex flex-col items-center justify-center px-6 py-3 bg-emerald-50 border-2 border-emerald-500 rounded-2xl shadow-xs">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                  Your Order Code
+                </span>
+                <span className="font-mono text-3xl font-black text-emerald-950 tracking-wider">
+                  {submittedOrder.orderCode || submittedOrder.orderNumber}
+                </span>
               </div>
+
               <p className="text-xs text-slate-600 max-w-xs mx-auto leading-relaxed">
-                Your order list has been received by the Admin Portal at Pitch 18. Our team will pack and reserve your fresh produce for collection.
+                {submittedOrder.fulfillmentType === 'delivery'
+                  ? `Your delivery order has been received. We will deliver to: ${submittedOrder.deliveryLocation || 'your specified address'}.`
+                  : `Your order is reserved at Pitch 18 Pope's Road, Brixton Market. Please quote order code ${submittedOrder.orderCode || submittedOrder.orderNumber} upon collection.`}
               </p>
             </div>
 
-            {/* Summary details */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 text-xs">
+            {/* Order summary details */}
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Customer:</span>
                 <span className="font-bold text-slate-900">{submittedOrder.customerName}</span>
               </div>
-              {submittedOrder.customerPhone && (
+
+              <div className="flex justify-between text-slate-600">
+                <span>Fulfillment Method:</span>
+                <span className="font-bold inline-flex items-center gap-1 text-emerald-800">
+                  {submittedOrder.fulfillmentType === 'delivery' ? (
+                    <>
+                      <Truck className="w-3.5 h-3.5" /> Delivery
+                    </>
+                  ) : (
+                    <>
+                      <Store className="w-3.5 h-3.5" /> Pick Up Myself
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {submittedOrder.fulfillmentType === 'delivery' && submittedOrder.deliveryLocation && (
                 <div className="flex justify-between text-slate-600">
-                  <span>Phone:</span>
-                  <span className="font-bold text-slate-900">{submittedOrder.customerPhone}</span>
+                  <span>Delivery Address:</span>
+                  <span className="font-bold text-slate-900 text-right max-w-[200px] break-words">
+                    {submittedOrder.deliveryLocation}
+                  </span>
                 </div>
               )}
-              <div className="flex justify-between text-slate-600">
-                <span>Collection:</span>
-                <span className="font-bold text-emerald-800">Pitch 18 Brixton Market</span>
-              </div>
+
+              {showPrices && submittedOrder.totalAmount !== undefined && (
+                <div className="flex justify-between text-slate-600 pt-1 border-t border-slate-200">
+                  <span>Estimated Total:</span>
+                  <span className="font-black text-emerald-800 text-sm">
+                    {formatCurrency(submittedOrder.totalAmount)}
+                  </span>
+                </div>
+              )}
+
               <div className="pt-2 border-t border-slate-200">
-                <span className="font-bold text-slate-700 block mb-1">Reserved Produce:</span>
-                <div className="space-y-1">
+                <span className="font-bold text-slate-700 block mb-1">
+                  Reserved Produce ({submittedOrder.totalItems}):
+                </span>
+                <div className="space-y-1 max-h-36 overflow-y-auto">
                   {submittedOrder.items.map((it, idx) => (
                     <div key={idx} className="flex justify-between text-slate-600">
                       <span>• {it.productName}</span>
@@ -246,29 +311,21 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
               </div>
             </div>
 
-            {/* Optional WhatsApp button & Done */}
-            <div className="space-y-2.5 pt-2">
-              <button
-                onClick={handleWhatsAppSend}
-                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center space-x-2 transition-all shadow-sm cursor-pointer"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>Also Notify Stall on WhatsApp</span>
-              </button>
-
+            {/* Action buttons */}
+            <div className="space-y-2 pt-2">
               <button
                 onClick={handleCopyOrder}
-                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-2xs"
               >
-                {copiedSummary ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-600" />}
-                <span>{copiedSummary ? 'Order Copied to Clipboard!' : 'Copy Order Text'}</span>
+                {copiedSummary ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-emerald-700" />}
+                <span>{copiedSummary ? 'Order Code & Details Copied!' : 'Copy Order Code & Summary'}</span>
               </button>
 
               <button
                 onClick={handleCloseAndReset}
-                className="w-full py-2.5 text-center text-xs font-bold text-slate-500 hover:text-slate-900 cursor-pointer"
+                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold text-center transition-colors cursor-pointer shadow-xs"
               >
-                Done & Return to Stall
+                Done & Return to Storefront
               </button>
             </div>
           </div>
@@ -277,7 +334,7 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
             <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
               <ShoppingBag className="w-8 h-8 text-slate-400" />
             </div>
-            <h4 className="font-bold text-slate-800 text-base mb-1">Your Order List is Empty</h4>
+            <h4 className="font-bold text-slate-800 text-base mb-1">Your Basket is Empty</h4>
             <p className="text-xs text-slate-500 max-w-xs mb-6">
               Browse fresh fruits, vegetables, yams, and plantains at Brixton Market and add items to reserve.
             </p>
@@ -293,8 +350,8 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
             {/* Items list */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between text-xs font-extrabold text-slate-700 px-1">
-                <span>Selected Items ({totalItemsCount})</span>
-                <span className="text-emerald-700">Fresh Daily</span>
+                <span>Selected Produce ({totalItemsCount})</span>
+                <span className="text-emerald-700 font-semibold">Fresh Daily</span>
               </div>
 
               {items.map((item) => (
@@ -337,6 +394,7 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                     <button
                       onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
                       className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                      aria-label="Decrease quantity"
                     >
                       <Minus className="w-3 h-3" />
                     </button>
@@ -351,12 +409,13 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                         )
                       }
                       className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                      aria-label="Increase quantity"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
 
-                  {/* Line Total (if prices enabled) & Remove */}
+                  {/* Line Total & Remove */}
                   <div className="text-right shrink-0 flex items-center gap-2">
                     {showPrices && (
                       <span className="font-black text-xs text-slate-900 block">
@@ -385,51 +444,130 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
               </button>
             </div>
 
-            {/* Customer Details Form */}
+            {/* STEP 1: Choose Pick Up Myself or Delivery */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <div className="text-xs font-black text-slate-900">
+                1. How do you want to receive your order?
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Option 1: Pick Up Myself */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFulfillmentType('pickup');
+                    setAddressError(null);
+                  }}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 ${
+                    fulfillmentType === 'pickup'
+                      ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-500/20 text-emerald-950 shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <Store className={`w-4 h-4 ${fulfillmentType === 'pickup' ? 'text-emerald-700' : 'text-slate-500'}`} />
+                    {fulfillmentType === 'pickup' && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs font-black">Pick Up Myself</div>
+                    <div className="text-[10px] text-slate-500">Collect at Pitch 18</div>
+                  </div>
+                </button>
+
+                {/* Option 2: Delivery */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFulfillmentType('delivery');
+                  }}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 ${
+                    fulfillmentType === 'delivery'
+                      ? 'bg-emerald-50 border-emerald-600 ring-2 ring-emerald-500/20 text-emerald-950 shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <Truck className={`w-4 h-4 ${fulfillmentType === 'delivery' ? 'text-emerald-700' : 'text-slate-500'}`} />
+                    {fulfillmentType === 'delivery' && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs font-black">Delivery</div>
+                    <div className="text-[10px] text-slate-500">We deliver to you</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* STEP 2: Required Fields Form */}
             <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl space-y-3">
               <div className="flex items-center space-x-1.5 text-xs font-extrabold text-emerald-950">
-                <Store className="w-4 h-4 text-emerald-700" />
-                <span>Customer & Collection Info</span>
+                <User className="w-4 h-4 text-emerald-700" />
+                <span>
+                  2. {fulfillmentType === 'pickup' ? 'Enter Customer Name' : 'Enter Delivery Details'}
+                </span>
               </div>
 
+              {/* Customer Name Field (Required for both) */}
               <div>
                 <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                  Your Name (Optional / Recommended):
+                  Customer Name <span className="text-rose-600 font-black">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Sarah K."
+                  placeholder="Enter your name"
                   value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-hidden focus:border-emerald-600 font-medium"
+                  onChange={(e) => {
+                    setCustomerName(e.target.value);
+                    if (nameError) setNameError(null);
+                  }}
+                  className={`w-full px-3 py-2 bg-white border rounded-xl text-xs outline-hidden font-medium transition-colors ${
+                    nameError
+                      ? 'border-rose-400 focus:border-rose-600 bg-rose-50/40 text-slate-900'
+                      : 'border-slate-300 focus:border-emerald-600'
+                  }`}
+                  required
                 />
+                {nameError && (
+                  <p className="text-[11px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                    {nameError}
+                  </p>
+                )}
               </div>
 
-              <div>
-                <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                  Contact Phone (Optional):
-                </label>
-                <input
-                  type="tel"
-                  placeholder="e.g. 07911 123456"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-hidden focus:border-emerald-600 font-medium"
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-bold text-slate-700 block mb-1">
-                  Pickup Time / Special Note:
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Collecting around 3:30pm today"
-                  value={pickupNote}
-                  onChange={(e) => setPickupNote(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-hidden focus:border-emerald-600 font-medium"
-                />
-              </div>
+              {/* Delivery Address Field (Required for Delivery ONLY) */}
+              {fulfillmentType === 'delivery' && (
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                    Delivery Address <span className="text-rose-600 font-black">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter your delivery address"
+                    value={deliveryAddress}
+                    onChange={(e) => {
+                      setDeliveryAddress(e.target.value);
+                      if (addressError) setAddressError(null);
+                    }}
+                    className={`w-full px-3 py-2 bg-white border rounded-xl text-xs outline-hidden font-medium transition-colors ${
+                      addressError
+                        ? 'border-rose-400 focus:border-rose-600 bg-rose-50/40 text-slate-900'
+                        : 'border-slate-300 focus:border-emerald-600'
+                    }`}
+                    required
+                  />
+                  {addressError && (
+                    <p className="text-[11px] text-rose-600 font-bold mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                      {addressError}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {submitError && (
@@ -455,38 +593,24 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
 
             <div className="flex items-center space-x-2 text-[11px] text-slate-600 bg-white p-2.5 rounded-xl border border-slate-200">
               <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Collect & pay at <strong>Pitch 18 Brixton Market</strong></span>
+              <span>
+                {fulfillmentType === 'delivery'
+                  ? 'Delivery to your specified address'
+                  : 'Collect at Pitch 18 Pope\'s Road, Brixton Market'}
+              </span>
             </div>
 
-            {/* Main Order Buttons */}
-            <div className="space-y-2">
+            {/* Main Submit Order Button */}
+            <div>
               <button
-                id="btn-send-order-admin"
-                onClick={handleSendOrderToAdmin}
+                id="btn-place-customer-order"
+                onClick={handlePlaceOrder}
                 disabled={isSubmitting}
                 className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center space-x-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
-                <span>{isSubmitting ? 'Sending Order...' : 'Send Order to Admin'}</span>
+                <span>{isSubmitting ? 'Submitting Order...' : 'Place Order Now'}</span>
               </button>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleWhatsAppSend}
-                  className="py-2.5 px-3 bg-white hover:bg-slate-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer shadow-2xs"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>WhatsApp</span>
-                </button>
-
-                <button
-                  onClick={handleCopyOrder}
-                  className="py-2.5 px-3 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer shadow-2xs"
-                >
-                  {copiedSummary ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-                  <span>{copiedSummary ? 'Copied!' : 'Copy List'}</span>
-                </button>
-              </div>
             </div>
           </div>
         )}
@@ -494,3 +618,4 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
     </div>
   );
 };
+

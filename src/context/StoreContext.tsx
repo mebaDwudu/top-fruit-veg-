@@ -38,6 +38,19 @@ import {
   INITIAL_CUSTOMER_ORDERS,
   INITIAL_FEEDBACKS,
 } from '../data/initialData';
+import {
+  subscribeCustomerOrders,
+  saveCustomerOrder,
+  updateCustomerOrderStatusInFirestore,
+  deleteCustomerOrderFromFirestore,
+  subscribeOrders,
+  saveOrderInFirestore,
+  subscribeFeedbacks,
+  saveFeedbackInFirestore,
+  updateFeedbackStatusInFirestore,
+  deleteFeedbackFromFirestore,
+  COLLECTIONS,
+} from '../services/firestoreService';
 import confetti from 'canvas-confetti';
 
 interface StoreContextType {
@@ -58,6 +71,7 @@ interface StoreContextType {
   verifyAdminPin: (pin: string) => boolean;
   quickLoginStaff: (staffId: string) => void;
   logout: () => void;
+  isOnline: boolean;
   setDirectRole: (role: UserRole) => void;
   addUser: (user: Omit<UserAccount, 'id'>) => void;
   updateUser: (id: string, updates: Partial<UserAccount>) => void;
@@ -396,9 +410,72 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
   useEffect(() => saveStorage(STORAGE_KEYS.CURRENT_SHIFT, currentShift), [currentShift]);
 
-  const [dbStatus] = useState<'online' | 'syncing' | 'local'>('online');
-  const [isCloudConnected] = useState<boolean>(true);
+  const [dbStatus, setDbStatus] = useState<'online' | 'syncing' | 'local'>('online');
+  const [isCloudConnected, setIsCloudConnected] = useState<boolean>(true);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(new Date().toLocaleTimeString());
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Real-time Firestore Subscriptions
+  useEffect(() => {
+    // 1. Customer Online Orders (Cross-device real-time sync)
+    const unsubCustomerOrders = subscribeCustomerOrders(
+      (remoteOrders) => {
+        if (remoteOrders && remoteOrders.length >= 0) {
+          setCustomerOrders(remoteOrders);
+          setLastSyncedAt(new Date().toLocaleTimeString());
+          setDbStatus('online');
+          setIsCloudConnected(true);
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Customer orders sync warning:', err);
+        setDbStatus('local');
+      }
+    );
+
+    // 2. POS Orders (Sales ledger)
+    const unsubOrders = subscribeOrders(
+      (remoteOrders) => {
+        if (remoteOrders && remoteOrders.length >= 0) {
+          setOrders(remoteOrders);
+          setLastSyncedAt(new Date().toLocaleTimeString());
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] POS orders sync warning:', err);
+      }
+    );
+
+    // 3. Customer Feedbacks
+    const unsubFeedbacks = subscribeFeedbacks(
+      (remoteFeedbacks) => {
+        if (remoteFeedbacks && remoteFeedbacks.length >= 0) {
+          setFeedbacks(remoteFeedbacks);
+          setLastSyncedAt(new Date().toLocaleTimeString());
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Feedbacks sync warning:', err);
+      }
+    );
+
+    return () => {
+      unsubCustomerOrders();
+      unsubOrders();
+      unsubFeedbacks();
+    };
+  }, []);
 
   // Current active staff object
   const currentStaff =
@@ -991,6 +1068,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLastCompletedOrder(newOrder);
     logActivity('Sale Created', `${newOrder.customerName} - ${formatCurrency(grandTotal)}`);
 
+    // Sync POS order directly to Firestore
+    saveOrderInFirestore(newOrder).catch((err) => {
+      console.warn('[Firestore] Failed to save POS order:', err);
+    });
+
     // Audio & visual celebration
     playBeep(1200, 'sine', 0.2);
     confetti({
@@ -1187,19 +1269,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addCustomerOrder = (
     orderData: Omit<CustomerOnlineOrder, 'id' | 'createdAt' | 'orderNumber' | 'status'>
   ): CustomerOnlineOrder => {
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const existingCodes = new Set(
+      customerOrders.map((o) => (o.orderCode || o.orderNumber || '').toUpperCase())
+    );
+
+    let orderCode = orderData.orderCode;
+    let randomNum = Math.floor(1000 + Math.random() * 9000);
+
+    if (!orderCode) {
+      let attempts = 0;
+      do {
+        randomNum = Math.floor(1000 + Math.random() * 9000);
+        orderCode = `FR-${randomNum}`;
+        attempts++;
+      } while (existingCodes.has(orderCode.toUpperCase()) && attempts < 300);
+    }
+
     const newOrder: CustomerOnlineOrder = {
       ...orderData,
-      id: `cust-ord-${Date.now()}`,
-      orderNumber: `ORD-${randomNum}`,
+      id: `cust-ord-${Date.now()}-${randomNum}`,
+      orderNumber: orderCode.replace('FR-', 'ORD-'),
+      orderCode,
       status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    // Optimistic local state update
     setCustomerOrders((prev) => [newOrder, ...prev]);
+
+    // Save directly to Firestore for real-time cross-device sync!
+    saveCustomerOrder(newOrder).catch((err) => {
+      console.error('[Firestore] Error writing customer order to cloud:', err);
+    });
+
     logActivity(
       'Customer Order Received',
-      `New order ${newOrder.orderNumber} from ${newOrder.customerName || 'Customer'} (${newOrder.totalItems} items)`
+      `New order ${newOrder.orderCode || newOrder.orderNumber} from ${newOrder.customerName || 'Customer'} (${newOrder.totalItems} items)`
     );
     playBeep(980, 'triangle', 0.18);
     try {
@@ -1227,11 +1333,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           : o
       )
     );
+
+    // Sync status change directly to Firestore
+    updateCustomerOrderStatusInFirestore(orderId, status, adminNotes).catch((err) => {
+      console.error('[Firestore] Error updating order status in cloud:', err);
+    });
+
     logActivity('Order Status Updated', `Order ${orderId} changed to ${status.toUpperCase()}`);
   };
 
   const deleteCustomerOrder = (orderId: string) => {
     setCustomerOrders((prev) => prev.filter((o) => o.id !== orderId));
+
+    // Delete from Firestore
+    deleteCustomerOrderFromFirestore(orderId).catch((err) => {
+      console.error('[Firestore] Error deleting customer order from cloud:', err);
+    });
+
     logActivity('Customer Order Deleted', `Removed customer order ${orderId}`);
   };
 
@@ -1246,6 +1364,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       createdAt: new Date().toISOString(),
     };
     setFeedbacks((prev) => [newFeedback, ...prev]);
+
+    // Save feedback to Firestore
+    saveFeedbackInFirestore(newFeedback).catch((err) => {
+      console.error('[Firestore] Error saving feedback to cloud:', err);
+    });
+
     logActivity(
       'Customer Feedback Received',
       `${newFeedback.rating}★ Review from ${newFeedback.customerName || 'Customer'} [${newFeedback.category}]`
@@ -1275,11 +1399,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           : f
       )
     );
+
+    // Sync feedback status in Firestore
+    updateFeedbackStatusInFirestore(feedbackId, status, adminNote).catch((err) => {
+      console.error('[Firestore] Error updating feedback status in cloud:', err);
+    });
+
     logActivity('Feedback Status Updated', `Feedback ${feedbackId} marked as ${status.toUpperCase()}`);
   };
 
   const deleteFeedback = (feedbackId: string) => {
     setFeedbacks((prev) => prev.filter((f) => f.id !== feedbackId));
+
+    // Delete feedback from Firestore
+    deleteFeedbackFromFirestore(feedbackId).catch((err) => {
+      console.error('[Firestore] Error deleting feedback from cloud:', err);
+    });
+
     logActivity('Feedback Deleted', `Removed feedback ${feedbackId}`);
   };
 
@@ -1425,6 +1561,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         verifyAdminPin,
         quickLoginStaff,
         logout,
+        isOnline,
         setDirectRole,
         addUser,
         updateUser,
