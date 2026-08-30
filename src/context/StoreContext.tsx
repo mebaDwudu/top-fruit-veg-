@@ -39,6 +39,13 @@ import {
   INITIAL_FEEDBACKS,
 } from '../data/initialData';
 import {
+  subscribeProducts,
+  saveProductToFirestore,
+  deleteProductFromFirestore,
+  subscribeCategories,
+  saveCategoryToFirestore,
+  subscribeSettings,
+  saveSettingsToFirestore,
   subscribeCustomerOrders,
   saveCustomerOrder,
   updateCustomerOrderStatusInFirestore,
@@ -49,6 +56,18 @@ import {
   saveFeedbackInFirestore,
   updateFeedbackStatusInFirestore,
   deleteFeedbackFromFirestore,
+  subscribeCustomers,
+  saveCustomerToFirestore,
+  subscribeSuppliers,
+  saveSupplierToFirestore,
+  subscribePurchaseOrders,
+  savePurchaseOrderToFirestore,
+  subscribeStockMovements,
+  saveStockMovementToFirestore,
+  subscribeStaff,
+  saveStaffToFirestore,
+  checkAndSeedFirestore,
+  resetFirestoreWithData,
   COLLECTIONS,
 } from '../services/firestoreService';
 import confetti from 'canvas-confetti';
@@ -426,9 +445,65 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  // Real-time Firestore Subscriptions
+  // Real-time Firestore Subscriptions & Initial Cloud Sync
   useEffect(() => {
-    // 1. Customer Online Orders (Cross-device real-time sync)
+    // Check and seed initial store data if database is brand new
+    checkAndSeedFirestore({
+      products: INITIAL_PRODUCTS,
+      categories: INITIAL_CATEGORIES,
+      orders: INITIAL_ORDERS,
+      customers: INITIAL_CUSTOMERS,
+      suppliers: INITIAL_SUPPLIERS,
+      purchaseOrders: INITIAL_PURCHASES,
+      movements: INITIAL_MOVEMENTS,
+      settings: INITIAL_SETTINGS,
+      shift: INITIAL_SHIFT,
+      staff: INITIAL_STAFF,
+    }).catch((err) => {
+      console.warn('[Firestore] Seed check notice:', err);
+    });
+
+    // 1. Products (Instant price, stock, and catalog updates across all devices)
+    const unsubProducts = subscribeProducts(
+      (remoteProducts) => {
+        if (remoteProducts && remoteProducts.length > 0) {
+          setProducts(remoteProducts);
+          setLastSyncedAt(new Date().toLocaleTimeString());
+          setDbStatus('online');
+          setIsCloudConnected(true);
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Products sync warning:', err);
+        setDbStatus('local');
+      }
+    );
+
+    // 2. Categories
+    const unsubCategories = subscribeCategories(
+      (remoteCategories) => {
+        if (remoteCategories && remoteCategories.length > 0) {
+          setCategories(remoteCategories);
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Categories sync warning:', err);
+      }
+    );
+
+    // 3. Settings
+    const unsubSettings = subscribeSettings(
+      (remoteSettings) => {
+        if (remoteSettings && remoteSettings.storeName) {
+          setSettings((prev) => ({ ...prev, ...remoteSettings }));
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Settings sync warning:', err);
+      }
+    );
+
+    // 4. Customer Online Orders (Cross-device real-time sync)
     const unsubCustomerOrders = subscribeCustomerOrders(
       (remoteOrders) => {
         if (remoteOrders && remoteOrders.length >= 0) {
@@ -444,7 +519,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     );
 
-    // 2. POS Orders (Sales ledger)
+    // 5. POS Orders (Sales ledger)
     const unsubOrders = subscribeOrders(
       (remoteOrders) => {
         if (remoteOrders && remoteOrders.length >= 0) {
@@ -457,7 +532,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     );
 
-    // 3. Customer Feedbacks
+    // 6. Customer Feedbacks
     const unsubFeedbacks = subscribeFeedbacks(
       (remoteFeedbacks) => {
         if (remoteFeedbacks && remoteFeedbacks.length >= 0) {
@@ -470,10 +545,52 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     );
 
+    // 7. Customers
+    const unsubCustomers = subscribeCustomers(
+      (remoteCusts) => {
+        if (remoteCusts && remoteCusts.length > 0) {
+          setCustomers(remoteCusts);
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Customers sync warning:', err);
+      }
+    );
+
+    // 8. Suppliers
+    const unsubSuppliers = subscribeSuppliers(
+      (remoteSups) => {
+        if (remoteSups && remoteSups.length > 0) {
+          setSuppliers(remoteSups);
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Suppliers sync warning:', err);
+      }
+    );
+
+    // 9. Staff
+    const unsubStaff = subscribeStaff(
+      (remoteStaff) => {
+        if (remoteStaff && remoteStaff.length > 0) {
+          setStaffMembers(remoteStaff);
+        }
+      },
+      (err) => {
+        console.warn('[Firestore] Staff sync warning:', err);
+      }
+    );
+
     return () => {
+      unsubProducts();
+      unsubCategories();
+      unsubSettings();
       unsubCustomerOrders();
       unsubOrders();
       unsubFeedbacks();
+      unsubCustomers();
+      unsubSuppliers();
+      unsubStaff();
     };
   }, []);
 
@@ -777,7 +894,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const updateSettings = (newSettings: Partial<StoreSettings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
+    setSettings((prev) => {
+      const merged = { ...prev, ...newSettings };
+      saveSettingsToFirestore(merged).catch((err) => {
+        console.warn('[Firestore] Error saving settings to cloud:', err);
+      });
+      return merged;
+    });
     logActivity('Settings Updated', 'Store configuration updated');
   };
 
@@ -785,6 +908,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const trimmed = categoryName.trim();
     if (trimmed && !categories.includes(trimmed)) {
       setCategories((prev) => [...prev, trimmed]);
+      saveCategoryToFirestore(trimmed).catch((err) => {
+        console.warn('[Firestore] Error saving category to cloud:', err);
+      });
       logActivity('Category Added', `Added category ${trimmed}`);
     }
   };
@@ -837,20 +963,42 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       returned: prodData.returned || 0,
     };
     setProducts((prev) => [newProd, ...prev]);
+
+    // Sync to Firestore cloud database
+    saveProductToFirestore(newProd).catch((err) => {
+      console.error('[Firestore] Error saving new product to cloud:', err);
+    });
+
     logActivity('Product Added', `${newProd.name} (SKU: ${newProd.sku})`);
     return newProd;
   };
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p))
-    );
+    setProducts((prev) => {
+      const updatedList = prev.map((p) =>
+        p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p
+      );
+      const target = updatedList.find((p) => p.id === id);
+      if (target) {
+        // Sync updated product (e.g. price change, stock change) to Firestore
+        saveProductToFirestore(target).catch((err) => {
+          console.error('[Firestore] Error updating product in cloud:', err);
+        });
+      }
+      return updatedList;
+    });
     logActivity('Product Updated', `Updated details for product ${id}`);
   };
 
   const deleteProduct = (id: string) => {
     const target = products.find((p) => p.id === id);
     setProducts((prev) => prev.filter((p) => p.id !== id));
+
+    // Delete product from Firestore
+    deleteProductFromFirestore(id).catch((err) => {
+      console.error('[Firestore] Error deleting product from cloud:', err);
+    });
+
     if (target) {
       logActivity('Product Deleted', `Removed ${target.name} (SKU: ${target.sku})`);
     }
@@ -881,6 +1029,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       timestamp: new Date().toISOString(),
     };
     setStockMovements((prev) => [movement, ...prev]);
+    saveStockMovementToFirestore(movement).catch((err) => {
+      console.warn('[Firestore] Error saving stock movement:', err);
+    });
     logActivity('Stock Adjusted', `${prod.name}: ${prod.stock} -> ${newStock} (${reason})`);
   };
 
@@ -1114,6 +1265,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       id: `po-${Date.now()}`,
     };
     setPurchases((prev) => [newPo, ...prev]);
+    savePurchaseOrderToFirestore(newPo).catch((err) => {
+      console.warn('[Firestore] Error saving purchase order:', err);
+    });
     logActivity('Purchase Order Created', `${newPo.poNumber} for ${newPo.supplierName}`);
   };
 
@@ -1134,20 +1288,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     });
 
-    setPurchases((prev) =>
-      prev.map((p) =>
+    setPurchases((prev) => {
+      const updated = prev.map((p) =>
         p.id === poId
-          ? { ...p, status: 'received', receivedDate: new Date().toISOString().split('T')[0] }
+          ? { ...p, status: 'received' as const, receivedDate: new Date().toISOString().split('T')[0] }
           : p
-      )
-    );
+      );
+      const target = updated.find((p) => p.id === poId);
+      if (target) {
+        savePurchaseOrderToFirestore(target).catch((err) => {
+          console.warn('[Firestore] Error updating purchase order:', err);
+        });
+      }
+      return updated;
+    });
     logActivity('Purchase Order Received', `Restocked inventory from ${po.poNumber}`);
   };
 
   const cancelPurchase = (poId: string) => {
-    setPurchases((prev) =>
-      prev.map((p) => (p.id === poId ? { ...p, status: 'cancelled' } : p))
-    );
+    setPurchases((prev) => {
+      const updated = prev.map((p) =>
+        p.id === poId ? { ...p, status: 'cancelled' as const } : p
+      );
+      const target = updated.find((p) => p.id === poId);
+      if (target) {
+        savePurchaseOrderToFirestore(target).catch((err) => {
+          console.warn('[Firestore] Error cancelling purchase order:', err);
+        });
+      }
+      return updated;
+    });
     logActivity('Purchase Cancelled', `Cancelled purchase order ${poId}`);
   };
 
@@ -1161,12 +1331,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       status: custData.status || 'Active',
     };
     setCustomers((prev) => [newCust, ...prev]);
+    saveCustomerToFirestore(newCust).catch((err) => {
+      console.warn('[Firestore] Error saving customer:', err);
+    });
     logActivity('Customer Added', `${newCust.name} (${newCust.phone})`);
     return newCust;
   };
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
-    setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+    setCustomers((prev) => {
+      const updated = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
+      const target = updated.find((c) => c.id === id);
+      if (target) {
+        saveCustomerToFirestore(target).catch((err) => {
+          console.warn('[Firestore] Error updating customer:', err);
+        });
+      }
+      return updated;
+    });
   };
 
   const deleteCustomer = (id: string) => {
@@ -1185,12 +1367,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       productsCount: supData.productsCount || 0,
     };
     setSuppliers((prev) => [newSup, ...prev]);
+    saveSupplierToFirestore(newSup).catch((err) => {
+      console.warn('[Firestore] Error saving supplier:', err);
+    });
     logActivity('Supplier Added', `${newSup.name}`);
     return newSup;
   };
 
   const updateSupplier = (id: string, updates: Partial<Supplier>) => {
-    setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+    setSuppliers((prev) => {
+      const updated = prev.map((s) => (s.id === id ? { ...s, ...updates } : s));
+      const target = updated.find((s) => s.id === id);
+      if (target) {
+        saveSupplierToFirestore(target).catch((err) => {
+          console.warn('[Firestore] Error updating supplier:', err);
+        });
+      }
+      return updated;
+    });
   };
 
   const deleteSupplier = (id: string) => {
@@ -1471,7 +1665,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Reset & Backup
-  const resetToDefaultData = () => {
+  const resetToDefaultData = async () => {
     setProducts(INITIAL_PRODUCTS);
     setCategories(INITIAL_CATEGORIES);
     setOrders(INITIAL_ORDERS);
@@ -1487,7 +1681,28 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCustomerOrders(INITIAL_CUSTOMER_ORDERS);
     setFeedbacks(INITIAL_FEEDBACKS);
     setCart([]);
-    logActivity('Database Reset', 'Reset all records to initial catalog & feedback');
+
+    try {
+      await resetFirestoreWithData({
+        products: INITIAL_PRODUCTS,
+        categories: INITIAL_CATEGORIES,
+        orders: INITIAL_ORDERS,
+        customers: INITIAL_CUSTOMERS,
+        suppliers: INITIAL_SUPPLIERS,
+        purchaseOrders: INITIAL_PURCHASES,
+        movements: INITIAL_MOVEMENTS,
+        settings: INITIAL_SETTINGS,
+        shift: INITIAL_SHIFT,
+        staff: INITIAL_STAFF,
+      });
+      setLastSyncedAt(new Date().toLocaleTimeString());
+      setDbStatus('online');
+      setIsCloudConnected(true);
+    } catch (err) {
+      console.error('[Firestore] Error syncing 88 products to cloud:', err);
+    }
+
+    logActivity('Database Reset', 'Reset all records and pushed 88 catalog products to cloud Firestore');
   };
 
   const exportDatabaseJSON = () => {

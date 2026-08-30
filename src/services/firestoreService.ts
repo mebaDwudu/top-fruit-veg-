@@ -7,8 +7,6 @@ import {
   deleteDoc,
   writeBatch,
   Unsubscribe,
-  query,
-  orderBy,
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import {
@@ -40,30 +38,126 @@ export const COLLECTIONS = {
   STAFF: 'staff',
 } as const;
 
-// Generic collection real-time subscriber
-export function subscribeCollection<T extends { id: string }>(
-  collectionName: string,
-  onUpdate: (data: T[]) => void,
+// ==========================================
+// 1. PRODUCTS REAL-TIME SYNC
+// ==========================================
+export function subscribeProducts(
+  onUpdate: (products: Product[]) => void,
   onError?: (err: Error) => void
 ): Unsubscribe {
-  const colRef = collection(db, collectionName);
+  const colRef = collection(db, COLLECTIONS.PRODUCTS);
   return onSnapshot(
     colRef,
     (snapshot) => {
-      const items: T[] = [];
+      const items: Product[] = [];
       snapshot.forEach((docSnap) => {
-        items.push({ ...(docSnap.data() as T), id: docSnap.id });
+        const data = docSnap.data() as Product;
+        items.push({ ...data, id: docSnap.id });
       });
+      // Sort alphabetically by product name
+      items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       onUpdate(items);
     },
     (err) => {
-      console.warn(`[Firestore] Subscription error for ${collectionName}:`, err);
+      console.warn('[Firestore] Products subscription warning:', err);
       if (onError) onError(err);
     }
   );
 }
 
-// Subscribe to Customer Online Orders (Cross-device real-time sync)
+export async function saveProductToFirestore(product: Product): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTIONS.PRODUCTS, product.id);
+    await setDoc(docRef, product, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving product:', err);
+    throw err;
+  }
+}
+
+export async function deleteProductFromFirestore(productId: string): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTIONS.PRODUCTS, productId);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.error('[Firestore] Error deleting product:', err);
+    throw err;
+  }
+}
+
+// ==========================================
+// 2. CATEGORIES REAL-TIME SYNC
+// ==========================================
+export function subscribeCategories(
+  onUpdate: (categories: string[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.CATEGORIES);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const cats: string[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as { name: string };
+        if (data.name) {
+          cats.push(data.name);
+        }
+      });
+      if (cats.length > 0) {
+        onUpdate(Array.from(new Set(cats)));
+      }
+    },
+    (err) => {
+      console.warn('[Firestore] Categories subscription warning:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveCategoryToFirestore(categoryName: string): Promise<void> {
+  try {
+    const catDocId = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const docRef = doc(db, COLLECTIONS.CATEGORIES, catDocId);
+    await setDoc(docRef, { name: categoryName, id: catDocId }, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving category:', err);
+  }
+}
+
+// ==========================================
+// 3. SETTINGS REAL-TIME SYNC
+// ==========================================
+export function subscribeSettings(
+  onUpdate: (settings: StoreSettings) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const docRef = doc(db, COLLECTIONS.SETTINGS, 'main');
+  return onSnapshot(
+    docRef,
+    (docSnap) => {
+      if (docSnap.exists()) {
+        onUpdate(docSnap.data() as StoreSettings);
+      }
+    },
+    (err) => {
+      console.warn('[Firestore] Settings subscription warning:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveSettingsToFirestore(settings: StoreSettings): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTIONS.SETTINGS, 'main');
+    await setDoc(docRef, settings, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving settings:', err);
+  }
+}
+
+// ==========================================
+// 4. CUSTOMER ONLINE ORDERS (Cross-Device)
+// ==========================================
 export function subscribeCustomerOrders(
   onUpdate: (orders: CustomerOnlineOrder[]) => void,
   onError?: (err: Error) => void
@@ -81,42 +175,54 @@ export function subscribeCustomerOrders(
       onUpdate(orders);
     },
     (err) => {
-      console.warn('[Firestore] Customer orders subscription error:', err);
+      console.warn('[Firestore] Customer orders subscription warning:', err);
       if (onError) onError(err);
     }
   );
 }
 
-// Save or update Customer Online Order in Firestore
 export async function saveCustomerOrder(order: CustomerOnlineOrder): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, order.id);
-  await setDoc(docRef, order, { merge: true });
+  try {
+    const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, order.id);
+    await setDoc(docRef, order, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving customer order:', err);
+    throw err;
+  }
 }
 
-// Update Customer Online Order status in Firestore
 export async function updateCustomerOrderStatusInFirestore(
   orderId: string,
   status: CustomerOnlineOrder['status'],
   adminNotes?: string
 ): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
-  const updates: Partial<CustomerOnlineOrder> = {
-    status,
-    updatedAt: new Date().toISOString(),
-  };
-  if (adminNotes !== undefined) {
-    updates.adminNotes = adminNotes;
+  try {
+    const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
+    const updates: Partial<CustomerOnlineOrder> = {
+      status,
+      updatedAt: new Date().toISOString(),
+    };
+    if (adminNotes !== undefined) {
+      updates.adminNotes = adminNotes;
+    }
+    await setDoc(docRef, updates, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error updating customer order status:', err);
   }
-  await setDoc(docRef, updates, { merge: true });
 }
 
-// Delete Customer Online Order from Firestore
 export async function deleteCustomerOrderFromFirestore(orderId: string): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.error('[Firestore] Error deleting customer order:', err);
+  }
 }
 
-// Subscribe to POS Store Orders (Sales ledger)
+// ==========================================
+// 5. POS ORDERS (Sales Ledger)
+// ==========================================
 export function subscribeOrders(
   onUpdate: (orders: Order[]) => void,
   onError?: (err: Error) => void
@@ -129,24 +235,28 @@ export function subscribeOrders(
       snapshot.forEach((docSnap) => {
         orders.push({ ...(docSnap.data() as Order), id: docSnap.id });
       });
-      // Sort newest first
       orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       onUpdate(orders);
     },
     (err) => {
-      console.warn('[Firestore] Orders subscription error:', err);
+      console.warn('[Firestore] POS orders subscription warning:', err);
       if (onError) onError(err);
     }
   );
 }
 
-// Save POS Order in Firestore
 export async function saveOrderInFirestore(order: Order): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.ORDERS, order.id);
-  await setDoc(docRef, order, { merge: true });
+  try {
+    const docRef = doc(db, COLLECTIONS.ORDERS, order.id);
+    await setDoc(docRef, order, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving POS order:', err);
+  }
 }
 
-// Subscribe to Customer Feedbacks & Reviews
+// ==========================================
+// 6. CUSTOMER FEEDBACKS
+// ==========================================
 export function subscribeFeedbacks(
   onUpdate: (feedbacks: CustomerFeedback[]) => void,
   onError?: (err: Error) => void
@@ -163,89 +273,209 @@ export function subscribeFeedbacks(
       onUpdate(items);
     },
     (err) => {
-      console.warn('[Firestore] Feedbacks subscription error:', err);
+      console.warn('[Firestore] Feedbacks subscription warning:', err);
       if (onError) onError(err);
     }
   );
 }
 
-// Save Customer Feedback in Firestore
 export async function saveFeedbackInFirestore(feedback: CustomerFeedback): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedback.id);
-  await setDoc(docRef, feedback, { merge: true });
+  try {
+    const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedback.id);
+    await setDoc(docRef, feedback, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving feedback:', err);
+  }
 }
 
-// Update Feedback Status in Firestore
 export async function updateFeedbackStatusInFirestore(
   feedbackId: string,
   status: CustomerFeedback['status'],
   adminNote?: string
 ): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedbackId);
-  const updates: Partial<CustomerFeedback> = { status };
-  if (adminNote !== undefined) {
-    updates.adminNote = adminNote;
+  try {
+    const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedbackId);
+    const updates: Partial<CustomerFeedback> = { status };
+    if (adminNote !== undefined) {
+      updates.adminNote = adminNote;
+    }
+    await setDoc(docRef, updates, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error updating feedback status:', err);
   }
-  await setDoc(docRef, updates, { merge: true });
 }
 
-// Delete Customer Feedback from Firestore
 export async function deleteFeedbackFromFirestore(feedbackId: string): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedbackId);
-  await deleteDoc(docRef);
+  try {
+    const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedbackId);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.error('[Firestore] Error deleting feedback:', err);
+  }
 }
 
-// Single document subscriber
-export function subscribeDocument<T>(
-  collectionName: string,
-  docId: string,
-  onUpdate: (data: T | null) => void,
+// ==========================================
+// 7. CUSTOMERS & SUPPLIERS & STOCK MOVEMENTS
+// ==========================================
+export function subscribeCustomers(
+  onUpdate: (customers: Customer[]) => void,
   onError?: (err: Error) => void
 ): Unsubscribe {
-  const docRef = doc(db, collectionName, docId);
+  const colRef = collection(db, COLLECTIONS.CUSTOMERS);
   return onSnapshot(
-    docRef,
-    (docSnap) => {
-      if (docSnap.exists()) {
-        onUpdate(docSnap.data() as T);
-      } else {
-        onUpdate(null);
-      }
+    colRef,
+    (snapshot) => {
+      const items: Customer[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ ...(docSnap.data() as Customer), id: docSnap.id });
+      });
+      items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      onUpdate(items);
     },
     (err) => {
-      console.warn(`[Firestore] Subscription error for ${collectionName}/${docId}:`, err);
+      console.warn('[Firestore] Customers subscription warning:', err);
       if (onError) onError(err);
     }
   );
 }
 
-// Save or overwrite a single document
-export async function saveDoc<T extends Record<string, any>>(
-  collectionName: string,
-  docId: string,
-  data: T
-): Promise<void> {
+export async function saveCustomerToFirestore(customer: Customer): Promise<void> {
   try {
-    const docRef = doc(db, collectionName, docId);
-    await setDoc(docRef, data, { merge: true });
+    const docRef = doc(db, COLLECTIONS.CUSTOMERS, customer.id);
+    await setDoc(docRef, customer, { merge: true });
   } catch (err) {
-    console.error(`[Firestore] Failed to save doc in ${collectionName}/${docId}:`, err);
-    throw err;
+    console.error('[Firestore] Error saving customer:', err);
   }
 }
 
-// Delete document
-export async function removeDoc(collectionName: string, docId: string): Promise<void> {
+export function subscribeSuppliers(
+  onUpdate: (suppliers: Supplier[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.SUPPLIERS);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const items: Supplier[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ ...(docSnap.data() as Supplier), id: docSnap.id });
+      });
+      items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      onUpdate(items);
+    },
+    (err) => {
+      console.warn('[Firestore] Suppliers subscription warning:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveSupplierToFirestore(supplier: Supplier): Promise<void> {
   try {
-    const docRef = doc(db, collectionName, docId);
-    await deleteDoc(docRef);
+    const docRef = doc(db, COLLECTIONS.SUPPLIERS, supplier.id);
+    await setDoc(docRef, supplier, { merge: true });
   } catch (err) {
-    console.error(`[Firestore] Failed to delete doc in ${collectionName}/${docId}:`, err);
-    throw err;
+    console.error('[Firestore] Error saving supplier:', err);
   }
 }
 
-// Check if database is initialized, and if empty seed initial records
+export function subscribePurchaseOrders(
+  onUpdate: (pos: PurchaseOrder[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.PURCHASE_ORDERS);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const items: PurchaseOrder[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ ...(docSnap.data() as PurchaseOrder), id: docSnap.id });
+      });
+      items.sort((a, b) => new Date(b.orderDate || 0).getTime() - new Date(a.orderDate || 0).getTime());
+      onUpdate(items);
+    },
+    (err) => {
+      console.warn('[Firestore] Purchase orders subscription warning:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function savePurchaseOrderToFirestore(po: PurchaseOrder): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTIONS.PURCHASE_ORDERS, po.id);
+    await setDoc(docRef, po, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving purchase order:', err);
+  }
+}
+
+export function subscribeStockMovements(
+  onUpdate: (movements: StockMovement[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.STOCK_MOVEMENTS);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const items: StockMovement[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ ...(docSnap.data() as StockMovement), id: docSnap.id });
+      });
+      items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      onUpdate(items);
+    },
+    (err) => {
+      console.warn('[Firestore] Stock movements subscription warning:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveStockMovementToFirestore(movement: StockMovement): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTIONS.STOCK_MOVEMENTS, movement.id);
+    await setDoc(docRef, movement, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving stock movement:', err);
+  }
+}
+
+export function subscribeStaff(
+  onUpdate: (staff: StaffMember[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const colRef = collection(db, COLLECTIONS.STAFF);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const items: StaffMember[] = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ ...(docSnap.data() as StaffMember), id: docSnap.id });
+      });
+      if (items.length > 0) {
+        onUpdate(items);
+      }
+    },
+    (err) => {
+      console.warn('[Firestore] Staff subscription warning:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveStaffToFirestore(staff: StaffMember): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTIONS.STAFF, staff.id);
+    await setDoc(docRef, staff, { merge: true });
+  } catch (err) {
+    console.error('[Firestore] Error saving staff:', err);
+  }
+}
+
+// ==========================================
+// 8. DATABASE SEEDING & INITIALIZATION
+// ==========================================
 export async function checkAndSeedFirestore(initial: {
   products: Product[];
   categories: string[];
@@ -261,19 +491,18 @@ export async function checkAndSeedFirestore(initial: {
   try {
     const productsSnap = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
     if (!productsSnap.empty) {
-      return false; // Already populated
+      return false; // Database already has live products
     }
 
-    console.log('[Firestore] Empty database detected. Seeding initial store dataset...');
+    console.log('[Firestore] Empty database detected. Seeding initial catalog to cloud...');
     await resetFirestoreWithData(initial);
     return true;
   } catch (err) {
-    console.warn('[Firestore] Auto-seed check error:', err);
+    console.warn('[Firestore] Auto-seed check notice:', err);
     return false;
   }
 }
 
-// Reset / Seed all collections with provided demo dataset
 export async function resetFirestoreWithData(data: {
   products: Product[];
   categories: string[];
@@ -338,5 +567,5 @@ export async function resetFirestoreWithData(data: {
   });
 
   await batch.commit();
-  console.log('[Firestore] Batch seed complete.');
+  console.log('[Firestore] Initial store dataset successfully seeded to cloud Firestore');
 }

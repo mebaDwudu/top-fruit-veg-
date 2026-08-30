@@ -30,7 +30,7 @@ import {
   KeyRound,
   FileCheck,
 } from 'lucide-react';
-import firebaseConfig from '../../../firebase-applet-config.json';
+import { firebaseConfig } from '../../lib/firebase';
 import { StaffMember } from '../../types/store';
 import { sanitizeText, sanitizePhone, sanitizeEmail } from '../../utils/sanitize';
 import { validateAndReadJSONUpload } from '../../utils/secureUpload';
