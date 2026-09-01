@@ -8,72 +8,86 @@ service cloud.firestore {
 
     // --- Products Collection ---
     match /products/{productId} {
-      allow read, write: if isValidId(productId);
+      allow read: if true;
+      allow write: if isValidId(productId);
     }
 
     // --- Categories Collection ---
     match /categories/{categoryId} {
-      allow read, write: if isValidId(categoryId);
+      allow read: if true;
+      allow write: if isValidId(categoryId);
     }
 
     // --- POS Orders Collection ---
     match /orders/{orderId} {
-      allow read, write: if isValidId(orderId);
+      allow read: if true;
+      allow write: if isValidId(orderId);
     }
 
     // --- Customer Online Orders Collection (Real-Time Customer -> Admin Sync) ---
     match /customer_orders/{orderId} {
-      allow read, write: if isValidId(orderId);
+      allow read: if true;
+      allow write: if isValidId(orderId);
     }
 
     // --- Customer Feedbacks & Reviews Collection ---
     match /feedbacks/{feedbackId} {
-      allow read, write: if isValidId(feedbackId);
+      allow read: if true;
+      allow write: if isValidId(feedbackId);
     }
 
     // --- Customers Collection ---
     match /customers/{customerId} {
-      allow read, write: if isValidId(customerId);
+      allow read: if true;
+      allow write: if isValidId(customerId);
     }
 
     // --- Suppliers Collection ---
     match /suppliers/{supplierId} {
-      allow read, write: if isValidId(supplierId);
+      allow read: if true;
+      allow write: if isValidId(supplierId);
     }
 
     // --- Purchase Orders Collection ---
     match /purchase_orders/{poId} {
-      allow read, write: if isValidId(poId);
+      allow read: if true;
+      allow write: if isValidId(poId);
     }
 
     // --- Stock Movements Collection ---
     match /stock_movements/{movementId} {
-      allow read, write: if isValidId(movementId);
+      allow read: if true;
+      allow write: if isValidId(movementId);
     }
 
     // --- Settings Collection ---
     match /settings/{settingId} {
-      allow read, write: if isValidId(settingId);
+      allow read: if true;
+      allow write: if isValidId(settingId);
     }
 
     // --- Staff Collection ---
     match /staff/{staffId} {
-      allow read, write: if isValidId(staffId);
+      allow read: if true;
+      allow write: if isValidId(staffId);
     }
 
     // --- Expenses Collection ---
     match /expenses/{expenseId} {
-      allow read, write: if isValidId(expenseId);
+      allow read: if true;
+      allow write: if isValidId(expenseId);
     }
 
     // --- Audit Logs Collection ---
     match /audit_logs/{logId} {
-      allow read, write: if isValidId(logId);
+      allow read: if true;
+      allow write: if isValidId(logId);
     }
 
     // --- Shifts Collection ---
     match /shifts/{shiftId} {
-      allow read, write: if isValidId(shiftId);
+      allow read: if true;
+      allow write: if isValidId(shiftId);
     }
 
     // Fallback: Deny any undocumented top-level or sub-collections
