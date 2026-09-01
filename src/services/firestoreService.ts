@@ -38,6 +38,32 @@ export const COLLECTIONS = {
   STAFF: 'staff',
 } as const;
 
+/**
+ * Strips all undefined fields recursively so Firestore setDoc/writeBatch never throws
+ * "Unsupported field value: undefined".
+ */
+export function cleanForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return null as any;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => cleanForFirestore(item)) as any;
+  }
+  if (typeof data === 'object') {
+    // Preserve Date or non-plain objects if any
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        cleaned[key] = cleanForFirestore(value);
+      }
+    }
+    return cleaned as T;
+  }
+  return data;
+}
+
 // ==========================================
 // 1. PRODUCTS REAL-TIME SYNC
 // ==========================================
@@ -54,7 +80,6 @@ export function subscribeProducts(
         const data = docSnap.data() as Product;
         items.push({ ...data, id: docSnap.id });
       });
-      // Sort alphabetically by product name
       items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       onUpdate(items);
     },
@@ -65,10 +90,26 @@ export function subscribeProducts(
   );
 }
 
+export async function fetchProductsOnce(): Promise<Product[]> {
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
+    const items: Product[] = [];
+    snap.forEach((docSnap) => {
+      items.push({ ...(docSnap.data() as Product), id: docSnap.id });
+    });
+    items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    return items;
+  } catch (err) {
+    console.error('[Firestore] Error fetching products:', err);
+    return [];
+  }
+}
+
 export async function saveProductToFirestore(product: Product): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.PRODUCTS, product.id);
-    await setDoc(docRef, product, { merge: true });
+    const cleanProduct = cleanForFirestore(product);
+    const docRef = doc(db, COLLECTIONS.PRODUCTS, cleanProduct.id);
+    await setDoc(docRef, cleanProduct, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving product:', err);
     throw err;
@@ -146,17 +187,34 @@ export function subscribeSettings(
   );
 }
 
+export async function fetchSettingsOnce(): Promise<StoreSettings | null> {
+  try {
+    const docSnap = await getDocs(collection(db, COLLECTIONS.SETTINGS));
+    let s: StoreSettings | null = null;
+    docSnap.forEach((d) => {
+      if (d.id === 'main') {
+        s = d.data() as StoreSettings;
+      }
+    });
+    return s;
+  } catch (err) {
+    console.error('[Firestore] Error fetching settings:', err);
+    return null;
+  }
+}
+
 export async function saveSettingsToFirestore(settings: StoreSettings): Promise<void> {
   try {
+    const cleanSettings = cleanForFirestore(settings);
     const docRef = doc(db, COLLECTIONS.SETTINGS, 'main');
-    await setDoc(docRef, settings, { merge: true });
+    await setDoc(docRef, cleanSettings, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving settings:', err);
   }
 }
 
 // ==========================================
-// 4. CUSTOMER ONLINE ORDERS (Cross-Device)
+// 4. CUSTOMER ONLINE ORDERS (Cross-Device Real-Time Sync)
 // ==========================================
 export function subscribeCustomerOrders(
   onUpdate: (orders: CustomerOnlineOrder[]) => void,
@@ -181,12 +239,29 @@ export function subscribeCustomerOrders(
   );
 }
 
+export async function fetchCustomerOrdersOnce(): Promise<CustomerOnlineOrder[]> {
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.CUSTOMER_ORDERS));
+    const orders: CustomerOnlineOrder[] = [];
+    snap.forEach((docSnap) => {
+      orders.push({ ...(docSnap.data() as CustomerOnlineOrder), id: docSnap.id });
+    });
+    orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return orders;
+  } catch (err) {
+    console.error('[Firestore] Error direct fetching customer orders:', err);
+    return [];
+  }
+}
+
 export async function saveCustomerOrder(order: CustomerOnlineOrder): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, order.id);
-    await setDoc(docRef, order, { merge: true });
+    const cleanOrder = cleanForFirestore(order);
+    const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, cleanOrder.id);
+    await setDoc(docRef, cleanOrder, { merge: true });
+    console.log('[Firestore] ✅ Customer order written to cloud:', cleanOrder.id, cleanOrder.orderCode);
   } catch (err) {
-    console.error('[Firestore] Error saving customer order:', err);
+    console.error('[Firestore] ❌ Error saving customer order to cloud:', err);
     throw err;
   }
 }
@@ -205,9 +280,11 @@ export async function updateCustomerOrderStatusInFirestore(
     if (adminNotes !== undefined) {
       updates.adminNotes = adminNotes;
     }
-    await setDoc(docRef, updates, { merge: true });
+    const cleanUpdates = cleanForFirestore(updates);
+    await setDoc(docRef, cleanUpdates, { merge: true });
+    console.log('[Firestore] ✅ Updated order status in cloud:', orderId, status);
   } catch (err) {
-    console.error('[Firestore] Error updating customer order status:', err);
+    console.error('[Firestore] ❌ Error updating customer order status in cloud:', err);
   }
 }
 
@@ -215,8 +292,9 @@ export async function deleteCustomerOrderFromFirestore(orderId: string): Promise
   try {
     const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
     await deleteDoc(docRef);
+    console.log('[Firestore] ✅ Deleted customer order from cloud:', orderId);
   } catch (err) {
-    console.error('[Firestore] Error deleting customer order:', err);
+    console.error('[Firestore] ❌ Error deleting customer order from cloud:', err);
   }
 }
 
@@ -245,10 +323,26 @@ export function subscribeOrders(
   );
 }
 
+export async function fetchOrdersOnce(): Promise<Order[]> {
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.ORDERS));
+    const orders: Order[] = [];
+    snap.forEach((docSnap) => {
+      orders.push({ ...(docSnap.data() as Order), id: docSnap.id });
+    });
+    orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return orders;
+  } catch (err) {
+    console.error('[Firestore] Error fetching POS orders:', err);
+    return [];
+  }
+}
+
 export async function saveOrderInFirestore(order: Order): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.ORDERS, order.id);
-    await setDoc(docRef, order, { merge: true });
+    const cleanOrder = cleanForFirestore(order);
+    const docRef = doc(db, COLLECTIONS.ORDERS, cleanOrder.id);
+    await setDoc(docRef, cleanOrder, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving POS order:', err);
   }
@@ -279,10 +373,26 @@ export function subscribeFeedbacks(
   );
 }
 
+export async function fetchFeedbacksOnce(): Promise<CustomerFeedback[]> {
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.FEEDBACKS));
+    const items: CustomerFeedback[] = [];
+    snap.forEach((docSnap) => {
+      items.push({ ...(docSnap.data() as CustomerFeedback), id: docSnap.id });
+    });
+    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return items;
+  } catch (err) {
+    console.error('[Firestore] Error fetching feedbacks:', err);
+    return [];
+  }
+}
+
 export async function saveFeedbackInFirestore(feedback: CustomerFeedback): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.FEEDBACKS, feedback.id);
-    await setDoc(docRef, feedback, { merge: true });
+    const cleanFb = cleanForFirestore(feedback);
+    const docRef = doc(db, COLLECTIONS.FEEDBACKS, cleanFb.id);
+    await setDoc(docRef, cleanFb, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving feedback:', err);
   }
@@ -299,7 +409,8 @@ export async function updateFeedbackStatusInFirestore(
     if (adminNote !== undefined) {
       updates.adminNote = adminNote;
     }
-    await setDoc(docRef, updates, { merge: true });
+    const cleanUpdates = cleanForFirestore(updates);
+    await setDoc(docRef, cleanUpdates, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error updating feedback status:', err);
   }
@@ -341,8 +452,9 @@ export function subscribeCustomers(
 
 export async function saveCustomerToFirestore(customer: Customer): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.CUSTOMERS, customer.id);
-    await setDoc(docRef, customer, { merge: true });
+    const cleanCust = cleanForFirestore(customer);
+    const docRef = doc(db, COLLECTIONS.CUSTOMERS, cleanCust.id);
+    await setDoc(docRef, cleanCust, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving customer:', err);
   }
@@ -372,8 +484,9 @@ export function subscribeSuppliers(
 
 export async function saveSupplierToFirestore(supplier: Supplier): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.SUPPLIERS, supplier.id);
-    await setDoc(docRef, supplier, { merge: true });
+    const cleanSup = cleanForFirestore(supplier);
+    const docRef = doc(db, COLLECTIONS.SUPPLIERS, cleanSup.id);
+    await setDoc(docRef, cleanSup, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving supplier:', err);
   }
@@ -403,8 +516,9 @@ export function subscribePurchaseOrders(
 
 export async function savePurchaseOrderToFirestore(po: PurchaseOrder): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.PURCHASE_ORDERS, po.id);
-    await setDoc(docRef, po, { merge: true });
+    const cleanPo = cleanForFirestore(po);
+    const docRef = doc(db, COLLECTIONS.PURCHASE_ORDERS, cleanPo.id);
+    await setDoc(docRef, cleanPo, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving purchase order:', err);
   }
@@ -434,8 +548,9 @@ export function subscribeStockMovements(
 
 export async function saveStockMovementToFirestore(movement: StockMovement): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.STOCK_MOVEMENTS, movement.id);
-    await setDoc(docRef, movement, { merge: true });
+    const cleanMov = cleanForFirestore(movement);
+    const docRef = doc(db, COLLECTIONS.STOCK_MOVEMENTS, cleanMov.id);
+    await setDoc(docRef, cleanMov, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving stock movement:', err);
   }
@@ -466,8 +581,9 @@ export function subscribeStaff(
 
 export async function saveStaffToFirestore(staff: StaffMember): Promise<void> {
   try {
-    const docRef = doc(db, COLLECTIONS.STAFF, staff.id);
-    await setDoc(docRef, staff, { merge: true });
+    const cleanSt = cleanForFirestore(staff);
+    const docRef = doc(db, COLLECTIONS.STAFF, cleanSt.id);
+    await setDoc(docRef, cleanSt, { merge: true });
   } catch (err) {
     console.error('[Firestore] Error saving staff:', err);
   }
@@ -490,11 +606,11 @@ export async function checkAndSeedFirestore(initial: {
 }): Promise<boolean> {
   try {
     const productsSnap = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
-    if (!productsSnap.empty) {
-      return false; // Database already has live products
+    if (!productsSnap.empty && productsSnap.size >= 88) {
+      return false; // Database already has complete 88-product catalog
     }
 
-    console.log('[Firestore] Empty database detected. Seeding initial catalog to cloud...');
+    console.log('[Firestore] Seeding/Updating full 88-product catalog to cloud...');
     await resetFirestoreWithData(initial);
     return true;
   } catch (err) {
@@ -518,54 +634,55 @@ export async function resetFirestoreWithData(data: {
   const batch = writeBatch(db);
 
   // Settings
-  batch.set(doc(db, COLLECTIONS.SETTINGS, 'main'), data.settings);
+  batch.set(doc(db, COLLECTIONS.SETTINGS, 'main'), cleanForFirestore(data.settings));
 
   // Shift
-  batch.set(doc(db, COLLECTIONS.SHIFTS, 'current'), data.shift);
+  batch.set(doc(db, COLLECTIONS.SHIFTS, 'current'), cleanForFirestore(data.shift));
 
   // Staff
   if (data.staff && data.staff.length > 0) {
     data.staff.forEach((st) => {
-      batch.set(doc(db, COLLECTIONS.STAFF, st.id), st);
+      batch.set(doc(db, COLLECTIONS.STAFF, st.id), cleanForFirestore(st));
     });
   }
 
   // Categories
   data.categories.forEach((cat) => {
     const catDocId = cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    batch.set(doc(db, COLLECTIONS.CATEGORIES, catDocId), { name: cat, id: catDocId });
+    batch.set(doc(db, COLLECTIONS.CATEGORIES, catDocId), cleanForFirestore({ name: cat, id: catDocId }));
   });
 
   // Products
   data.products.forEach((prod) => {
-    batch.set(doc(db, COLLECTIONS.PRODUCTS, prod.id), prod);
+    batch.set(doc(db, COLLECTIONS.PRODUCTS, prod.id), cleanForFirestore(prod));
   });
 
   // Customers
   data.customers.forEach((cust) => {
-    batch.set(doc(db, COLLECTIONS.CUSTOMERS, cust.id), cust);
+    batch.set(doc(db, COLLECTIONS.CUSTOMERS, cust.id), cleanForFirestore(cust));
   });
 
   // Suppliers
   data.suppliers.forEach((sup) => {
-    batch.set(doc(db, COLLECTIONS.SUPPLIERS, sup.id), sup);
+    batch.set(doc(db, COLLECTIONS.SUPPLIERS, sup.id), cleanForFirestore(sup));
   });
 
   // Purchase Orders
   data.purchaseOrders.forEach((po) => {
-    batch.set(doc(db, COLLECTIONS.PURCHASE_ORDERS, po.id), po);
+    batch.set(doc(db, COLLECTIONS.PURCHASE_ORDERS, po.id), cleanForFirestore(po));
   });
 
   // Stock movements
   data.movements.forEach((mov) => {
-    batch.set(doc(db, COLLECTIONS.STOCK_MOVEMENTS, mov.id), mov);
+    batch.set(doc(db, COLLECTIONS.STOCK_MOVEMENTS, mov.id), cleanForFirestore(mov));
   });
 
   // Orders
   data.orders.forEach((ord) => {
-    batch.set(doc(db, COLLECTIONS.ORDERS, ord.id), ord);
+    batch.set(doc(db, COLLECTIONS.ORDERS, ord.id), cleanForFirestore(ord));
   });
 
   await batch.commit();
   console.log('[Firestore] Initial store dataset successfully seeded to cloud Firestore');
 }
+

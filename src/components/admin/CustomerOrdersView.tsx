@@ -17,6 +17,7 @@ import {
   Truck,
   MapPin,
   ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
 
 interface CustomerOrdersViewProps {
@@ -26,13 +27,32 @@ interface CustomerOrdersViewProps {
 export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   onOpenDedicatedPage,
 }) => {
-  const { customerOrders, updateCustomerOrderStatus, deleteCustomerOrder, formatCurrency, settings } = useStore();
+  const {
+    customerOrders,
+    updateCustomerOrderStatus,
+    deleteCustomerOrder,
+    formatCurrency,
+    settings,
+    refreshCloudData,
+    dbStatus,
+    lastSyncedAt,
+  } = useStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatusTab, setSelectedStatusTab] = useState<'all' | CustomerOnlineOrder['status']>('all');
   const [selectedTypeTab, setSelectedTypeTab] = useState<'all' | 'pickup' | 'delivery'>('all');
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshCloudData();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 600);
+    }
+  };
 
   const safeOrders = customerOrders || [];
 
@@ -181,21 +201,37 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200">
               {safeOrders.length} Total
             </span>
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-bold border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Real-time Live Sync</span>
+            </div>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Live orders submitted by customers from any phone or PC
+            Live orders submitted by customers from any phone or PC {lastSyncedAt ? `(Synced at ${lastSyncedAt})` : ''}
           </p>
         </div>
 
-        {onOpenDedicatedPage && (
+        <div className="flex items-center gap-2.5">
           <button
-            onClick={onOpenDedicatedPage}
-            className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+            title="Force refresh orders from Cloud database"
           >
-            <span>Open Dedicated Orders Page</span>
-            <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+            <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>{isRefreshing ? 'Syncing...' : 'Refresh Orders'}</span>
           </button>
-        )}
+
+          {onOpenDedicatedPage && (
+            <button
+              onClick={onOpenDedicatedPage}
+              className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs"
+            >
+              <span>Open Dedicated Orders Page</span>
+              <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Status Filter Tabs */}

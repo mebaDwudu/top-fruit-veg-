@@ -68,6 +68,11 @@ import {
   saveStaffToFirestore,
   checkAndSeedFirestore,
   resetFirestoreWithData,
+  fetchCustomerOrdersOnce,
+  fetchProductsOnce,
+  fetchSettingsOnce,
+  fetchFeedbacksOnce,
+  fetchOrdersOnce,
   COLLECTIONS,
 } from '../services/firestoreService';
 import confetti from 'canvas-confetti';
@@ -212,6 +217,7 @@ interface StoreContextType {
   dbStatus: 'online' | 'syncing' | 'local';
   isCloudConnected: boolean;
   lastSyncedAt: string | null;
+  refreshCloudData: () => Promise<void>;
 
   // Audit Logs
   auditLogs: AuditLog[];
@@ -233,25 +239,25 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  SETTINGS: 'topfruit_store_settings_v5',
-  PRODUCTS: 'topfruit_products_v5',
-  CATEGORIES: 'topfruit_categories_v5',
-  ORDERS: 'topfruit_orders_v5',
-  CUSTOMERS: 'topfruit_customers_v5',
-  SUPPLIERS: 'topfruit_suppliers_v5',
-  PURCHASES: 'topfruit_purchases_v5',
-  EXPENSES: 'topfruit_expenses_v5',
-  AUDIT_LOGS: 'topfruit_audit_logs_v5',
-  USERS: 'topfruit_users_v5',
-  STAFF: 'topfruit_staff_v5',
-  CURRENT_STAFF_ID: 'topfruit_current_staff_id_v5',
-  CURRENT_ROLE: 'topfruit_current_role_v5',
-  IS_AUTHENTICATED: 'topfruit_is_authenticated_v5',
-  DARK_MODE: 'topfruit_dark_mode_v5',
-  CUSTOMER_ORDERS: 'topfruit_customer_orders_v5',
-  FEEDBACKS: 'topfruit_feedbacks_v5',
-  CURRENT_SHIFT: 'topfruit_current_shift_v5',
-  STOCK_MOVEMENTS: 'topfruit_stock_movements_v5',
+  SETTINGS: 'topfruit_store_settings_v6',
+  PRODUCTS: 'topfruit_products_v6',
+  CATEGORIES: 'topfruit_categories_v6',
+  ORDERS: 'topfruit_orders_v6',
+  CUSTOMERS: 'topfruit_customers_v6',
+  SUPPLIERS: 'topfruit_suppliers_v6',
+  PURCHASES: 'topfruit_purchases_v6',
+  EXPENSES: 'topfruit_expenses_v6',
+  AUDIT_LOGS: 'topfruit_audit_logs_v6',
+  USERS: 'topfruit_users_v6',
+  STAFF: 'topfruit_staff_v6',
+  CURRENT_STAFF_ID: 'topfruit_current_staff_id_v6',
+  CURRENT_ROLE: 'topfruit_current_role_v6',
+  IS_AUTHENTICATED: 'topfruit_is_authenticated_v6',
+  DARK_MODE: 'topfruit_dark_mode_v6',
+  CUSTOMER_ORDERS: 'topfruit_customer_orders_v6',
+  FEEDBACKS: 'topfruit_feedbacks_v6',
+  CURRENT_SHIFT: 'topfruit_current_shift_v6',
+  STOCK_MOVEMENTS: 'topfruit_stock_movements_v6',
 };
 
 function loadStorage<T>(key: string, fallback: T): T {
@@ -504,9 +510,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     // 4. Customer Online Orders (Cross-device real-time sync)
+    let previousOrdersCount = -1;
     const unsubCustomerOrders = subscribeCustomerOrders(
       (remoteOrders) => {
         if (remoteOrders && remoteOrders.length >= 0) {
+          if (previousOrdersCount !== -1 && remoteOrders.length > previousOrdersCount) {
+            // A new order arrived in real-time! Play notification tone
+            playBeep(880, 'sine', 0.25);
+            setTimeout(() => playBeep(1174, 'sine', 0.35), 180);
+          }
+          previousOrdersCount = remoteOrders.length;
           setCustomerOrders(remoteOrders);
           setLastSyncedAt(new Date().toLocaleTimeString());
           setDbStatus('online');
@@ -581,6 +594,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     );
 
+    // Auto-refresh when tab is focused or becomes visible
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        fetchCustomerOrdersOnce()
+          .then((orders) => {
+            if (orders && orders.length >= 0) {
+              setCustomerOrders(orders);
+              setLastSyncedAt(new Date().toLocaleTimeString());
+            }
+          })
+          .catch(() => {});
+      }
+    };
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
     return () => {
       unsubProducts();
       unsubCategories();
@@ -591,6 +620,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       unsubCustomers();
       unsubSuppliers();
       unsubStaff();
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
     };
   }, []);
 
@@ -1757,6 +1788,42 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const refreshCloudData = async (): Promise<void> => {
+    setDbStatus('syncing');
+    try {
+      const [remoteOrders, remoteProducts, remoteSettings, remoteFeedbacks, remotePosOrders] = await Promise.all([
+        fetchCustomerOrdersOnce(),
+        fetchProductsOnce(),
+        fetchSettingsOnce(),
+        fetchFeedbacksOnce(),
+        fetchOrdersOnce(),
+      ]);
+
+      if (remoteOrders && remoteOrders.length >= 0) {
+        setCustomerOrders(remoteOrders);
+      }
+      if (remoteProducts && remoteProducts.length > 0) {
+        setProducts(remoteProducts);
+      }
+      if (remoteSettings && remoteSettings.storeName) {
+        setSettings((prev) => ({ ...prev, ...remoteSettings }));
+      }
+      if (remoteFeedbacks && remoteFeedbacks.length >= 0) {
+        setFeedbacks(remoteFeedbacks);
+      }
+      if (remotePosOrders && remotePosOrders.length >= 0) {
+        setOrders(remotePosOrders);
+      }
+      setLastSyncedAt(new Date().toLocaleTimeString());
+      setDbStatus('online');
+      setIsCloudConnected(true);
+      console.log('[Firestore] ✅ Manual cloud refresh completed successfully');
+    } catch (err) {
+      console.warn('[Firestore] ⚠️ Cloud refresh error:', err);
+      setDbStatus('local');
+    }
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -1851,6 +1918,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         dbStatus,
         isCloudConnected,
         lastSyncedAt,
+        refreshCloudData,
         auditLogs,
         logActivity,
         stockMovements,

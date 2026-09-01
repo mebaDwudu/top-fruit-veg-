@@ -45,6 +45,7 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
     dbStatus,
     isCloudConnected,
     lastSyncedAt,
+    refreshCloudData,
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,6 +53,16 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
   const [typeFilter, setTypeFilter] = useState<'all' | 'pickup' | 'delivery'>('all');
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshCloudData();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 600);
+    }
+  };
 
   // Dedicated Admin PIN Access Screen if unauthenticated
   if (!isAuthenticated || currentRole !== 'admin') {
@@ -234,11 +245,21 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
             </div>
           </div>
 
-          {/* Right actions: Cloud sync status & Storefront button */}
+          {/* Right actions: Cloud sync status, manual refresh & Storefront button */}
           <div className="flex items-center space-x-2.5">
+            <button
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              title="Force refresh live orders from Cloud database"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+            </button>
+
             <div className="flex items-center space-x-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-bold text-emerald-800">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Real-Time Cloud Sync</span>
+              <span>Real-Time Cloud Sync {lastSyncedAt ? `(${lastSyncedAt})` : ''}</span>
             </div>
 
             {onSwitchToStorefront && (

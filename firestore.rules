@@ -2,176 +2,63 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions for path and ID validation
     function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.:]+$');
-    }
-
-    function isNonEmptyString(val, maxLen) {
-      return val is string && val.size() > 0 && val.size() <= maxLen;
-    }
-
-    function isOptionalString(data, key, maxLen) {
-      return !(key in data) || (data[key] is string && data[key].size() <= maxLen);
-    }
-
-    function isNonNegativeNumber(val) {
-      return val is number && val >= 0;
+      return id is string && id.size() > 0 && id.size() <= 256;
     }
 
     // --- Products Collection ---
     match /products/{productId} {
-      function isValidProduct(data) {
-        return data.name is string && data.name.size() > 0 && data.name.size() <= 200
-          && data.sku is string && data.sku.size() <= 100
-          && (!('barcode' in data) || data.barcode is string)
-          && data.costPrice is number && data.costPrice >= 0
-          && data.sellingPrice is number && data.sellingPrice >= 0
-          && data.stock is number && data.stock >= 0;
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(productId) && isValidProduct(request.resource.data);
-      allow delete: if isValidId(productId);
+      allow read, write: if isValidId(productId);
     }
 
     // --- Categories Collection ---
     match /categories/{categoryId} {
-      function isValidCategory(data) {
-        return data.name is string && data.name.size() > 0 && data.name.size() <= 100;
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(categoryId) && isValidCategory(request.resource.data);
-      allow delete: if isValidId(categoryId);
+      allow read, write: if isValidId(categoryId);
     }
 
-    // --- Orders Collection ---
+    // --- POS Orders Collection ---
     match /orders/{orderId} {
-      function isValidOrder(data) {
-        return data.orderNumber is string && data.orderNumber.size() > 0
-          && data.grandTotal is number && data.grandTotal >= 0
-          && data.paymentMethod is string
-          && data.status is string
-          && data.items is list && data.items.size() <= 200;
-      }
-
-      allow read: if true;
-      allow create: if isValidId(orderId) && isValidOrder(request.resource.data);
-      allow update: if isValidId(orderId) && isValidOrder(request.resource.data);
-      allow delete: if isValidId(orderId);
-    }
-
-    // --- Customers Collection ---
-    match /customers/{customerId} {
-      function isValidCustomer(data) {
-        return data.name is string && data.name.size() > 0 && data.name.size() <= 150
-          && data.phone is string && data.phone.size() <= 50
-          && (!('loyaltyPoints' in data) || data.loyaltyPoints is number)
-          && (!('totalSpent' in data) || data.totalSpent is number);
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(customerId) && isValidCustomer(request.resource.data);
-      allow delete: if isValidId(customerId);
-    }
-
-    // --- Suppliers Collection ---
-    match /suppliers/{supplierId} {
-      function isValidSupplier(data) {
-        return data.name is string && data.name.size() > 0 && data.name.size() <= 150
-          && (!('email' in data) || data.email is string)
-          && (!('phone' in data) || data.phone is string);
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(supplierId) && isValidSupplier(request.resource.data);
-      allow delete: if isValidId(supplierId);
-    }
-
-    // --- Purchase Orders Collection ---
-    match /purchase_orders/{poId} {
-      function isValidPO(data) {
-        return data.poNumber is string && data.poNumber.size() > 0
-          && data.supplierId is string
-          && data.totalAmount is number && data.totalAmount >= 0
-          && data.status is string
-          && data.items is list && data.items.size() <= 200;
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(poId) && isValidPO(request.resource.data);
-      allow delete: if isValidId(poId);
-    }
-
-    // --- Stock Movements Collection ---
-    match /stock_movements/{movementId} {
-      function isValidMovement(data) {
-        return data.productId is string
-          && data.type is string
-          && data.quantityChange is number
-          && data.previousStock is number
-          && data.newStock is number;
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(movementId) && isValidMovement(request.resource.data);
-      allow delete: if isValidId(movementId);
-    }
-
-    // --- Settings Collection ---
-    match /settings/{settingId} {
-      function isValidSettings(data) {
-        return (!('storeName' in data) || (data.storeName is string && data.storeName.size() <= 150))
-          && (!('taxRatePercent' in data) || (data.taxRatePercent is number && data.taxRatePercent >= 0 && data.taxRatePercent <= 100));
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(settingId) && isValidSettings(request.resource.data);
-      allow delete: if isValidId(settingId);
-    }
-
-    // --- Staff Collection ---
-    match /staff/{staffId} {
-      function isValidStaff(data) {
-        return data.name is string && data.name.size() > 0 && data.name.size() <= 100
-          && data.role is string && (data.role == 'admin' || data.role == 'cashier')
-          && data.pin is string && data.pin.size() >= 4 && data.pin.size() <= 8;
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(staffId) && isValidStaff(request.resource.data);
-      allow delete: if isValidId(staffId);
+      allow read, write: if isValidId(orderId);
     }
 
     // --- Customer Online Orders Collection (Real-Time Customer -> Admin Sync) ---
     match /customer_orders/{orderId} {
-      function isValidCustomerOrder(data) {
-        return data.customerName is string && data.customerName.size() > 0
-          && data.items is list && data.items.size() <= 200
-          && (!('status' in data) || data.status is string)
-          && (!('orderCode' in data) || data.orderCode is string)
-          && (!('orderNumber' in data) || data.orderNumber is string)
-          && (!('fulfillmentType' in data) || data.fulfillmentType is string);
-      }
-
-      allow read: if true;
-      allow create: if isValidId(orderId) && isValidCustomerOrder(request.resource.data);
-      allow update: if isValidId(orderId) && isValidCustomerOrder(request.resource.data);
-      allow delete: if isValidId(orderId);
+      allow read, write: if isValidId(orderId);
     }
 
     // --- Customer Feedbacks & Reviews Collection ---
     match /feedbacks/{feedbackId} {
-      function isValidFeedback(data) {
-        return data.rating is number && data.rating >= 1 && data.rating <= 5
-          && data.comment is string && data.comment.size() > 0 && data.comment.size() <= 2000;
-      }
+      allow read, write: if isValidId(feedbackId);
+    }
 
-      allow read: if true;
-      allow create: if isValidId(feedbackId) && isValidFeedback(request.resource.data);
-      allow update: if isValidId(feedbackId);
-      allow delete: if isValidId(feedbackId);
+    // --- Customers Collection ---
+    match /customers/{customerId} {
+      allow read, write: if isValidId(customerId);
+    }
+
+    // --- Suppliers Collection ---
+    match /suppliers/{supplierId} {
+      allow read, write: if isValidId(supplierId);
+    }
+
+    // --- Purchase Orders Collection ---
+    match /purchase_orders/{poId} {
+      allow read, write: if isValidId(poId);
+    }
+
+    // --- Stock Movements Collection ---
+    match /stock_movements/{movementId} {
+      allow read, write: if isValidId(movementId);
+    }
+
+    // --- Settings Collection ---
+    match /settings/{settingId} {
+      allow read, write: if isValidId(settingId);
+    }
+
+    // --- Staff Collection ---
+    match /staff/{staffId} {
+      allow read, write: if isValidId(staffId);
     }
 
     // --- Expenses Collection ---
@@ -186,14 +73,7 @@ service cloud.firestore {
 
     // --- Shifts Collection ---
     match /shifts/{shiftId} {
-      function isValidShift(data) {
-        return (!('startingCash' in data) || (data.startingCash is number && data.startingCash >= 0))
-          && (!('totalSales' in data) || (data.totalSales is number && data.totalSales >= 0));
-      }
-
-      allow read: if true;
-      allow create, update: if isValidId(shiftId) && isValidShift(request.resource.data);
-      allow delete: if isValidId(shiftId);
+      allow read, write: if isValidId(shiftId);
     }
 
     // Fallback: Deny any undocumented top-level or sub-collections
@@ -202,3 +82,4 @@ service cloud.firestore {
     }
   }
 }
+
