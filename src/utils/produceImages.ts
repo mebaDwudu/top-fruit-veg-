@@ -19,6 +19,384 @@ export interface ProduceMeta {
   estimatedWeight: string;
 }
 
+// Dictionary of verified high-definition photos for specific fresh fruits, vegetables, tubers, and herbs
+export const PRODUCE_NAME_IMAGE_MAP: Array<{ match: (name: string) => boolean; image: string; emoji?: string }> = [
+  // Fruits
+  {
+    match: (n) => n.includes('watermelon') || (n.includes('melon') && n.includes('wat')),
+    image: 'https://images.unsplash.com/photo-1589984662646-e7b2e4962f18?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍉',
+  },
+  {
+    match: (n) => n.includes('green banana') || n.includes('cooking banana'),
+    image: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍌',
+  },
+  {
+    match: (n) => n.includes('yellow banana') || n.includes('ripe banana') || (n.includes('banana') && !n.includes('plantain')),
+    image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍌',
+  },
+  {
+    match: (n) => n.includes('ripe plantain') || n.includes('sweet plantain'),
+    image: 'https://images.unsplash.com/photo-1629853474945-816999a0d8fe?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍌',
+  },
+  {
+    match: (n) => n.includes('green plantain') || n.includes('plantain'),
+    image: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍌',
+  },
+  {
+    match: (n) => n.includes('dominican mango') || (n.includes('mango') && n.includes('dom')),
+    image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥭',
+  },
+  {
+    match: (n) => n.includes('mango'),
+    image: 'https://images.unsplash.com/photo-1591073113125-e46713c829ed?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥭',
+  },
+  {
+    match: (n) => n.includes('hass avocado') || (n.includes('avocado') && n.includes('hss')),
+    image: 'https://images.unsplash.com/photo-1519162584292-56dfc9eb5db4?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥑',
+  },
+  {
+    match: (n) => n.includes('uganda') && n.includes('avocado'),
+    image: 'https://images.unsplash.com/photo-1601039641847-7857b994d704?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥑',
+  },
+  {
+    match: (n) => n.includes('avocado'),
+    image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥑',
+  },
+  {
+    match: (n) => n.includes('pineapple'),
+    image: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍍',
+  },
+  {
+    match: (n) => n.includes('papaya'),
+    image: 'https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥭',
+  },
+  {
+    match: (n) => n.includes('pomegranate'),
+    image: 'https://images.unsplash.com/photo-1541344999736-83eca872f240?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍎',
+  },
+  {
+    match: (n) => n.includes('grapefruit'),
+    image: 'https://images.unsplash.com/photo-1577234286642-fc512a5f8f11?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍊',
+  },
+  {
+    match: (n) => n.includes('orange') || n.includes('navel'),
+    image: 'https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍊',
+  },
+  {
+    match: (n) => n.includes('clemente') || n.includes('clementine') || n.includes('mandarin') || n.includes('tangerine'),
+    image: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍊',
+  },
+  {
+    match: (n) => n.includes('gala') || n.includes('apple'),
+    image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍎',
+  },
+  {
+    match: (n) => n.includes('key lime') || (n.includes('lime') && n.includes('key')),
+    image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍋',
+  },
+  {
+    match: (n) => n.includes('lime'),
+    image: 'https://images.unsplash.com/photo-1594488518002-3929497e205a?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍋',
+  },
+  {
+    match: (n) => n.includes('lemon'),
+    image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍋',
+  },
+  {
+    match: (n) => n.includes('jelly coconut') || n.includes('green coconut') || (n.includes('coconut') && n.includes('jel')),
+    image: 'https://images.unsplash.com/photo-1583083527882-4bee9aba2eea?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥥',
+  },
+  {
+    match: (n) => n.includes('coconut'),
+    image: 'https://images.unsplash.com/photo-1544376798-89aa6b82c6cd?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥥',
+  },
+
+  // Vegetables, Peppers & Greens
+  {
+    match: (n) => n.includes('red pepper') || n.includes('red bell') || n.includes('red cup'),
+    image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=600&q=80',
+    emoji: '🫑',
+  },
+  {
+    match: (n) => n.includes('green pepper') || n.includes('green bell') || n.includes('green cup'),
+    image: 'https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=600&q=80',
+    emoji: '🫑',
+  },
+  {
+    match: (n) => n.includes('yellow pepper') || n.includes('yellow bell') || n.includes('yellow cup'),
+    image: 'https://images.unsplash.com/photo-1592840062662-a5e2f7b11d8d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🫑',
+  },
+  {
+    match: (n) => n.includes('orange pepper') || n.includes('orange bell') || n.includes('orange cup'),
+    image: 'https://images.unsplash.com/photo-1601648764658-cf37e8c89b70?auto=format&fit=crop&w=600&q=80',
+    emoji: '🫑',
+  },
+  {
+    match: (n) => n.includes('romero') || n.includes('romano'),
+    image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌶️',
+  },
+  {
+    match: (n) => n.includes('scotch bonnet') || n.includes('hot pepper'),
+    image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌶️',
+  },
+  {
+    match: (n) => n.includes('bird') && n.includes('chilli'),
+    image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌶️',
+  },
+  {
+    match: (n) => n.includes('aubergine') || n.includes('eggplant'),
+    image: 'https://images.unsplash.com/photo-1615484477778-ca3b783256fd?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍆',
+  },
+  {
+    match: (n) => n.includes('garden egg'),
+    image: 'https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍆',
+  },
+  {
+    match: (n) => n.includes('okra') || n.includes('lady finger'),
+    image: 'https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('karela') || n.includes('bitter gourd'),
+    image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥒',
+  },
+  {
+    match: (n) => n.includes('carrot'),
+    image: 'https://images.unsplash.com/photo-1447175008436-054170c2e979?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥕',
+  },
+  {
+    match: (n) => n.includes('beetroot'),
+    image: 'https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('turnip'),
+    image: 'https://images.unsplash.com/photo-1586553983226-c2306f364022?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('broccoli'),
+    image: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥦',
+  },
+  {
+    match: (n) => n.includes('cauliflower'),
+    image: 'https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥦',
+  },
+  {
+    match: (n) => n.includes('red cabbage'),
+    image: 'https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('cabbage'),
+    image: 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('cucumber'),
+    image: 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥒',
+  },
+  {
+    match: (n) => n.includes('courgette') || n.includes('zucchini'),
+    image: 'https://images.unsplash.com/photo-1563252722-6434563a985d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥒',
+  },
+  {
+    match: (n) => n.includes('mushroom'),
+    image: 'https://images.unsplash.com/photo-1504544750208-dc0358e63f7f?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍄',
+  },
+  {
+    match: (n) => n.includes('butternut') || n.includes('squash'),
+    image: 'https://images.unsplash.com/photo-1570554886111-e80fcca6a029?auto=format&fit=crop&w=600&q=80',
+    emoji: '🎃',
+  },
+  {
+    match: (n) => n.includes('pumpkin'),
+    image: 'https://images.unsplash.com/photo-1506917728037-b6af01a7d403?auto=format&fit=crop&w=600&q=80',
+    emoji: '🎃',
+  },
+  {
+    match: (n) => n.includes('spinach'),
+    image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('lettuce'),
+    image: 'https://images.unsplash.com/photo-1556801712-76c8eb07bbc9?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('celery'),
+    image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('leek'),
+    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥬',
+  },
+  {
+    match: (n) => n.includes('aloe'),
+    image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&w=600&q=80',
+    emoji: '🪴',
+  },
+  {
+    match: (n) => n.includes('chow chow') || n.includes('chayote'),
+    image: 'https://images.unsplash.com/photo-1563252722-6434563a985d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍈',
+  },
+
+  // Tomatoes
+  {
+    match: (n) => n.includes('cherry') && n.includes('tom'),
+    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍅',
+  },
+  {
+    match: (n) => n.includes('vine') && n.includes('tom'),
+    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍅',
+  },
+  {
+    match: (n) => n.includes('tom'),
+    image: 'https://images.unsplash.com/photo-1546470427-e26264be0b11?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍅',
+  },
+
+  // Yams, Tubers & Roots
+  {
+    match: (n) => n.includes('white yam') || n.includes('puna') || n.includes('ghana yam'),
+    image: 'https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍠',
+  },
+  {
+    match: (n) => n.includes('cush cush') || n.includes('dasheen') || n.includes('eddo') || n.includes('yam'),
+    image: 'https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍠',
+  },
+  {
+    match: (n) => n.includes('cassava') || n.includes('yuca'),
+    image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍠',
+  },
+  {
+    match: (n) => n.includes('sweet potato'),
+    image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍠',
+  },
+  {
+    match: (n) => n.includes('red potato'),
+    image: 'https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥔',
+  },
+  {
+    match: (n) => n.includes('cyprus potato'),
+    image: 'https://images.unsplash.com/photo-1590165482129-1b8b27698780?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥔',
+  },
+  {
+    match: (n) => n.includes('potato'),
+    image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥔',
+  },
+
+  // Onions, Garlic & Herbs
+  {
+    match: (n) => n.includes('red onion'),
+    image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=600&q=80',
+    emoji: '🧅',
+  },
+  {
+    match: (n) => n.includes('spring onion') || n.includes('scallion'),
+    image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80',
+    emoji: '🧅',
+  },
+  {
+    match: (n) => n.includes('onion'),
+    image: 'https://images.unsplash.com/photo-1580201092675-a0a6a6cafbb1?auto=format&fit=crop&w=600&q=80',
+    emoji: '🧅',
+  },
+  {
+    match: (n) => n.includes('peeled garlic'),
+    image: 'https://images.unsplash.com/photo-1615477032135-08bb7b6f6955?auto=format&fit=crop&w=600&q=80',
+    emoji: '🧄',
+  },
+  {
+    match: (n) => n.includes('garlic'),
+    image: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=600&q=80',
+    emoji: '🧄',
+  },
+  {
+    match: (n) => n.includes('mint'),
+    image: 'https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌿',
+  },
+  {
+    match: (n) => n.includes('rosemary'),
+    image: 'https://images.unsplash.com/photo-1515586000433-45406d8e6662?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌿',
+  },
+  {
+    match: (n) => n.includes('thyme'),
+    image: 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌿',
+  },
+  {
+    match: (n) => n.includes('parsley'),
+    image: 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌿',
+  },
+  {
+    match: (n) => n.includes('coriander') || n.includes('cilantro'),
+    image: 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌿',
+  },
+  {
+    match: (n) => n.includes('ginger'),
+    image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=600&q=80',
+    emoji: '🫚',
+  },
+  {
+    match: (n) => n.includes('turmeric'),
+    image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=600&q=80',
+    emoji: '🫚',
+  },
+];
+
 const CATEGORY_DEFAULT_IMAGES: Record<string, { image: string; emoji: string }> = {
   'Roots, Tubers & Yams': {
     image: 'https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?auto=format&fit=crop&w=600&q=80',
@@ -32,9 +410,21 @@ const CATEGORY_DEFAULT_IMAGES: Record<string, { image: string; emoji: string }> 
     image: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=600&q=80',
     emoji: '🍌',
   },
+  'Citrus & Fresh Fruits': {
+    image: 'https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=600&q=80',
+    emoji: '🍊',
+  },
+  'Exotic & Tropical Produce': {
+    image: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥭',
+  },
   'Peppers, Chillies & Squashes': {
     image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=600&q=80',
     emoji: '🌶️',
+  },
+  'Salads & Greens': {
+    image: 'https://images.unsplash.com/photo-1556801712-76c8eb07bbc9?auto=format&fit=crop&w=600&q=80',
+    emoji: '🥗',
   },
   'Fresh Tomatoes': {
     image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80',
@@ -44,9 +434,13 @@ const CATEGORY_DEFAULT_IMAGES: Record<string, { image: string; emoji: string }> 
     image: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=600&q=80',
     emoji: '🍊',
   },
-  'Onions, Garlic & Herbs': {
+  'Onions, Garlic & Bulk Sacks': {
     image: 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=600&q=80',
     emoji: '🧅',
+  },
+  'Fresh Herbs & Spices': {
+    image: 'https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?auto=format&fit=crop&w=600&q=80',
+    emoji: '🌿',
   },
 };
 
@@ -247,8 +641,18 @@ export function getProduceMeta(name: string, category: string, existingImage?: s
     estimatedWeight = 'Approx. 300g – 500g bunch';
   }
 
-  // Fallback image url if existing image is missing or empty
-  let imageUrl = existingImage && existingImage.trim() !== '' ? existingImage : '';
+  // Match verified high-definition produce image by name
+  let matchedImage = '';
+  const foundMap = PRODUCE_NAME_IMAGE_MAP.find((entry) => entry.match(lower));
+  if (foundMap) {
+    matchedImage = foundMap.image;
+    if (foundMap.emoji && (!emoji || emoji === '🥬')) {
+      emoji = foundMap.emoji;
+    }
+  }
+
+  // Resolve best image URL: matched specific produce image > existing valid custom image > category default
+  let imageUrl = matchedImage || (existingImage && existingImage.trim() !== '' ? existingImage : '');
   if (!imageUrl) {
     const catDefaults = CATEGORY_DEFAULT_IMAGES[category] || {
       image: 'https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=600&q=80',

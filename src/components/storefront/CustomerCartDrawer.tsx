@@ -524,7 +524,11 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                     setCustomerName(e.target.value);
                     if (nameError) setNameError(null);
                   }}
-                  className={`w-full px-3 py-2 bg-white border rounded-xl text-xs outline-hidden font-medium transition-colors ${
+                  onBlur={() => {
+                    // Reset mobile viewport scroll after virtual keyboard closes
+                    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
+                  }}
+                  className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-base sm:text-sm outline-hidden font-medium transition-colors ${
                     nameError
                       ? 'border-rose-400 focus:border-rose-600 bg-rose-50/40 text-slate-900'
                       : 'border-slate-300 focus:border-emerald-600'
@@ -553,7 +557,10 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                       setDeliveryAddress(e.target.value);
                       if (addressError) setAddressError(null);
                     }}
-                    className={`w-full px-3 py-2 bg-white border rounded-xl text-xs outline-hidden font-medium transition-colors ${
+                    onBlur={() => {
+                      window.scrollTo({ top: window.scrollY, behavior: 'instant' });
+                    }}
+                    className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-base sm:text-sm outline-hidden font-medium transition-colors ${
                       addressError
                         ? 'border-rose-400 focus:border-rose-600 bg-rose-50/40 text-slate-900'
                         : 'border-slate-300 focus:border-emerald-600'

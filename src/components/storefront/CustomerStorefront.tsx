@@ -615,8 +615,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onBlur={() => {
+                      if (window.innerWidth < 768) {
+                        window.scrollTo({ top: window.scrollY, behavior: 'smooth' });
+                      }
+                    }}
                     placeholder="Search sweet mangoes, plantains, yams, citrus..."
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
 
@@ -962,8 +967,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         required
                         value={contactForm.name}
                         onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        onBlur={() => {
+                          if (window.innerWidth < 768) {
+                            window.scrollTo({ top: window.scrollY, behavior: 'smooth' });
+                          }
+                        }}
                         placeholder="e.g. Samuel Ade"
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                       />
                     </div>
 
@@ -974,8 +984,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         required
                         value={contactForm.email}
                         onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        onBlur={() => {
+                          if (window.innerWidth < 768) {
+                            window.scrollTo({ top: window.scrollY, behavior: 'smooth' });
+                          }
+                        }}
                         placeholder="email@example.com or phone"
-                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                       />
                     </div>
                   </div>
@@ -985,7 +1000,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     <select
                       value={contactForm.subject}
                       onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                     >
                       <option value="Product Availability">Product / Seasonal Fruit Availability</option>
                       <option value="Wholesale Crates">Wholesale / Bulk Crate Inquiries</option>
@@ -1001,8 +1016,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       required
                       value={contactForm.message}
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      onBlur={() => {
+                        if (window.innerWidth < 768) {
+                          window.scrollTo({ top: window.scrollY, behavior: 'smooth' });
+                        }
+                      }}
                       placeholder="Let us know what produce or quantities you need..."
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                     />
                   </div>
 
@@ -1069,6 +1089,46 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           </div>
         </footer>
       </div>
+
+      {/* ========================================================= */}
+      {/* FLOATING STICKY ORDER BUTTON / BAR (FOLLOWS USER AS THEY SCROLL) */}
+      {/* ========================================================= */}
+      {totalCartCount > 0 && (
+        <div className="fixed bottom-4 sm:bottom-6 inset-x-0 mx-auto w-[94%] sm:w-auto sm:min-w-[400px] max-w-lg z-40 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-slate-900/95 text-white backdrop-blur-md border border-emerald-500/40 shadow-2xl rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-3 ring-1 ring-black/20">
+            <div
+              onClick={() => setIsCartOpen(true)}
+              className="flex items-center space-x-3 cursor-pointer select-none group flex-1 min-w-0"
+            >
+              <div className="relative w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black shadow-md shrink-0 group-hover:scale-105 transition-transform">
+                <ShoppingBag className="w-5 h-5 text-slate-950" />
+                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black rounded-full px-1.5 py-0.2 shadow-sm border border-slate-900">
+                  {totalCartCount}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <div className="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5 truncate">
+                  <span>{totalCartCount} {totalCartCount === 1 ? 'item' : 'items'} in order</span>
+                </div>
+                <div className="text-[11px] sm:text-xs text-emerald-300 font-bold truncate">
+                  {showPrices
+                    ? `${formatCurrency(cartSubtotal)} • Tap to place order`
+                    : 'Pitch 18 Fresh • Tap to place order'}
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="sticky-order-now-btn"
+              onClick={() => setIsCartOpen(true)}
+              className="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center space-x-1.5 shadow-lg shadow-emerald-500/30 cursor-pointer transition-all shrink-0"
+            >
+              <span>Place Order</span>
+              <span className="text-base leading-none">→</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* 3. MODALS & DRAWERS */}

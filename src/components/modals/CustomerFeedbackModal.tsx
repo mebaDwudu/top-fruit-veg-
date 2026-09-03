@@ -238,8 +238,11 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
+                  onBlur={() => {
+                    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
+                  }}
                   placeholder="e.g. David Ade"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                 />
               </div>
 
@@ -251,8 +254,11 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
                   type="text"
                   value={customerContact}
                   onChange={(e) => setCustomerContact(e.target.value)}
+                  onBlur={() => {
+                    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
+                  }}
                   placeholder="For follow-up"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                 />
               </div>
             </div>
@@ -267,8 +273,11 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
                 rows={3}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
+                onBlur={() => {
+                  window.scrollTo({ top: window.scrollY, behavior: 'instant' });
+                }}
                 placeholder="Tell us what you liked about our yams, plantains, mangoes, or how we can serve you better..."
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
               />
             </div>
 
