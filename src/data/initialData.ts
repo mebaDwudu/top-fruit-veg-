@@ -102,6 +102,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   allowCashierRefunds: true,
   allowCashierDiscounts: true,
   showPricesToCustomers: false,
+  storeLogo: '',
 };
 
 export const INITIAL_SUPPLIERS: Supplier[] = [

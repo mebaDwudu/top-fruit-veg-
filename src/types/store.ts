@@ -220,6 +220,7 @@ export interface StoreSettings {
   allowCashierRefunds: boolean;
   allowCashierDiscounts: boolean;
   showPricesToCustomers?: boolean;
+  storeLogo?: string;
 }
 
 export interface CustomerFeedback {

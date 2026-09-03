@@ -233,7 +233,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // 2. AUTHENTICATED ADMIN DASHBOARD
   // Styled with matching clean emerald-50/40 background and dedicated left sidebar navigation
   return (
-    <div className="min-h-screen w-screen bg-emerald-50/40 text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen w-full max-w-full bg-emerald-50/40 text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white">
       {/* Mobile Backdrop */}
       {isMobileSidebarOpen && (
         <div

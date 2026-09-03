@@ -73,6 +73,7 @@ import {
   fetchSettingsOnce,
   fetchFeedbacksOnce,
   fetchOrdersOnce,
+  clearAllCloudFinancialData,
   COLLECTIONS,
 } from '../services/firestoreService';
 import confetti from 'canvas-confetti';
@@ -239,25 +240,25 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  SETTINGS: 'topfruit_store_settings_v6',
-  PRODUCTS: 'topfruit_products_v6',
-  CATEGORIES: 'topfruit_categories_v6',
-  ORDERS: 'topfruit_orders_v6',
-  CUSTOMERS: 'topfruit_customers_v6',
-  SUPPLIERS: 'topfruit_suppliers_v6',
-  PURCHASES: 'topfruit_purchases_v6',
-  EXPENSES: 'topfruit_expenses_v6',
-  AUDIT_LOGS: 'topfruit_audit_logs_v6',
-  USERS: 'topfruit_users_v6',
-  STAFF: 'topfruit_staff_v6',
-  CURRENT_STAFF_ID: 'topfruit_current_staff_id_v6',
-  CURRENT_ROLE: 'topfruit_current_role_v6',
-  IS_AUTHENTICATED: 'topfruit_is_authenticated_v6',
-  DARK_MODE: 'topfruit_dark_mode_v6',
-  CUSTOMER_ORDERS: 'topfruit_customer_orders_v6',
-  FEEDBACKS: 'topfruit_feedbacks_v6',
-  CURRENT_SHIFT: 'topfruit_current_shift_v6',
-  STOCK_MOVEMENTS: 'topfruit_stock_movements_v6',
+  SETTINGS: 'topfruit_store_settings_v7',
+  PRODUCTS: 'topfruit_products_v7',
+  CATEGORIES: 'topfruit_categories_v7',
+  ORDERS: 'topfruit_orders_v7',
+  CUSTOMERS: 'topfruit_customers_v7',
+  SUPPLIERS: 'topfruit_suppliers_v7',
+  PURCHASES: 'topfruit_purchases_v7',
+  EXPENSES: 'topfruit_expenses_v7',
+  AUDIT_LOGS: 'topfruit_audit_logs_v7',
+  USERS: 'topfruit_users_v7',
+  STAFF: 'topfruit_staff_v7',
+  CURRENT_STAFF_ID: 'topfruit_current_staff_id_v7',
+  CURRENT_ROLE: 'topfruit_current_role_v7',
+  IS_AUTHENTICATED: 'topfruit_is_authenticated_v7',
+  DARK_MODE: 'topfruit_dark_mode_v7',
+  CUSTOMER_ORDERS: 'topfruit_customer_orders_v7',
+  FEEDBACKS: 'topfruit_feedbacks_v7',
+  CURRENT_SHIFT: 'topfruit_current_shift_v7',
+  STOCK_MOVEMENTS: 'topfruit_stock_movements_v7',
 };
 
 function loadStorage<T>(key: string, fallback: T): T {
@@ -366,6 +367,38 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [feedbacks, setFeedbacks] = useState<CustomerFeedback[]>(() =>
     loadStorage(STORAGE_KEYS.FEEDBACKS, INITIAL_FEEDBACKS)
   );
+
+  // One-time initialization to guarantee zero revenue starting point for client
+  useEffect(() => {
+    try {
+      const isCleaned = localStorage.getItem('topfruit_zero_revenue_clean_v3');
+      if (isCleaned !== 'true') {
+        localStorage.setItem('topfruit_zero_revenue_clean_v3', 'true');
+        // Clear all previous version order caches
+        localStorage.removeItem('topfruit_orders_v5');
+        localStorage.removeItem('topfruit_orders_v6');
+        localStorage.removeItem('topfruit_customer_orders_v6');
+        localStorage.removeItem('topfruit_expenses_v6');
+        localStorage.removeItem('topfruit_purchases_v6');
+        localStorage.removeItem('topfruit_orders_v7');
+        localStorage.removeItem('topfruit_customer_orders_v7');
+        localStorage.removeItem('topfruit_expenses_v7');
+        localStorage.removeItem('topfruit_purchases_v7');
+
+        // Reset state
+        setOrders([]);
+        setCustomerOrders([]);
+        setExpenses([]);
+        setPurchases([]);
+        setCart([]);
+
+        // Purge cloud orders in Firestore so remote listener doesn't repopulate
+        clearAllCloudFinancialData().catch((e) => console.warn('[Firestore] Zero-revenue purge notice:', e));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // POS Active Cart
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -1692,6 +1725,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     saveStorage(STORAGE_KEYS.STOCK_MOVEMENTS, []);
     saveStorage(STORAGE_KEYS.FEEDBACKS, []);
     saveStorage(STORAGE_KEYS.CURRENT_SHIFT, freshShift);
+    clearAllCloudFinancialData().catch((err) => {
+      console.warn('[Firestore] Failed to clear cloud financial documents:', err);
+    });
     logActivity('Reset', 'Cleared all sales history, revenue, orders, and financial records for client launch');
   };
 

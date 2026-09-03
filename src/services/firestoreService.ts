@@ -686,3 +686,46 @@ export async function resetFirestoreWithData(data: {
   console.log('[Firestore] Initial store dataset successfully seeded to cloud Firestore');
 }
 
+/**
+ * Completely purges all orders and sales records from Firestore,
+ * resetting gross revenue, net gross profit, and shifts to £0.00 for client fresh start.
+ */
+export async function clearAllCloudFinancialData(): Promise<void> {
+  try {
+    const batch = writeBatch(db);
+
+    // 1. Delete all POS orders
+    const ordersSnap = await getDocs(collection(db, COLLECTIONS.ORDERS));
+    ordersSnap.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+
+    // 2. Delete all customer online orders
+    const custOrdersSnap = await getDocs(collection(db, COLLECTIONS.CUSTOMER_ORDERS));
+    custOrdersSnap.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+
+    // 3. Reset shift sales to zero
+    const cleanShift: RegisterShift = {
+      id: `shift-fresh-${Date.now()}`,
+      openedAt: new Date().toISOString(),
+      startingCash: 0,
+      cashSales: 0,
+      cardSales: 0,
+      mobileSales: 0,
+      totalSales: 0,
+      expectedCashInDrawer: 0,
+      cashierName: 'Masgana',
+      isOpen: false,
+      notes: 'Clean fresh slate - zero revenue start',
+    };
+    batch.set(doc(db, COLLECTIONS.SHIFTS, 'current'), cleanForFirestore(cleanShift));
+
+    await batch.commit();
+    console.log(`[Firestore] Successfully cleared ${ordersSnap.size} POS orders and ${custOrdersSnap.size} customer orders from cloud database.`);
+  } catch (err) {
+    console.warn('[Firestore] Failed to purge cloud financial records:', err);
+  }
+}
+

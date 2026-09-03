@@ -273,6 +273,27 @@ export const StoreSettingsView: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Store Logo Image URL (Optional)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/your-stall-logo.png"
+                    value={formState.storeLogo || ''}
+                    onChange={(e) => setFormState({ ...formState, storeLogo: e.target.value })}
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                  {formState.storeLogo && (
+                    <div className="w-9 h-9 rounded-xl border border-slate-200 overflow-hidden shrink-0 bg-slate-50 flex items-center justify-center shadow-2xs">
+                      <img src={formState.storeLogo} alt="Logo preview" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Leave empty to use the standard high-resolution Top Fruit and Veg vector market emblem.
+                </p>
+              </div>
+
               {/* Financial & Tax Parameters */}
               <div className="pt-3 border-t border-slate-100">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">

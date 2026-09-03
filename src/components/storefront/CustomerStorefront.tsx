@@ -6,6 +6,8 @@ import { ProductDetailModal } from './ProductDetailModal';
 import { CustomerCartDrawer, CustomerCartItem } from './CustomerCartDrawer';
 import { CustomerFeedbackModal } from '../modals/CustomerFeedbackModal';
 import { ShareStoreModal } from '../modals/ShareStoreModal';
+import { StoreLogo } from '../common/StoreLogo';
+import { LiquidOrderButton } from './LiquidOrderButton';
 import { sanitizeText, sanitizeEmail, sanitizePhone } from '../../utils/sanitize';
 import { validateHumanSubmission } from '../../utils/security';
 import {
@@ -58,6 +60,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup');
 
   const showPrices = settings.showPricesToCustomers ?? false;
 
@@ -254,7 +257,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   };
 
   return (
-    <div className="min-h-screen w-screen bg-emerald-50/40 text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen w-full max-w-full bg-emerald-50/40 text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white">
       {/* ========================================================= */}
       {/* 1. LEFT SIDEBAR (Clean bright solid theme, no scrollbar, no admin login) */}
       {/* ========================================================= */}
@@ -276,24 +279,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           <div>
             {/* Bright Fresh Brand Header with Secret 3-Click Admin Trigger */}
             <div className="flex items-center justify-between border-b border-emerald-100 pb-3 mb-4">
-              <div
+              <StoreLogo
+                size="lg"
                 onClick={handleSecretAdminTrigger}
-                className="flex items-center space-x-3 cursor-pointer group select-none"
-                title="Top Fruit and Veg"
-              >
-                <div className="w-11 h-11 rounded-2xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-xs text-2xl">
-                  🥭
-                </div>
-                <div className="min-w-0">
-                  <h1 className="text-base font-extrabold text-slate-900 tracking-tight leading-none truncate">
-                    Top Fruit and Veg
-                  </h1>
-                  <p className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
-                    <span>Pitch 18 Brixton Market</span>
-                  </p>
-                </div>
-              </div>
+              />
               {/* Mobile close button */}
               <button
                 onClick={() => setIsMobileSidebarOpen(false)}
@@ -470,18 +459,29 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       {/* ========================================================= */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto bg-transparent">
         {/* Top Header Bar (Solid bright clean look) */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 shadow-2xs">
-          <div className="flex items-center space-x-3">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2.5 sm:gap-4 shadow-2xs">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200"
+              className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 shrink-0"
               title="Open Navigation Menu"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div>
+            {/* Prominent Logo on Mobile */}
+            <div className="lg:hidden shrink-0">
+              <StoreLogo
+                size="sm"
+                compactOnMobile={false}
+                showSubtitle={false}
+                onClick={handleSecretAdminTrigger}
+              />
+            </div>
+
+            {/* Desktop Brand Context */}
+            <div className="hidden lg:block min-w-0">
               <h2 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight flex items-center gap-2">
                 {currentTab === 'home' ? (
                   <>
@@ -495,7 +495,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   </>
                 )}
               </h2>
-              <p className="text-[11px] text-emerald-700 font-bold hidden sm:flex items-center gap-1.5">
+              <p className="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
                 <span>Brixton Market Pitch 18 • Hand-Picked Farm Direct Daily</span>
               </p>
@@ -1091,44 +1091,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       </div>
 
       {/* ========================================================= */}
-      {/* FLOATING STICKY ORDER BUTTON / BAR (FOLLOWS USER AS THEY SCROLL) */}
+      {/* FLOATING LIQUID ORDER BUTTON (FLOWS / FOLLOWS SCROLL, SHOWS ONLY ITEMS & ORDER TYPE) */}
       {/* ========================================================= */}
-      {totalCartCount > 0 && (
-        <div className="fixed bottom-4 sm:bottom-6 inset-x-0 mx-auto w-[94%] sm:w-auto sm:min-w-[400px] max-w-lg z-40 animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-slate-900/95 text-white backdrop-blur-md border border-emerald-500/40 shadow-2xl rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-3 ring-1 ring-black/20">
-            <div
-              onClick={() => setIsCartOpen(true)}
-              className="flex items-center space-x-3 cursor-pointer select-none group flex-1 min-w-0"
-            >
-              <div className="relative w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black shadow-md shrink-0 group-hover:scale-105 transition-transform">
-                <ShoppingBag className="w-5 h-5 text-slate-950" />
-                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black rounded-full px-1.5 py-0.2 shadow-sm border border-slate-900">
-                  {totalCartCount}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <div className="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5 truncate">
-                  <span>{totalCartCount} {totalCartCount === 1 ? 'item' : 'items'} in order</span>
-                </div>
-                <div className="text-[11px] sm:text-xs text-emerald-300 font-bold truncate">
-                  {showPrices
-                    ? `${formatCurrency(cartSubtotal)} • Tap to place order`
-                    : 'Pitch 18 Fresh • Tap to place order'}
-                </div>
-              </div>
-            </div>
-
-            <button
-              id="sticky-order-now-btn"
-              onClick={() => setIsCartOpen(true)}
-              className="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center space-x-1.5 shadow-lg shadow-emerald-500/30 cursor-pointer transition-all shrink-0"
-            >
-              <span>Place Order</span>
-              <span className="text-base leading-none">→</span>
-            </button>
-          </div>
-        </div>
-      )}
+      <LiquidOrderButton
+        totalItems={totalCartCount}
+        orderType={orderType}
+        onToggleOrderType={setOrderType}
+        onClick={() => setIsCartOpen(true)}
+      />
 
       {/* ========================================================= */}
       {/* 3. MODALS & DRAWERS */}
@@ -1160,6 +1130,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         onUpdateQuantity={handleUpdateCartQuantity}
         onRemoveItem={handleRemoveCartItem}
         onClearBag={handleClearBag}
+        fulfillmentType={orderType}
+        onFulfillmentTypeChange={setOrderType}
       />
 
       {/* Share QR Code Modal */}
