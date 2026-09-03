@@ -33,8 +33,6 @@ interface CustomerCartDrawerProps {
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemoveItem: (productId: string) => void;
   onClearBag: () => void;
-  fulfillmentType?: 'pickup' | 'delivery';
-  onFulfillmentTypeChange?: (type: 'pickup' | 'delivery') => void;
 }
 
 export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
@@ -44,19 +42,9 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
   onUpdateQuantity,
   onRemoveItem,
   onClearBag,
-  fulfillmentType: controlledFulfillmentType,
-  onFulfillmentTypeChange,
 }) => {
   const { formatCurrency, settings, addCustomerOrder, customerOrders } = useStore();
-  const [internalFulfillmentType, setInternalFulfillmentType] = useState<'pickup' | 'delivery'>('pickup');
-  const fulfillmentType = controlledFulfillmentType ?? internalFulfillmentType;
-
-  const setFulfillmentType = (type: 'pickup' | 'delivery') => {
-    setInternalFulfillmentType(type);
-    if (onFulfillmentTypeChange) {
-      onFulfillmentTypeChange(type);
-    }
-  };
+  const [fulfillmentType, setFulfillmentType] = useState<'pickup' | 'delivery'>('pickup');
   const [customerName, setCustomerName] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [copiedSummary, setCopiedSummary] = useState(false);
