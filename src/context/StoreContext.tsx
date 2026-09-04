@@ -39,6 +39,11 @@ import {
   INITIAL_FEEDBACKS,
 } from '../data/initialData';
 import {
+  cleanProduceName,
+  normalizeCategory,
+  MINIMAL_CATEGORIES,
+} from '../utils/produceSanitizer';
+import {
   subscribeProducts,
   saveProductToFirestore,
   deleteProductFromFirestore,
@@ -200,7 +205,9 @@ interface StoreContextType {
   updateCustomerOrderStatus: (
     orderId: string,
     status: CustomerOnlineOrder['status'],
-    adminNotes?: string
+    adminNotes?: string,
+    delayNotice?: string,
+    isDelayed?: boolean
   ) => void;
   deleteCustomerOrder: (orderId: string) => void;
 
@@ -324,13 +331,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadStorage(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS)
   );
 
-  const [products, setProducts] = useState<Product[]>(() =>
-    loadStorage(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS)
-  );
+  const [products, setProducts] = useState<Product[]>(() => {
+    const raw: Product[] = loadStorage(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    return raw.map((p) => ({
+      ...p,
+      name: cleanProduceName(p.name),
+      category: normalizeCategory(p.category),
+    }));
+  });
 
-  const [categories, setCategories] = useState<string[]>(() =>
-    loadStorage(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES)
-  );
+  const [categories, setCategories] = useState<string[]>(() => [...MINIMAL_CATEGORIES]);
 
   const [orders, setOrders] = useState<Order[]>(() =>
     loadStorage(STORAGE_KEYS.ORDERS, INITIAL_ORDERS)
@@ -506,7 +516,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const unsubProducts = subscribeProducts(
       (remoteProducts) => {
         if (remoteProducts && remoteProducts.length > 0) {
-          setProducts(remoteProducts);
+          const cleaned = remoteProducts.map((p) => ({
+            ...p,
+            name: cleanProduceName(p.name),
+            category: normalizeCategory(p.category),
+          }));
+          setProducts(cleaned);
           setLastSyncedAt(new Date().toLocaleTimeString());
           setDbStatus('online');
           setIsCloudConnected(true);
@@ -518,12 +533,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     );
 
-    // 2. Categories
+    // 2. Categories (Enforce minimalist 5 categories)
     const unsubCategories = subscribeCategories(
-      (remoteCategories) => {
-        if (remoteCategories && remoteCategories.length > 0) {
-          setCategories(remoteCategories);
-        }
+      () => {
+        setCategories([...MINIMAL_CATEGORIES]);
       },
       (err) => {
         console.warn('[Firestore] Categories sync warning:', err);
@@ -1556,6 +1569,35 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Optimistic local state update
     setCustomerOrders((prev) => [newOrder, ...prev]);
 
+    // 3rd Requirement: Decrease inventory when peoples start ordering!
+    if (newOrder.items && newOrder.items.length > 0) {
+      newOrder.items.forEach((item) => {
+        const prod = products.find((p) => p.id === item.productId);
+        if (prod) {
+          const currentStock = prod.stock || 0;
+          const newStock = Math.max(0, currentStock - (item.quantity || 1));
+          updateProduct(item.productId, { stock: newStock });
+
+          const movement: StockMovement = {
+            id: `mov-${Date.now()}-${item.productId}`,
+            productId: item.productId,
+            productName: prod.name,
+            sku: prod.sku,
+            type: 'sale',
+            quantityChange: -(item.quantity || 1),
+            previousStock: currentStock,
+            newStock,
+            note: `Online Order: ${orderCode}`,
+            timestamp: new Date().toISOString(),
+          };
+          setStockMovements((sm) => [movement, ...sm]);
+          saveStockMovementToFirestore(movement).catch((err) => {
+            console.warn('[Firestore] Error saving stock movement for online order:', err);
+          });
+        }
+      });
+    }
+
     // Save directly to Firestore for real-time cross-device sync!
     saveCustomerOrder(newOrder).catch((err) => {
       console.error('[Firestore] Error writing customer order to cloud:', err);
@@ -1577,7 +1619,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateCustomerOrderStatus = (
     orderId: string,
     status: CustomerOnlineOrder['status'],
-    adminNotes?: string
+    adminNotes?: string,
+    delayNotice?: string,
+    isDelayed?: boolean
   ) => {
     setCustomerOrders((prev) =>
       prev.map((o) =>
@@ -1586,6 +1630,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               ...o,
               status,
               adminNotes: adminNotes !== undefined ? adminNotes : o.adminNotes,
+              delayNotice: delayNotice !== undefined ? delayNotice : o.delayNotice,
+              isDelayed: isDelayed !== undefined ? isDelayed : o.isDelayed,
               updatedAt: new Date().toISOString(),
             }
           : o
@@ -1593,11 +1639,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     // Sync status change directly to Firestore
-    updateCustomerOrderStatusInFirestore(orderId, status, adminNotes).catch((err) => {
+    updateCustomerOrderStatusInFirestore(orderId, status, adminNotes, delayNotice, isDelayed).catch((err) => {
       console.error('[Firestore] Error updating order status in cloud:', err);
     });
 
-    logActivity('Order Status Updated', `Order ${orderId} changed to ${status.toUpperCase()}`);
+    logActivity('Order Status Updated', `Order ${orderId} changed to ${status.toUpperCase()}${isDelayed ? ' [DELAYED]' : ''}`);
   };
 
   const deleteCustomerOrder = (orderId: string) => {

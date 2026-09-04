@@ -463,7 +463,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                         className="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
                       >
                         <PackageCheck className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Start Packing</span>
+                        <span>Pack</span>
                       </button>
                     )}
 
@@ -483,7 +483,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
                         className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        <span>Mark Completed</span>
+                        <span>Complete</span>
                       </button>
                     )}
 

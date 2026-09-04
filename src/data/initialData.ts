@@ -73,14 +73,11 @@ export const INITIAL_USERS: UserAccount[] = [
 
 export const INITIAL_CATEGORIES = [
   'All',
-  'Roots, Tubers & Yams',
-  'Fresh Vegetables & Greens',
-  'Salads & Greens',
-  'Exotic & Tropical Produce',
-  'Peppers, Chillies & Squashes',
-  'Citrus & Fresh Fruits',
-  'Onions, Garlic & Bulk Sacks',
-  'Fresh Herbs & Spices',
+  'Fresh Fruits',
+  'Vegetables',
+  'Roots & Tubers',
+  'Tropical & Exotic',
+  'Herbs & Seasoning',
 ];
 
 export const INITIAL_SETTINGS: StoreSettings = {
@@ -503,8 +500,8 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-19',
     sku: 'ONN-RED-10KG',
-    name: '10kg Red Onions Sack',
-    category: 'Onions, Garlic & Bulk Sacks',
+    name: 'Red Onions',
+    category: 'Roots & Tubers',
     costPrice: 6.50,
     sellingPrice: 11.50,
     stock: 30,
@@ -703,7 +700,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-29',
     sku: 'POT-PCK-001',
-    name: 'Pack Potatoes (2.5kg)',
+    name: 'Potatoes',
     category: 'Roots, Tubers & Yams',
     costPrice: 1.20,
     sellingPrice: 2.20,
@@ -783,8 +780,8 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-33',
     sku: 'ONN-WHT-25KG',
-    name: '25kg White Onions Sack',
-    category: 'Onions, Garlic & Bulk Sacks',
+    name: 'White Onions',
+    category: 'Roots & Tubers',
     costPrice: 11.00,
     sellingPrice: 18.00,
     stock: 20,
@@ -803,8 +800,8 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-34',
     sku: 'ONN-WHT-4KG',
-    name: '4kg White Onions Bag',
-    category: 'Onions, Garlic & Bulk Sacks',
+    name: 'Brown Onions',
+    category: 'Roots & Tubers',
     costPrice: 2.20,
     sellingPrice: 4.00,
     stock: 40,
@@ -823,8 +820,8 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-35',
     sku: 'ONN-RED-4KG',
-    name: '4kg Red Onions Bag',
-    category: 'Onions, Garlic & Bulk Sacks',
+    name: 'Red Salad Onions',
+    category: 'Roots & Tubers',
     costPrice: 2.60,
     sellingPrice: 4.80,
     stock: 35,

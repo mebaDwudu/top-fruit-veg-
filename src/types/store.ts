@@ -262,6 +262,8 @@ export interface CustomerOnlineOrder {
   totalAmount?: number;
   status: 'pending' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'cancelled';
   adminNotes?: string;
+  delayNotice?: string;
+  isDelayed?: boolean;
   createdAt: string;
   updatedAt?: string;
 }

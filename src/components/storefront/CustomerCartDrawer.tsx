@@ -34,6 +34,7 @@ interface CustomerCartDrawerProps {
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemoveItem: (productId: string) => void;
   onClearBag: () => void;
+  onTrackOrder?: (orderCode: string) => void;
 }
 
 export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
@@ -43,8 +44,9 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
   onUpdateQuantity,
   onRemoveItem,
   onClearBag,
+  onTrackOrder,
 }) => {
-  const { formatCurrency, settings, addCustomerOrder, customerOrders } = useStore();
+  const { formatCurrency, settings, addCustomerOrder, customerOrders, products } = useStore();
   const [fulfillmentType, setFulfillmentType] = useState<'pickup' | 'delivery'>('pickup');
   const [customerName, setCustomerName] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -154,6 +156,19 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
 
     if (hasValidationError) {
       return;
+    }
+
+    // 3rd Requirement: check if fruit is out of stock - do not accept order!
+    for (const item of items) {
+      const liveProduct = products.find((p) => p.id === item.product.id);
+      if (!liveProduct || liveProduct.stock <= 0) {
+        setSubmitError(`"${item.product.name}" is currently out of stock. Please remove it from your basket.`);
+        return;
+      }
+      if (item.quantity > liveProduct.stock) {
+        setSubmitError(`Only ${liveProduct.stock} ${liveProduct.unit || 'unit(s)'} of "${item.product.name}" available in stock. Please adjust quantity.`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -355,20 +370,34 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
             </div>
 
             {/* Action buttons */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-2.5 pt-2">
+              <button
+                onClick={() => {
+                  const code = submittedOrder.orderCode || submittedOrder.orderNumber;
+                  handleCloseAndReset();
+                  if (onTrackOrder) {
+                    onTrackOrder(code);
+                  }
+                }}
+                className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-black flex items-center justify-center space-x-1.5 transition-all cursor-pointer shadow-md"
+              >
+                <Truck className="w-4 h-4" />
+                <span>Track</span>
+              </button>
+
               <button
                 onClick={handleCopyOrder}
-                className="w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-2xs"
+                className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer shadow-2xs"
               >
                 {copiedSummary ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-emerald-700" />}
-                <span>{copiedSummary ? 'Order Code & Details Copied!' : 'Copy Order Code & Summary'}</span>
+                <span>{copiedSummary ? 'Copied' : 'Copy'}</span>
               </button>
 
               <button
                 onClick={handleCloseAndReset}
-                className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold text-center transition-colors cursor-pointer shadow-md"
+                className="w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-bold text-center transition-colors cursor-pointer"
               >
-                Done & Return to Storefront
+                Done
               </button>
             </div>
           </div>
@@ -384,9 +413,9 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
             </p>
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs sm:text-sm font-black shadow-md transition-colors cursor-pointer"
+              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs sm:text-sm font-black shadow-md transition-colors cursor-pointer"
             >
-              Explore Fresh Produce
+              Explore
             </button>
           </div>
         ) : (
@@ -570,10 +599,17 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                   </div>
 
                   <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                    {items.map((item) => (
+                    {items.map((item) => {
+                      const liveProd = products.find((p) => p.id === item.product.id) || item.product;
+                      const isItemOutOfStock = liveProd.stock <= 0;
+                      const isItemOverStock = item.quantity > liveProd.stock;
+
+                      return (
                       <div
                         key={item.product.id}
-                        className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-3"
+                        className={`p-3 border rounded-2xl flex items-center justify-between gap-3 ${
+                          isItemOutOfStock ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-200'
+                        }`}
                       >
                         <div className="flex items-center space-x-3 min-w-0 flex-1">
                           <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
@@ -602,6 +638,15 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                                 </span>
                               )}
                             </p>
+                            {isItemOutOfStock ? (
+                              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-bold">
+                                Out of stock
+                              </span>
+                            ) : isItemOverStock ? (
+                              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
+                                Only {liveProd.stock} left in stock
+                              </span>
+                            ) : null}
                           </div>
                         </div>
 
@@ -621,10 +666,11 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                             onClick={() =>
                               onUpdateQuantity(
                                 item.product.id,
-                                Math.min(item.product.stock, item.quantity + 1)
+                                Math.min(liveProd.stock, item.quantity + 1)
                               )
                             }
-                            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                            disabled={isItemOutOfStock || item.quantity >= liveProd.stock}
+                            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-30 transition-colors cursor-pointer"
                             aria-label="Increase quantity"
                           >
                             <Plus className="w-3 h-3" />
@@ -647,7 +693,8 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                           </button>
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
 
                   {/* Summary & Submit Action */}
@@ -661,6 +708,16 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                       </div>
                     )}
 
+                    {items.some((it) => {
+                      const lp = products.find((x) => x.id === it.product.id);
+                      return !lp || lp.stock <= 0;
+                    }) && (
+                      <div className="p-3 bg-rose-50 border border-rose-300 rounded-2xl flex items-center space-x-2 text-rose-800 text-xs font-bold">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span>Some items in your basket are out of stock. Please remove them before placing order.</span>
+                      </div>
+                    )}
+
                     {submitError && (
                       <div className="p-3 bg-rose-50 border border-rose-300 rounded-2xl flex items-center space-x-2 text-rose-800 text-xs font-bold">
                         <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -671,11 +728,17 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                     <button
                       id="btn-place-customer-order"
                       onClick={handlePlaceOrder}
-                      disabled={isSubmitting}
-                      className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-2xl text-sm font-black flex items-center justify-center space-x-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
+                      disabled={
+                        isSubmitting ||
+                        items.some((it) => {
+                          const lp = products.find((x) => x.id === it.product.id);
+                          return !lp || lp.stock <= 0;
+                        })
+                      }
+                      className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-xl text-sm font-black flex items-center justify-center space-x-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
                     >
                       <Send className="w-4 h-4" />
-                      <span>{isSubmitting ? 'Submitting Order...' : 'Place Order Now'}</span>
+                      <span>{isSubmitting ? 'Submitting...' : 'Order'}</span>
                     </button>
 
                     <p className="text-center text-[11px] text-slate-500 font-medium">

@@ -269,7 +269,9 @@ export async function saveCustomerOrder(order: CustomerOnlineOrder): Promise<voi
 export async function updateCustomerOrderStatusInFirestore(
   orderId: string,
   status: CustomerOnlineOrder['status'],
-  adminNotes?: string
+  adminNotes?: string,
+  delayNotice?: string,
+  isDelayed?: boolean
 ): Promise<void> {
   try {
     const docRef = doc(db, COLLECTIONS.CUSTOMER_ORDERS, orderId);
@@ -279,6 +281,12 @@ export async function updateCustomerOrderStatusInFirestore(
     };
     if (adminNotes !== undefined) {
       updates.adminNotes = adminNotes;
+    }
+    if (delayNotice !== undefined) {
+      updates.delayNotice = delayNotice;
+    }
+    if (isDelayed !== undefined) {
+      updates.isDelayed = isDelayed;
     }
     const cleanUpdates = cleanForFirestore(updates);
     await setDoc(docRef, cleanUpdates, { merge: true });

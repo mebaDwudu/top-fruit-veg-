@@ -19,28 +19,16 @@ import {
   Settings,
   Globe,
   Lock,
-  LogOut,
-  TrendingUp,
   DollarSign,
+  TrendingUp,
   AlertTriangle,
   QrCode,
-  KeyRound,
   BarChart3,
-  CheckCircle2,
   Menu,
   X,
-  ArrowRight,
-  ExternalLink,
   Store,
-  Sparkles,
   ShoppingBag,
   Star,
-  MessageSquare,
-  Eye,
-  EyeOff,
-  Delete,
-  Shield,
-  Fingerprint,
 } from 'lucide-react';
 
 interface AdminPortalProps {
@@ -66,7 +54,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     currentRole,
     isAuthenticated,
     logout,
-    settings,
     products,
     orders,
     customers,
@@ -140,100 +127,89 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     );
   }
 
-  // Nav item list for clean left sidebar
+  // Minimalist single-word nav items
   const navItems: {
     id: AdminSection;
     label: string;
-    description: string;
     icon: React.ReactNode;
     badge?: string | number;
     badgeColor?: string;
   }[] = [
     {
       id: 'overview',
-      label: 'Overview & Reports',
-      description: 'Key metrics & performance',
-      icon: <BarChart3 className="w-5 h-5" />,
+      label: 'Overview',
+      icon: <BarChart3 className="w-4 h-4" />,
     },
     {
       id: 'orders',
-      label: 'Customer Orders',
-      description: 'Storefront reservations',
-      icon: <ShoppingBag className="w-5 h-5" />,
+      label: 'Orders',
+      icon: <ShoppingBag className="w-4 h-4" />,
       badge:
         pendingCustomerOrdersCount > 0
-          ? `${pendingCustomerOrdersCount} Pending`
+          ? `${pendingCustomerOrdersCount}`
           : customerOrders.length > 0
           ? customerOrders.length
           : undefined,
       badgeColor:
         pendingCustomerOrdersCount > 0
-          ? 'bg-amber-500 text-white font-black'
-          : 'bg-emerald-100 text-emerald-800 border-emerald-300',
+          ? 'bg-amber-500 text-white'
+          : 'bg-emerald-100 text-emerald-800',
     },
     {
       id: 'feedback',
-      label: 'Customer Feedback',
-      description: 'Reviews & star ratings',
-      icon: <Star className="w-5 h-5" />,
+      label: 'Feedback',
+      icon: <Star className="w-4 h-4" />,
       badge:
         newFeedbacksCount > 0
-          ? `${newFeedbacksCount} New`
+          ? `${newFeedbacksCount}`
           : feedbacks.length > 0
           ? feedbacks.length
           : undefined,
       badgeColor:
         newFeedbacksCount > 0
-          ? 'bg-amber-500 text-white font-black'
-          : 'bg-emerald-100 text-emerald-800 border-emerald-300',
+          ? 'bg-emerald-600 text-white'
+          : 'bg-emerald-100 text-emerald-800',
     },
     {
       id: 'inventory',
-      label: 'Inventory & Stock',
-      description: 'Prices, costs & barcodes',
-      icon: <Boxes className="w-5 h-5" />,
+      label: 'Inventory',
+      icon: <Boxes className="w-4 h-4" />,
       badge:
         lowStockProducts.length + outOfStockProducts.length > 0
           ? lowStockProducts.length + outOfStockProducts.length
           : undefined,
-      badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
+      badgeColor: 'bg-amber-100 text-amber-800',
     },
     {
       id: 'sales',
-      label: 'Sales History',
-      description: 'Receipts & orders',
-      icon: <Receipt className="w-5 h-5" />,
+      label: 'Sales',
+      icon: <Receipt className="w-4 h-4" />,
       badge: completedOrders.length > 0 ? completedOrders.length : undefined,
-      badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      badgeColor: 'bg-emerald-100 text-emerald-800',
     },
     {
       id: 'suppliers',
-      label: 'Suppliers & Orders',
-      description: 'Vendor purchasing',
-      icon: <Truck className="w-5 h-5" />,
+      label: 'Suppliers',
+      icon: <Truck className="w-4 h-4" />,
       badge: suppliers.length > 0 ? suppliers.length : undefined,
-      badgeColor: 'bg-slate-100 text-slate-700 border-slate-300',
+      badgeColor: 'bg-slate-100 text-slate-700',
     },
     {
       id: 'customers',
-      label: 'Customer Accounts',
-      description: 'Tab balances & debt',
-      icon: <Users className="w-5 h-5" />,
+      label: 'Customers',
+      icon: <Users className="w-4 h-4" />,
       badge: totalCustomerDebt > 0 ? formatCurrency(totalCustomerDebt) : undefined,
-      badgeColor: 'bg-rose-100 text-rose-800 border-rose-300',
+      badgeColor: 'bg-rose-100 text-rose-800',
     },
     {
       id: 'settings',
-      label: 'Store Settings',
-      description: 'Security & preferences',
-      icon: <Settings className="w-5 h-5" />,
+      label: 'Settings',
+      icon: <Settings className="w-4 h-4" />,
     },
   ];
 
-  // 2. AUTHENTICATED ADMIN DASHBOARD
-  // Styled with matching clean emerald-50/40 background and dedicated left sidebar navigation
   return (
-    <div className="min-h-screen w-full max-w-full bg-emerald-50/40 text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen w-full bg-slate-50/50 text-slate-900 flex font-sans selection:bg-emerald-500 selection:text-white">
       {/* Mobile Backdrop */}
       {isMobileSidebarOpen && (
         <div
@@ -243,29 +219,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       )}
 
       {/* ========================================================= */}
-      {/* 1. CLEAN LEFT SIDEBAR FOR ADMIN (Matches Customer Aesthetic) */}
+      {/* 1. STICKY LEFT SIDEBAR FOR ADMIN (Fixed on PC)           */}
       {/* ========================================================= */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 max-w-[85vw] bg-white border-r border-emerald-100 shadow-xl lg:shadow-sm flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto ${
+        className={`fixed top-0 left-0 z-50 h-screen w-60 max-w-[85vw] bg-white border-r border-slate-200 shadow-xl lg:shadow-none flex flex-col justify-between p-3.5 transition-transform duration-200 ease-in-out shrink-0 overflow-y-auto ${
           isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-4 flex-1 flex flex-col">
-          {/* Brand Header */}
-          <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-xs">
-                <ShieldCheck className="w-6 h-6 text-white" />
+        <div className="space-y-3 flex-1 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-2xs">
+                <ShieldCheck className="w-4 h-4 text-white" />
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h1 className="text-base font-extrabold text-slate-900 tracking-tight leading-none truncate">
-                    Admin Portal
-                  </h1>
-                </div>
-                <p className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
-                  <span>Top Fruit and Veg • Pitch 18</span>
+              <div>
+                <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">
+                  Admin
+                </h1>
+                <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                  Pitch 18 Brixton
                 </p>
               </div>
             </div>
@@ -273,37 +246,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             {/* Mobile close button */}
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
+              className="lg:hidden p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Quick Metrics Capsule */}
-          <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-medium">Total Revenue</span>
-              <span className="font-extrabold text-emerald-800">
-                {formatCurrency(totalGrossRevenue)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-medium">Net Profit Margin</span>
-              <span className="font-bold text-emerald-700">
-                {totalMarginPercent}%
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-medium">Stock Catalog</span>
-              <span className="font-bold text-slate-700">{products.length} Products</span>
-            </div>
+          {/* Minimalist 1-Line Revenue Badge */}
+          <div className="flex items-center justify-between px-2.5 py-1.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-xs">
+            <span className="text-slate-500 text-[11px] font-medium">Revenue</span>
+            <span className="font-bold text-emerald-800">{formatCurrency(totalGrossRevenue)}</span>
           </div>
 
-          {/* Clean Left Side Navigation Buttons */}
-          <div className="space-y-1.5 flex-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1">
-              Store Management
-            </p>
+          {/* Clean Minimalist Nav Buttons */}
+          <nav className="space-y-1 flex-1">
             {navItems.map((item) => {
               const isActive = activeSection === item.id;
               return (
@@ -317,34 +273,25 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                     }
                     setIsMobileSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-left transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                     isActive
-                      ? 'bg-emerald-600 text-white font-extrabold shadow-sm'
-                      : 'text-slate-700 hover:bg-emerald-50/80 hover:text-emerald-900 font-medium'
+                      ? 'bg-emerald-600 text-white font-bold shadow-2xs'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
-                  <div className="flex items-center space-x-3 min-w-0">
-                    <span className={isActive ? 'text-white' : 'text-emerald-700'}>
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <span className={isActive ? 'text-white' : 'text-slate-500'}>
                       {item.icon}
                     </span>
-                    <div className="truncate">
-                      <p className="text-xs leading-tight font-bold truncate">{item.label}</p>
-                      <p
-                        className={`text-[10px] leading-tight truncate mt-0.5 ${
-                          isActive ? 'text-emerald-100' : 'text-slate-400'
-                        }`}
-                      >
-                        {item.description}
-                      </p>
-                    </div>
+                    <span className="truncate">{item.label}</span>
                   </div>
 
                   {item.badge !== undefined && (
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                         isActive
-                          ? 'bg-white/20 text-white border-white/30'
-                          : item.badgeColor || 'bg-slate-100 text-slate-700 border-slate-200'
+                          ? 'bg-white/20 text-white'
+                          : item.badgeColor || 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       {item.badge}
@@ -353,172 +300,166 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 </button>
               );
             })}
-          </div>
+          </nav>
 
-          {/* Customer Storefront Link & Actions */}
-          <div className="pt-3 border-t border-emerald-100 space-y-2">
-            <button
-              onClick={onSwitchToStorefront}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 rounded-2xl text-xs font-bold text-emerald-800 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center space-x-2.5">
-                <Globe className="w-4 h-4 text-emerald-600" />
-                <span>Customer Storefront</span>
-              </div>
-              <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
-            </button>
-
-            <div className="flex items-center gap-2">
+          {/* Combined 2-in-1 Action Buttons at bottom */}
+          <div className="pt-2 border-t border-slate-100 space-y-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={onSwitchToStorefront}
+                className="flex items-center justify-center space-x-1.5 px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                title="Customer Storefront"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Store</span>
+              </button>
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                className="flex items-center justify-center space-x-1.5 px-2 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                title="Share QR"
               >
                 <QrCode className="w-3.5 h-3.5 text-slate-500" />
-                <span>Share QR</span>
-              </button>
-
-              <button
-                onClick={handleLogoutAndLock}
-                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
-                title="Lock Admin Session"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Lock</span>
+                <span>Share</span>
               </button>
             </div>
+
+            <button
+              onClick={handleLogoutAndLock}
+              className="w-full flex items-center justify-center space-x-1.5 px-2 py-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Lock</span>
+            </button>
           </div>
         </div>
       </aside>
 
       {/* ========================================================= */}
-      {/* 2. MAIN CONTENT WORKSPACE (Clean Emerald/White Backdrop) */}
+      {/* 2. MAIN CONTENT WORKSPACE (Offset by lg:pl-60)           */}
       {/* ========================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {/* Top Header Bar for Mobile & Quick Actions */}
-        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between shadow-xs">
+      <div className="flex-1 min-w-0 lg:pl-60 flex flex-col min-h-screen">
+        {/* Top Header Bar for Mobile & Actions */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-2xs">
           <div className="flex items-center space-x-3">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="lg:hidden p-2 text-slate-700 hover:text-emerald-700 rounded-xl bg-emerald-50 border border-emerald-200 cursor-pointer"
-              aria-label="Open Admin Menu"
+              className="lg:hidden p-1.5 text-slate-700 hover:text-emerald-700 rounded-xl bg-slate-100 border border-slate-200 cursor-pointer"
+              aria-label="Open Menu"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
 
             <div>
-              <h2 className="text-base sm:text-lg font-black text-slate-900 capitalize tracking-tight flex items-center gap-2">
+              <h2 className="text-sm sm:text-base font-black text-slate-900 capitalize tracking-tight flex items-center gap-2">
                 <span>
-                  {navItems.find((n) => n.id === activeSection)?.label || 'Store Management'}
+                  {navItems.find((n) => n.id === activeSection)?.label || 'Overview'}
                 </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-full text-[10px] font-extrabold uppercase tracking-wide">
-                  Boss Admin
+                <span className="hidden sm:inline-block px-1.5 py-0.5 bg-emerald-50 text-emerald-800 rounded text-[10px] font-bold">
+                  Boss
                 </span>
               </h2>
-              <p className="text-xs text-slate-500 hidden sm:block">
-                Top Fruits & Vegetables • Retail & Wholesale Back-Office
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-2">
             <button
               onClick={handleLogoutAndLock}
-              className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-2xs cursor-pointer"
-              title="Lock Admin Portal"
+              className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold flex items-center space-x-1 transition-colors cursor-pointer"
+              title="Lock Admin"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Lock Portal</span>
+              <Lock className="w-3.5 h-3.5" />
+              <span>Lock</span>
             </button>
 
             <button
               onClick={onSwitchToStorefront}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-all shadow-xs cursor-pointer"
+              className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition-colors cursor-pointer shadow-2xs"
             >
               <Store className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">View Customer Store</span>
+              <span>Store</span>
             </button>
           </div>
         </header>
 
         {/* Dynamic Section Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
-          {/* SECTION 1: OVERVIEW & REPORTS */}
+        <main className="flex-1 p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto w-full space-y-4">
+          {/* SECTION 1: OVERVIEW */}
           {activeSection === 'overview' && (
-            <div className="space-y-6">
-              {/* Executive Quick Stats Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Gross Revenue
+            <div className="space-y-4">
+              {/* Executive Stats Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
+                    <span className="text-[11px] font-bold text-slate-500">
+                      Revenue
                     </span>
-                    <DollarSign className="w-4 h-4 text-emerald-600" />
+                    <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-black text-slate-900">
+                  <p className="text-xl font-black text-slate-900">
                     {formatCurrency(totalGrossRevenue)}
                   </p>
-                  <p className="text-xs text-emerald-700 mt-1 font-bold">
-                    {completedOrders.length} completed orders
+                  <p className="text-[11px] text-emerald-700 font-bold mt-0.5">
+                    {completedOrders.length} orders
                   </p>
                 </div>
 
-                <div className="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Net Gross Profit
+                <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
+                    <span className="text-[11px] font-bold text-slate-500">
+                      Net Profit
                     </span>
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-black text-emerald-700">
+                  <p className="text-xl font-black text-emerald-700">
                     {formatCurrency(totalNetProfit)}
                   </p>
-                  <p className="text-xs text-emerald-800 mt-1 font-bold">
-                    {totalMarginPercent}% aggregate margin
+                  <p className="text-[11px] text-emerald-800 font-bold mt-0.5">
+                    {totalMarginPercent}% margin
                   </p>
                 </div>
 
-                <div className="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Inventory Valuation
+                <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
+                    <span className="text-[11px] font-bold text-slate-500">
+                      Valuation
                     </span>
-                    <Boxes className="w-4 h-4 text-emerald-600" />
+                    <Boxes className="w-3.5 h-3.5 text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-black text-slate-900">
+                  <p className="text-xl font-black text-slate-900">
                     {formatCurrency(totalInventoryRetail)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">
-                    Cost basis: {formatCurrency(totalInventoryCost)}
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                    Cost: {formatCurrency(totalInventoryCost)}
                   </p>
                 </div>
 
-                <div className="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Stock Alerts
+                <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-slate-400 mb-1">
+                    <span className="text-[11px] font-bold text-slate-500">
+                      Alerts
                     </span>
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
                   </div>
-                  <div className="flex items-baseline space-x-2">
-                    <p className="text-2xl font-black text-amber-600">
+                  <div className="flex items-baseline space-x-1.5">
+                    <p className="text-xl font-black text-amber-600">
                       {lowStockProducts.length + outOfStockProducts.length}
                     </p>
-                    <span className="text-xs text-rose-600 font-bold">
-                      ({outOfStockProducts.length} out of stock)
+                    <span className="text-[11px] text-rose-600 font-bold">
+                      ({outOfStockProducts.length} out)
                     </span>
                   </div>
                   <button
                     onClick={() => setActiveSection('inventory')}
-                    className="text-xs text-emerald-700 hover:underline mt-1 font-bold block cursor-pointer"
+                    className="text-[11px] text-emerald-700 hover:underline font-bold mt-0.5 block cursor-pointer"
                   >
-                    View stock manager →
+                    Manage →
                   </button>
                 </div>
               </div>
 
-              {/* Embedded Analytics Dashboard */}
-              <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+              {/* Analytics Dashboard */}
+              <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
                 <AnalyticsDashboard />
               </div>
             </div>
@@ -526,49 +467,49 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
           {/* CUSTOMER STOREFRONT ORDERS */}
           {activeSection === 'orders' && (
-            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
               <CustomerOrdersView onOpenDedicatedPage={onOpenCustomerOrders} />
             </div>
           )}
 
           {/* CUSTOMER FEEDBACK & REVIEWS */}
           {activeSection === 'feedback' && (
-            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
               <CustomerFeedbackView />
             </div>
           )}
 
-          {/* SECTION 2: INVENTORY MANAGER */}
+          {/* INVENTORY */}
           {activeSection === 'inventory' && (
-            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
               <InventoryManager onNavigateToPO={() => setActiveSection('suppliers')} />
             </div>
           )}
 
-          {/* SECTION 3: SALES HISTORY & RECEIPTS */}
+          {/* SALES */}
           {activeSection === 'sales' && (
-            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
               <SalesHistory />
             </div>
           )}
 
-          {/* SECTION 4: SUPPLIERS & PURCHASE ORDERS */}
+          {/* SUPPLIERS */}
           {activeSection === 'suppliers' && (
-            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
               <SupplierManager />
             </div>
           )}
 
-          {/* SECTION 5: CUSTOMER ACCOUNTS & DEBT */}
+          {/* CUSTOMERS */}
           {activeSection === 'customers' && (
-            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
               <CustomerManager />
             </div>
           )}
 
-          {/* SECTION 6: STORE SETTINGS & PINS */}
+          {/* SETTINGS */}
           {activeSection === 'settings' && (
-            <div className="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
               <StoreSettingsView />
             </div>
           )}
@@ -576,10 +517,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       </div>
 
       {/* Share Modal */}
-      <ShareStoreModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-      />
+      {isShareModalOpen && (
+        <ShareStoreModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
+      )}
     </div>
   );
 };

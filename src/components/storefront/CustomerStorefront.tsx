@@ -6,6 +6,7 @@ import { ProductDetailModal } from './ProductDetailModal';
 import { CustomerCartDrawer, CustomerCartItem } from './CustomerCartDrawer';
 import { CustomerFeedbackModal } from '../modals/CustomerFeedbackModal';
 import { ShareStoreModal } from '../modals/ShareStoreModal';
+import { CustomerOrderTrackerModal } from './CustomerOrderTrackerModal';
 import { sanitizeText, sanitizeEmail, sanitizePhone } from '../../utils/sanitize';
 import { validateHumanSubmission } from '../../utils/security';
 import {
@@ -32,6 +33,7 @@ import {
   Star,
   Tag,
   Lock,
+  Truck,
 } from 'lucide-react';
 
 interface CustomerStorefrontProps {
@@ -58,6 +60,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
+  const [preFilledOrderCode, setPreFilledOrderCode] = useState('');
 
   const showPrices = settings.showPricesToCustomers ?? false;
 
@@ -268,29 +272,29 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 max-w-[85vw] bg-white border-r border-emerald-100 shadow-xl lg:shadow-sm flex flex-col justify-between p-3.5 sm:p-4 transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto lg:overflow-hidden ${
+        className={`fixed top-0 left-0 z-40 h-screen w-60 max-w-[85vw] bg-white border-r border-emerald-100 shadow-xl lg:shadow-none flex flex-col justify-between p-3 sm:p-4 transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto ${
           isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="space-y-3 sm:space-y-4 flex-1 flex flex-col justify-between">
+        <div className="space-y-3 flex-1 flex flex-col justify-between">
           <div>
-            {/* Bright Fresh Brand Header with Secret 3-Click Admin Trigger */}
-            <div className="flex items-center justify-between border-b border-emerald-100 pb-3 mb-4">
+            {/* Brand Header with Secret 3-Click Admin Trigger */}
+            <div className="flex items-center justify-between border-b border-emerald-100 pb-3 mb-3">
               <div
                 onClick={handleSecretAdminTrigger}
-                className="flex items-center space-x-3 cursor-pointer group select-none"
+                className="flex items-center space-x-2.5 cursor-pointer group select-none"
                 title="Top Fruit and Veg"
               >
-                <div className="w-11 h-11 rounded-2xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-xs text-2xl">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-2xs text-xl">
                   🥭
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-base font-extrabold text-slate-900 tracking-tight leading-none truncate">
-                    Top Fruit and Veg
+                  <h1 className="text-sm font-extrabold text-slate-900 tracking-tight leading-none truncate">
+                    Top Fruit & Veg
                   </h1>
-                  <p className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
+                  <p className="text-[10px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
-                    <span>Pitch 18 Brixton Market</span>
+                    <span>Pitch 18 Brixton</span>
                   </p>
                 </div>
               </div>
@@ -299,18 +303,18 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 onClick={() => setIsMobileSidebarOpen(false)}
                 className="lg:hidden p-1.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Primary Navigation Buttons in Left Sidebar */}
-            <nav className="space-y-2">
+            {/* Primary Navigation Buttons in Left Sidebar (Minimal 1-Word Labels) */}
+            <nav className="space-y-1.5">
               <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 flex items-center justify-between">
-                <span>Browse Stall</span>
+                <span>Stall</span>
                 <Sparkles className="w-3 h-3 text-amber-500" />
               </div>
 
-              {/* Button 1: Home / All Fruits */}
+              {/* Button 1: All */}
               <button
                 id="customer-nav-home"
                 onClick={() => {
@@ -318,18 +322,18 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setSelectedCategory('All');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   currentTab === 'home'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-emerald-50/60 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60'
                 }`}
               >
-                <div className="flex items-center space-x-2.5">
-                  <span className="text-base">🥭</span>
-                  <span>All Fresh Produce</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">🥭</span>
+                  <span>All</span>
                 </div>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
                     currentTab === 'home'
                       ? 'bg-emerald-800 text-white'
                       : 'bg-white text-emerald-800 border border-emerald-200'
@@ -339,91 +343,109 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </span>
               </button>
 
-              {/* Button 2: Place Order / Basket */}
+              {/* Button 2: Orders */}
               <button
                 id="customer-nav-basket"
                 onClick={() => {
                   setIsCartOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 transition-all cursor-pointer shadow-2xs"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 transition-all cursor-pointer shadow-2xs"
               >
-                <div className="flex items-center space-x-2.5">
-                  <span className="text-base">🧺</span>
-                  <span>Order List</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">🧺</span>
+                  <span>Orders</span>
                 </div>
                 {totalCartCount > 0 ? (
-                  <div className="flex items-center space-x-1.5">
-                    <span className="px-2 py-0.5 bg-amber-500 text-white rounded-full text-[10px] font-extrabold">
+                  <div className="flex items-center space-x-1">
+                    <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded-md text-[10px] font-bold">
                       {totalCartCount}
                     </span>
                     {showPrices && (
-                      <span className="text-[11px] text-amber-900 font-extrabold">
+                      <span className="text-[10px] text-amber-900 font-bold">
                         {formatCurrency(cartSubtotal)}
                       </span>
                     )}
                   </div>
                 ) : (
-                  <span className="text-[10px] text-slate-400">0 items</span>
+                  <span className="text-[10px] text-slate-400">0</span>
                 )}
               </button>
 
-              {/* Button 3: Customer Feedback */}
+              {/* Button 3: Feedback */}
               <button
                 id="customer-nav-feedback"
                 onClick={() => {
                   setIsFeedbackModalOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
               >
-                <div className="flex items-center space-x-2.5">
-                  <span className="text-base">⭐</span>
-                  <span>Leave Feedback</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">⭐</span>
+                  <span>Feedback</span>
                 </div>
-                <span className="text-[10px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded-full border border-amber-200">
+                <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-md border border-amber-200">
                   Review
                 </span>
               </button>
 
-              {/* Button 4: About Us & Contacts */}
+              {/* Button 4: Track */}
+              <button
+                id="customer-nav-track"
+                onClick={() => {
+                  setIsTrackerModalOpen(true);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="flex items-center space-x-2">
+                  <Truck className="w-4 h-4 text-sky-600" />
+                  <span>Track</span>
+                </div>
+                <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded-md border border-sky-200">
+                  Code
+                </span>
+              </button>
+
+              {/* Button 5: About */}
               <button
                 id="customer-nav-about-contact"
                 onClick={() => {
                   setCurrentTab('about_contact');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   currentTab === 'about_contact'
-                    ? 'bg-emerald-600 text-white shadow-sm'
+                    ? 'bg-emerald-600 text-white shadow-xs'
                     : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200'
                 }`}
               >
-                <div className="flex items-center space-x-2.5">
-                  <span className="text-base">📍</span>
-                  <span>About & Contact</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">📍</span>
+                  <span>About</span>
                 </div>
-                <span className="text-[10px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 font-extrabold">
+                <span className="text-[10px] text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded-md font-bold">
                   Pitch 18
                 </span>
               </button>
             </nav>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {/* Brixton Market Quick Info Card */}
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-extrabold text-emerald-900">
-                <div className="flex items-center space-x-1.5">
+            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
+              <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
+                <div className="flex items-center space-x-1">
                   <Store className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>Brixton Market Stall</span>
+                  <span>Brixton Market</span>
                 </div>
-                <span className="text-[10px] px-1.5 py-0.2 bg-emerald-200 text-emerald-900 rounded font-bold">Open</span>
+                <span className="text-[10px] px-1 py-0.2 bg-emerald-200 text-emerald-900 rounded font-bold">Open</span>
               </div>
-              <p className="text-[11px] text-slate-700 leading-snug">
-                Pitch 18 Pope's Road, London SW9 8PB.
+              <p className="text-[10px] text-slate-700 leading-snug">
+                Pitch 18 Pope's Road, SW9 8PB.
               </p>
-              <div className="flex items-center space-x-1 text-[11px] text-emerald-800 font-extrabold">
+              <div className="flex items-center space-x-1 text-[10px] text-emerald-800 font-bold">
                 <Phone className="w-3 h-3 text-emerald-600" />
                 <a href="tel:+447449338679" className="hover:underline">
                   +44 7449 338679
@@ -431,44 +453,45 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               </div>
             </div>
 
-            {/* WhatsApp Direct Order CTA (Solid bright green) */}
-            <a
-              href="https://wa.me/447449338679?text=Hello%20Top%20Fruits%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20a%20pre-order."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-2.5 px-3 rounded-2xl bg-green-600 hover:bg-green-700 text-white text-xs font-extrabold flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-xs active:scale-98"
-            >
-              <MessageCircle className="w-4 h-4 text-white" />
-              <span>WhatsApp Pre-Order</span>
-            </a>
+            {/* Minimalist 2-in-1 Action Buttons: WhatsApp & Share */}
+            <div className="grid grid-cols-2 gap-1.5">
+              <a
+                href="https://wa.me/447449338679?text=Hello%20Top%20Fruits%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20a%20pre-order."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center space-x-1 transition-all cursor-pointer shadow-2xs"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>WhatsApp</span>
+              </a>
+
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-1 transition-colors cursor-pointer border border-slate-200"
+              >
+                <Share2 className="w-3.5 h-3.5 text-slate-600" />
+                <span>Share</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Sidebar Footer: Share Store QR Code & Discreet Stall Details */}
-        <div className="pt-3 border-t border-emerald-100 space-y-2">
-          <button
-            onClick={() => setIsShareModalOpen(true)}
-            className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-2 transition-colors cursor-pointer border border-slate-200"
-          >
-            <Share2 className="w-3.5 h-3.5 text-slate-600" />
-            <span>Share Stall QR Code</span>
-          </button>
-
-          {/* Discreet copyright trigger (Triple click secret) */}
+        {/* Sidebar Footer */}
+        <div className="pt-2 border-t border-emerald-100">
           <div
             onClick={handleSecretAdminTrigger}
-            className="py-1 text-center text-[10px] text-slate-400 select-none cursor-pointer hover:text-slate-600 transition-colors"
+            className="text-center text-[10px] text-slate-400 select-none cursor-pointer hover:text-slate-600 transition-colors"
             title="Pitch 18 Brixton Market"
           >
-            <span>Pitch 18 Pope's Road • Brixton</span>
+            <span>Brixton Market • Pitch 18</span>
           </div>
         </div>
       </aside>
 
       {/* ========================================================= */}
-      {/* 2. MAIN CONTENT AREA (FULL SCREEN WIDTH) */}
+      {/* 2. MAIN CONTENT AREA (PC OFFSET BY FIXED SIDEBAR) */}
       {/* ========================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto bg-transparent">
+      <div className="flex-1 min-w-0 lg:pl-60 flex flex-col min-h-screen bg-transparent">
         {/* Top Header Bar (Solid bright clean look) */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center space-x-3">
@@ -504,11 +527,21 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
           {/* Top Right Actions */}
           <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Customer Track Order Button */}
+            <button
+              id="header-btn-track"
+              onClick={() => setIsTrackerModalOpen(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 hover:bg-sky-100 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+            >
+              <Truck className="w-3.5 h-3.5 text-sky-600" />
+              <span>Track</span>
+            </button>
+
             {/* Customer Feedback Button in Header */}
             <button
               id="header-btn-feedback"
               onClick={() => setIsFeedbackModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 text-xs font-extrabold transition-all shadow-2xs cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 text-xs font-bold transition-all shadow-2xs cursor-pointer"
             >
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
               <span>Feedback</span>
@@ -517,7 +550,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             {/* Direct Stall Call */}
             <a
               href="tel:+447449338679"
-              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-extrabold transition-all shadow-2xs"
+              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-all shadow-2xs"
             >
               <Phone className="w-3.5 h-3.5 text-emerald-600" />
               <span>+44 7449 338679</span>
@@ -527,7 +560,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             <button
               id="header-btn-orders"
               onClick={() => setIsCartOpen(true)}
-              className="relative py-2 px-3.5 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-extrabold flex items-center space-x-2 transition-all shadow-xs cursor-pointer active:scale-95"
+              className="relative py-2 px-3.5 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 transition-all shadow-xs cursor-pointer active:scale-95"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>Orders</span>
@@ -560,18 +593,27 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               </div>
 
               {/* Category Pill Buttons with Clean Solid Active States */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-emerald-200">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-emerald-200">
                 {/* All Fruits Master Button */}
                 <button
                   onClick={() => setSelectedCategory('All')}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center space-x-2 shadow-2xs ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center space-x-1.5 shadow-2xs ${
                     selectedCategory === 'All'
-                      ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400/40'
+                      ? 'bg-emerald-600 text-white shadow-xs'
                       : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                   }`}
                 >
-                  <span className="text-base">🥭</span>
-                  <span>All Fresh Produce ({products.length})</span>
+                  <span className="text-sm">🥭</span>
+                  <span>All</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-md text-[10px] ${
+                      selectedCategory === 'All'
+                        ? 'bg-emerald-800 text-white font-bold'
+                        : 'bg-slate-200 text-slate-700 font-medium'
+                    }`}
+                  >
+                    {products.length}
+                  </span>
                 </button>
 
                 {/* Individual Category Buttons */}
@@ -584,19 +626,19 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer shrink-0 flex items-center space-x-2 shadow-2xs ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center space-x-1.5 shadow-2xs ${
                         isSelected
-                          ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400/40'
+                          ? 'bg-emerald-600 text-white shadow-xs'
                           : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                       }`}
                     >
-                      <span className="text-base">{emoji}</span>
+                      <span className="text-sm">{emoji}</span>
                       <span>{cat}</span>
                       <span
-                        className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                        className={`px-1.5 py-0.2 rounded-md text-[10px] ${
                           isSelected
-                            ? 'bg-emerald-800 text-white font-extrabold'
-                            : 'bg-emerald-100 text-emerald-800 font-bold'
+                            ? 'bg-emerald-800 text-white font-bold'
+                            : 'bg-emerald-100 text-emerald-800 font-medium'
                         }`}
                       >
                         {catCount}
@@ -607,9 +649,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               </div>
 
               {/* Secondary Fast Filters & Search Row */}
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-emerald-100 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-emerald-100 text-xs">
                 {/* Quick Search */}
-                <div className="relative flex-1 min-w-[200px] max-w-md">
+                <div className="relative flex-1 min-w-[180px] max-w-sm">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
@@ -620,25 +662,25 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         window.scrollTo({ top: window.scrollY, behavior: 'smooth' });
                       }
                     }}
-                    placeholder="Search sweet mangoes, plantains, yams, citrus..."
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500"
+                    placeholder="Search fruits, veg, yams..."
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                   />
                 </div>
 
                 {/* Filter Pills */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1.5">
                   <button
                     onClick={() =>
                       setSelectedOrganicFilter((prev) => (prev === 'organic' ? 'all' : 'organic'))
                     }
-                    className={`px-3 py-2 rounded-xl font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-xl font-bold flex items-center space-x-1 transition-all cursor-pointer ${
                       selectedOrganicFilter === 'organic'
                         ? 'bg-emerald-600 text-white shadow-2xs'
                         : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
                     }`}
                   >
                     <Leaf className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Organic Only</span>
+                    <span>Organic</span>
                   </button>
 
                   <button
@@ -653,39 +695,39 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
                     }`}
                   >
-                    <span>In Stock Only</span>
+                    <span>In Stock</span>
                   </button>
 
                   {/* Sort Selection */}
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-extrabold focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-slate-800 text-xs font-bold focus:outline-hidden focus:border-emerald-500 focus:bg-white"
                   >
-                    <option value="name_asc">Sort: A–Z</option>
-                    <option value="name_desc">Sort: Z–A</option>
+                    <option value="name_asc">A–Z</option>
+                    <option value="name_desc">Z–A</option>
                     {showPrices && (
                       <>
-                        <option value="price_asc">Price: Low to High</option>
-                        <option value="price_desc">Price: High to Low</option>
+                        <option value="price_asc">Price Low</option>
+                        <option value="price_desc">Price High</option>
                       </>
                     )}
-                    <option value="newest">Sort: New Arrivals</option>
+                    <option value="newest">Newest</option>
                   </select>
                 </div>
               </div>
             </section>
 
-            {/* FULL SCREEN FRUITS GRID (Solid clean white cards with full width) */}
+            {/* FULL SCREEN FRUITS GRID: 5 ITEMS PER ROW ON PC & LARGER CARDS */}
             <section className="w-full">
               {filteredProducts.length === 0 ? (
                 <div className="w-full bg-white border border-emerald-100 rounded-3xl p-12 text-center my-6 shadow-2xs">
-                  <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-3 text-emerald-600">
-                    <Search className="w-8 h-8 text-emerald-600" />
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-3 text-emerald-600">
+                    <Search className="w-7 h-7 text-emerald-600" />
                   </div>
-                  <h4 className="text-base font-bold text-slate-900 mb-1">No fruits matched your filter</h4>
+                  <h4 className="text-base font-bold text-slate-900 mb-1">No fruits matched</h4>
                   <p className="text-xs text-slate-500 mb-4">
-                    Try clearing your search query or selecting "All Fruits".
+                    Try clearing your search query or selecting "All".
                   </p>
                   <button
                     onClick={() => {
@@ -696,11 +738,11 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     }}
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
                   >
-                    Reset Filters
+                    Reset
                   </button>
                 </div>
               ) : (
-                <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 lg:gap-5">
+                <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
                   {filteredProducts.map((prod) => {
                     const meta = getProduceMeta(prod.name, prod.category, prod.image);
                     const isOutOfStock = prod.stock <= 0;
@@ -713,10 +755,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         key={prod.id}
                         className="group bg-white hover:border-emerald-500 border border-slate-200/90 rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-200 flex flex-col shadow-2xs hover:shadow-md hover:-translate-y-0.5"
                       >
-                        {/* Fruit Image Container (Full card width & rich vivid photography) */}
+                        {/* Fruit Image Container (Enlarged for 5-per-row layout on PC) */}
                         <div
                           onClick={() => setSelectedProduct(prod)}
-                          className="relative w-full h-40 sm:h-48 md:h-52 bg-emerald-50/50 overflow-hidden cursor-pointer flex items-center justify-center"
+                          className="relative w-full h-44 sm:h-52 md:h-56 lg:h-64 bg-emerald-50/50 overflow-hidden cursor-pointer flex items-center justify-center"
                         >
                           <img
                             src={meta.imageUrl}
@@ -1160,12 +1202,23 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         onUpdateQuantity={handleUpdateCartQuantity}
         onRemoveItem={handleRemoveCartItem}
         onClearBag={handleClearBag}
+        onTrackOrder={(code) => {
+          setPreFilledOrderCode(code);
+          setIsTrackerModalOpen(true);
+        }}
       />
 
       {/* Share QR Code Modal */}
       <ShareStoreModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+      />
+
+      {/* Customer Order Tracker Modal */}
+      <CustomerOrderTrackerModal
+        isOpen={isTrackerModalOpen}
+        onClose={() => setIsTrackerModalOpen(false)}
+        initialOrderCode={preFilledOrderCode}
       />
     </div>
   );
