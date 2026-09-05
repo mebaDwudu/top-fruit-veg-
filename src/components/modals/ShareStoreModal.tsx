@@ -7,7 +7,6 @@ import {
   MessageCircle,
   X,
   Store,
-  Sparkles,
 } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 

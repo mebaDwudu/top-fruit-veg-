@@ -16,7 +16,6 @@ import {
   Star,
   Trash2,
   RotateCcw,
-  Sparkles,
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';

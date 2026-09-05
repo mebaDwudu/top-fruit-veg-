@@ -221,6 +221,9 @@ interface StoreContextType {
   ) => void;
   deleteFeedback: (feedbackId: string) => void;
 
+  // Sound & Notifications
+  playOrderNotificationSound: (force?: boolean) => void;
+
   // Cloud & Sync
   dbStatus: 'online' | 'syncing' | 'local';
   isCloudConnected: boolean;
@@ -415,11 +418,41 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [lastCompletedOrder, setLastCompletedOrder] = useState<Order | null>(null);
 
-  // Audio effects
+  // Audio effects & notification sound control
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const isAuthenticatedRef = useRef<boolean>(isAuthenticated);
+  const currentRoleRef = useRef<UserRole>(currentRole);
 
-  const playBeep = (freq = 880, type: OscillatorType = 'sine', duration = 0.1) => {
+  useEffect(() => {
+    isAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    currentRoleRef.current = currentRole;
+  }, [currentRole]);
+
+  // Check if current user is logged in as Admin or Cashier
+  const isUserAdminLoggedIn = (): boolean => {
+    return (
+      isAuthenticatedRef.current &&
+      (currentRoleRef.current === 'admin' || currentRoleRef.current === 'cashier')
+    );
+  };
+
+  // Standard sound effect (SILENT if in customer storefront without admin login)
+  const playBeep = (
+    freq = 880,
+    type: OscillatorType = 'sine',
+    duration = 0.1,
+    volume = 0.12,
+    adminOnly = true
+  ) => {
+    // 1st requirement: in the customer if not logged in to admin, notification sound must be silent!
+    if (adminOnly && !isUserAdminLoggedIn()) {
+      return;
+    }
     if (!settings.enableSoundEffects) return;
+
     try {
       if (!audioCtxRef.current) {
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -440,12 +473,66 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const gain = ctx.createGain();
       osc.type = type;
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + duration);
+    } catch {
+      // Ignore audio failure safely
+    }
+  };
+
+  // Loudable real-time order arrival chime
+  // Rule: In customer storefront if not logged in, this MUST be completely silent.
+  // Only if logged into admin can the notification sound be loudable!
+  const playOrderNotificationSound = (force = false) => {
+    const isAdmin = isUserAdminLoggedIn();
+    if (!isAdmin && !force) {
+      // Completely silent for customer!
+      return;
+    }
+    if (!settings.enableSoundEffects) return;
+
+    try {
+      if (!audioCtxRef.current) {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (typeof AudioCtx === 'function') {
+          try {
+            audioCtxRef.current = new AudioCtx();
+          } catch {
+            audioCtxRef.current = null;
+          }
+        }
+      }
+      const ctx = audioCtxRef.current;
+      if (!ctx) return;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+
+      const now = ctx.currentTime;
+      // High-clarity loudable 3-tone retail alert chime (D5 -> A5 -> D6)
+      const chimeNotes = [
+        { freq: 587.33, start: 0, duration: 0.16, vol: 0.35 },    // D5
+        { freq: 880.00, start: 0.14, duration: 0.20, vol: 0.40 },  // A5
+        { freq: 1174.66, start: 0.32, duration: 0.45, vol: 0.48 }, // D6
+      ];
+
+      chimeNotes.forEach((note) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle'; // triangle provides clear, audible harmonics
+        osc.frequency.setValueAtTime(note.freq, now + note.start);
+        gain.gain.setValueAtTime(0.001, now + note.start);
+        gain.gain.linearRampToValueAtTime(note.vol, now + note.start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + note.start + note.duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + note.start);
+        osc.stop(now + note.start + note.duration + 0.05);
+      });
     } catch {
       // Ignore audio failure safely
     }
@@ -561,9 +648,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       (remoteOrders) => {
         if (remoteOrders && remoteOrders.length >= 0) {
           if (previousOrdersCount !== -1 && remoteOrders.length > previousOrdersCount) {
-            // A new order arrived in real-time! Play notification tone
-            playBeep(880, 'sine', 0.25);
-            setTimeout(() => playBeep(1174, 'sine', 0.35), 180);
+            // A new order arrived in real-time!
+            // Silent if customer has not logged in; loudable only when admin is logged in!
+            playOrderNotificationSound();
           }
           previousOrdersCount = remoteOrders.length;
           setCustomerOrders(remoteOrders);
@@ -684,10 +771,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setIsAuthenticated = (auth: boolean) => {
     setIsAuthenticatedState(auth);
+    isAuthenticatedRef.current = auth;
+    if (auth) {
+      try {
+        if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+          audioCtxRef.current.resume().catch(() => {});
+        }
+      } catch {
+        // ignore
+      }
+    }
   };
 
   const setDirectRole = (role: UserRole) => {
     setCurrentRoleState(role);
+    currentRoleRef.current = role;
     const matchingStaff = staffMembers.find((s) => s.role === role);
     if (matchingStaff) {
       setCurrentStaffId(matchingStaff.id);
@@ -722,8 +820,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const boss = staffMembers.find((s) => s.role === 'admin') || staffMembers[0];
       setCurrentStaffId(boss.id);
       setCurrentRoleState('admin');
+      currentRoleRef.current = 'admin';
       setIsAuthenticatedState(true);
+      isAuthenticatedRef.current = true;
       setIsLocked(false);
+      try {
+        if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+          audioCtxRef.current.resume().catch(() => {});
+        }
+      } catch {
+        // ignore
+      }
       try {
         sessionStorage.setItem('topfruit_admin_session_auth', 'true');
         sessionStorage.setItem('topfruit_current_role', 'admin');
@@ -921,7 +1028,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const logout = () => {
     logActivity('Logout', `${currentStaff.name} logged out`);
     setIsAuthenticatedState(false);
+    isAuthenticatedRef.current = false;
     setCurrentRoleState('customer');
+    currentRoleRef.current = 'customer';
     try {
       sessionStorage.removeItem('topfruit_admin_session_auth');
       sessionStorage.removeItem('topfruit_current_role');
@@ -1997,6 +2106,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addFeedback,
         updateFeedbackStatus,
         deleteFeedback,
+        playOrderNotificationSound,
         dbStatus,
         isCloudConnected,
         lastSyncedAt,

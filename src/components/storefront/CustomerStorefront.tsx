@@ -17,7 +17,6 @@ import {
   Phone,
   MessageCircle,
   Share2,
-  Sparkles,
   Store,
   Leaf,
   Heart,
@@ -40,13 +39,13 @@ interface CustomerStorefrontProps {
   onSwitchToStaff: () => void;
 }
 
-type CustomerPageTab = 'home' | 'about_contact';
+type CustomerPageTab = 'landing' | 'home' | 'about_contact';
 
 export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitchToStaff }) => {
   const { products, categories, formatCurrency, settings } = useStore();
 
-  // Navigation & view state
-  const [currentTab, setCurrentTab] = useState<CustomerPageTab>('home');
+  // Navigation & view state (defaults to landing page on open)
+  const [currentTab, setCurrentTab] = useState<CustomerPageTab>('landing');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -307,14 +306,41 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               </button>
             </div>
 
-            {/* Primary Navigation Buttons in Left Sidebar (Minimal 1-Word Labels) */}
+            {/* Primary Navigation Buttons in Left Sidebar */}
             <nav className="space-y-1.5">
               <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 flex items-center justify-between">
                 <span>Stall</span>
-                <Sparkles className="w-3 h-3 text-amber-500" />
               </div>
 
-              {/* Button 1: All */}
+              {/* Button 1: Home / Landing */}
+              <button
+                id="customer-nav-landing"
+                onClick={() => {
+                  setCurrentTab('landing');
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  currentTab === 'landing'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">🏠</span>
+                  <span>Home</span>
+                </div>
+                <span
+                  className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
+                    currentTab === 'landing'
+                      ? 'bg-emerald-800 text-white'
+                      : 'bg-white text-emerald-800 border border-emerald-200'
+                  }`}
+                >
+                  Welcome
+                </span>
+              </button>
+
+              {/* Button 2: Produce Catalog */}
               <button
                 id="customer-nav-home"
                 onClick={() => {
@@ -330,7 +356,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               >
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">🥭</span>
-                  <span>All</span>
+                  <span>Produce</span>
                 </div>
                 <span
                   className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
@@ -343,54 +369,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </span>
               </button>
 
-              {/* Button 2: Orders */}
-              <button
-                id="customer-nav-basket"
-                onClick={() => {
-                  setIsCartOpen(true);
-                  setIsMobileSidebarOpen(false);
-                }}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">🧺</span>
-                  <span>Orders</span>
-                </div>
-                {totalCartCount > 0 ? (
-                  <div className="flex items-center space-x-1">
-                    <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded-md text-[10px] font-bold">
-                      {totalCartCount}
-                    </span>
-                    {showPrices && (
-                      <span className="text-[10px] text-amber-900 font-bold">
-                        {formatCurrency(cartSubtotal)}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-[10px] text-slate-400">0</span>
-                )}
-              </button>
-
-              {/* Button 3: Feedback */}
-              <button
-                id="customer-nav-feedback"
-                onClick={() => {
-                  setIsFeedbackModalOpen(true);
-                  setIsMobileSidebarOpen(false);
-                }}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">⭐</span>
-                  <span>Feedback</span>
-                </div>
-                <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-md border border-amber-200">
-                  Review
-                </span>
-              </button>
-
-              {/* Button 4: Track */}
+              {/* Button 3: Track Order */}
               <button
                 id="customer-nav-track"
                 onClick={() => {
@@ -405,6 +384,24 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </div>
                 <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded-md border border-sky-200">
                   Code
+                </span>
+              </button>
+
+              {/* Button 4: Feedback */}
+              <button
+                id="customer-nav-feedback"
+                onClick={() => {
+                  setIsFeedbackModalOpen(true);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">⭐</span>
+                  <span>Feedback</span>
+                </div>
+                <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-md border border-amber-200">
+                  Review
                 </span>
               </button>
 
@@ -505,22 +502,30 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             </button>
 
             <div>
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900 leading-tight flex items-center gap-2">
-                {currentTab === 'home' ? (
+              <h2 className="text-sm sm:text-lg font-extrabold text-slate-900 leading-tight flex items-center gap-1.5 sm:gap-2">
+                {currentTab === 'landing' ? (
                   <>
-                    <ShoppingBag className="w-5 h-5 text-emerald-600 inline-block" />
-                    <span>Fresh Tropical Produce & Farm Goods</span>
+                    <Store className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 inline-block shrink-0" />
+                    <span className="sm:hidden">Top Fruit & Veg</span>
+                    <span className="hidden sm:inline">Top Fruit & Veg • Pitch 18 Brixton Market</span>
+                  </>
+                ) : currentTab === 'home' ? (
+                  <>
+                    <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 inline-block shrink-0" />
+                    <span className="sm:hidden">Produce</span>
+                    <span className="hidden sm:inline">Fresh Produce Catalog</span>
                   </>
                 ) : (
                   <>
-                    <MapPin className="w-5 h-5 text-emerald-600 inline-block" />
-                    <span>About Us & Stall Contacts</span>
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 inline-block shrink-0" />
+                    <span className="sm:hidden">About</span>
+                    <span className="hidden sm:inline">About Us & Stall Contacts</span>
                   </>
                 )}
               </h2>
               <p className="text-[11px] text-emerald-700 font-bold hidden sm:flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
-                <span>Brixton Market Pitch 18 • Hand-Picked Farm Direct Daily</span>
+                <span>Brixton Market Pitch 18 • Fresh Daily</span>
               </p>
             </div>
           </div>
@@ -572,6 +577,241 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             </button>
           </div>
         </header>
+
+        {/* ========================================================= */}
+        {/* VIEW 0: LANDING PAGE (WELCOME, PRODUCE HIGHLIGHTS, STORY) */}
+        {/* ========================================================= */}
+        {currentTab === 'landing' && (
+          <main className="flex-1 w-full p-3 sm:p-6 lg:p-8 space-y-8 animate-in fade-in duration-200">
+            {/* Hero Section */}
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-900 to-teal-950 text-white p-6 sm:p-10 lg:p-12 shadow-xl border border-emerald-700/50">
+              <div className="relative z-10 max-w-3xl space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-200 text-xs font-bold border border-white/20">
+                  <Store className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Brixton Market • Pitch 18 Pope's Road London SW9</span>
+                </div>
+
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white font-display">
+                  Brixton's Best Fruit & Fresh Tropical Produce
+                </h1>
+
+                <p className="text-emerald-100 text-xs sm:text-base leading-relaxed max-w-2xl font-medium">
+                  Family-run market stall since 1998. Hand-picked yellow yams, sweet plantains, juicy mangoes, scotch bonnet peppers, and authentic African & Caribbean kitchen staples. Delivered fresh to our stall at 5:00 AM daily.
+                </p>
+
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setCurrentTab('home');
+                      setSelectedCategory('All');
+                    }}
+                    className="px-5 py-3 bg-emerald-400 hover:bg-emerald-300 text-slate-950 rounded-2xl text-xs sm:text-sm font-black shadow-lg shadow-emerald-950/40 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-slate-950" />
+                    <span>Browse Fresh Produce</span>
+                    <span className="text-sm">→</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIsTrackerModalOpen(true)}
+                    className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-xs sm:text-sm font-bold border border-white/20 backdrop-blur-md transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Truck className="w-4 h-4 text-emerald-300" />
+                    <span>Track Order</span>
+                  </button>
+
+                  <a
+                    href="https://wa.me/447449338679"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-3 bg-emerald-600/60 hover:bg-emerald-600 text-white rounded-2xl text-xs sm:text-sm font-bold border border-emerald-400/30 transition-all flex items-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>WhatsApp Stall</span>
+                  </a>
+                </div>
+
+                {/* Quick Trust Badges */}
+                <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-white/10 text-xs">
+                  <div className="flex items-center gap-2 text-emerald-200">
+                    <span className="text-base">🥭</span>
+                    <span>Daily Fresh Stock</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-200">
+                    <span className="text-base">📍</span>
+                    <span>Pitch 18 Pope's Rd</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-200">
+                    <span className="text-base">📦</span>
+                    <span>Collect or Delivery</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-200">
+                    <span className="text-base">🔒</span>
+                    <span>No Upfront Fees</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Popular Produce Categories Showcase */}
+            <section className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight font-display">
+                    Explore Our Produce Specialties
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Direct from London wholesale markets every morning
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setCurrentTab('home');
+                    setSelectedCategory('All');
+                  }}
+                  className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+                >
+                  <span>View full catalog ({products.length} items)</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Card 1: Tropical Fruits */}
+                <div
+                  onClick={() => {
+                    setCurrentTab('home');
+                    const fruitCat = categories.find((c) => c.toLowerCase().includes('fruit')) || 'All';
+                    setSelectedCategory(fruitCat);
+                  }}
+                  className="bg-white p-5 rounded-3xl border border-emerald-100 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group space-y-3"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                    🥭
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
+                      Exotic & Tropical Fruits
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      Sweet mangoes, papayas, green & ripe plantains, sweet bananas, and seasonal exotic fruits.
+                    </p>
+                  </div>
+                  <div className="flex items-center text-xs font-bold text-emerald-700 group-hover:translate-x-0.5 transition-transform">
+                    <span>Browse fruits →</span>
+                  </div>
+                </div>
+
+                {/* Card 2: Yams & Roots */}
+                <div
+                  onClick={() => {
+                    setCurrentTab('home');
+                    const rootCat = categories.find((c) => c.toLowerCase().includes('yam') || c.toLowerCase().includes('root') || c.toLowerCase().includes('tuber')) || 'All';
+                    setSelectedCategory(rootCat);
+                  }}
+                  className="bg-white p-5 rounded-3xl border border-emerald-100 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group space-y-3"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                    🍠
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
+                      Yams, Roots & Tubers
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      Authentic Jamaican yellow yam, Ghanaian white yam, cassava, sweet potatoes, and cocoyam.
+                    </p>
+                  </div>
+                  <div className="flex items-center text-xs font-bold text-emerald-700 group-hover:translate-x-0.5 transition-transform">
+                    <span>Browse tubers & roots →</span>
+                  </div>
+                </div>
+
+                {/* Card 3: Seasonings & Fresh Veg */}
+                <div
+                  onClick={() => {
+                    setCurrentTab('home');
+                    const vegCat = categories.find((c) => c.toLowerCase().includes('veg') || c.toLowerCase().includes('green')) || 'All';
+                    setSelectedCategory(vegCat);
+                  }}
+                  className="bg-white p-5 rounded-3xl border border-emerald-100 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group space-y-3"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                    🌶️
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
+                      Caribbean Seasonings & Veg
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      Fiery scotch bonnet peppers, callaloo, fresh thyme, ginger root, garlic, and kitchen seasonings.
+                    </p>
+                  </div>
+                  <div className="flex items-center text-xs font-bold text-emerald-700 group-hover:translate-x-0.5 transition-transform">
+                    <span>Browse seasonings & veg →</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* How It Works */}
+            <section className="bg-white rounded-3xl p-6 sm:p-8 border border-emerald-100 shadow-2xs space-y-6">
+              <div className="text-center max-w-xl mx-auto space-y-1">
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight font-display">
+                  How Online Pre-Orders Work
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Save time at the market. Hand-picked and packed before you arrive.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div className="text-center space-y-2">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center font-black text-sm">
+                    1
+                  </div>
+                  <h3 className="font-bold text-xs text-slate-900">Select Your Produce</h3>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Browse our daily live catalog and add fresh fruits, yams, and vegetables to your order.
+                  </p>
+                </div>
+
+                <div className="text-center space-y-2">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center font-black text-sm">
+                    2
+                  </div>
+                  <h3 className="font-bold text-xs text-slate-900">Submit Without Paying</h3>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Enter your name and pick collection at Pitch 18 or direct local delivery. No upfront card required.
+                  </p>
+                </div>
+
+                <div className="text-center space-y-2">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center font-black text-sm">
+                    3
+                  </div>
+                  <h3 className="font-bold text-xs text-slate-900">Collect & Pay in Person</h3>
+                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                    Receive an instant order tracking code. Pick up your packed bag at Pitch 18 and pay as normal.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 text-center">
+                <button
+                  onClick={() => {
+                    setCurrentTab('home');
+                    setSelectedCategory('All');
+                  }}
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
+                >
+                  <span>Start Your Order Now</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </section>
+          </main>
+        )}
 
         {/* ========================================================= */}
         {/* VIEW 1: HOME (ONLY ALL THE FRUITS + TOP CATEGORY BUTTONS) */}
@@ -1083,90 +1323,194 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           </main>
         )}
 
-        {/* Minimal Storefront Footer */}
-        <footer className="mt-auto border-t border-emerald-100 bg-white/90 px-4 sm:px-6 lg:px-8 py-4 text-slate-600">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <div
-              onClick={handleSecretAdminTrigger}
-              className="flex items-center space-x-2 text-center sm:text-left cursor-pointer select-none group"
-              title="Top Fruit and Veg • Pitch 18"
-            >
-              <Store className="w-4 h-4 text-emerald-600 group-hover:text-emerald-700 shrink-0" />
-              <div>
-                <span className="font-extrabold text-slate-900 group-hover:text-emerald-950">Top Fruit and Veg</span>
-                <span className="text-slate-400 mx-1.5">•</span>
-                <span>Pitch 18 Pope's Road, Brixton Market, London SW9 8PB</span>
+        {/* Comprehensive Storefront Footer */}
+        <footer className="mt-auto border-t border-emerald-200/80 bg-white text-slate-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {/* Col 1: Stall Heritage */}
+              <div className="space-y-3">
+                <div
+                  onClick={handleSecretAdminTrigger}
+                  className="flex items-center space-x-2.5 cursor-pointer group select-none"
+                  title="Top Fruit and Veg • Pitch 18"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-lg shadow-2xs group-hover:bg-emerald-700 transition-colors">
+                    🥭
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-900 group-hover:text-emerald-900 transition-colors">
+                      Top Fruit & Veg
+                    </h3>
+                    <p className="text-[11px] text-emerald-700 font-bold">Pitch 18 Brixton Market</p>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Brixton's trusted family produce stall since 1998. Supplying the freshest tropical fruits, Jamaican yellow yams, green plantains, scotch bonnet peppers, and fresh daily greens.
+                </p>
+                <div className="flex items-center gap-2 pt-1 text-xs text-emerald-800 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span>Fresh Wholesale Stock Daily at 5am</span>
+                </div>
+              </div>
+
+              {/* Col 2: Quick Links */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                  Quick Navigation
+                </h4>
+                <ul className="space-y-2 text-xs">
+                  <li>
+                    <button
+                      onClick={() => setCurrentTab('landing')}
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>🏠</span>
+                      <span>Home / Welcome</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        setCurrentTab('home');
+                        setSelectedCategory('All');
+                      }}
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>🥭</span>
+                      <span>Browse Fresh Produce</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setIsTrackerModalOpen(true)}
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Truck className="w-3.5 h-3.5 text-sky-600" />
+                      <span>Track Your Order</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setIsFeedbackModalOpen(true)}
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                      <span>Customer Reviews & Feedback</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setCurrentTab('about_contact')}
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>About Stall & Contact</span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Col 3: Stall Opening Hours */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Stall Opening Hours</span>
+                </h4>
+                <div className="space-y-1.5 text-xs text-slate-600">
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="font-semibold text-slate-800">Monday – Saturday</span>
+                    <span className="font-bold text-emerald-800">8:00 AM – 6:30 PM</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="font-semibold text-slate-800">Sunday</span>
+                    <span className="font-bold text-emerald-800">9:00 AM – 4:00 PM</span>
+                  </div>
+                  <div className="flex justify-between py-1 text-slate-500 text-[11px]">
+                    <span>Wholesale Delivery</span>
+                    <span>5:00 AM Daily</span>
+                  </div>
+                </div>
+                <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100 text-[11px] text-emerald-900 font-medium">
+                  📍 Located on Pope's Road opposite Brixton Station archways.
+                </div>
+              </div>
+
+              {/* Col 4: Contact & Orders */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Stall Contact & WhatsApp</span>
+                </h4>
+                <p className="text-xs text-slate-600">
+                  Pre-order, check today's fresh arrivals, or place large restaurant orders directly with Masgana.
+                </p>
+                <div className="space-y-2 pt-1">
+                  <a
+                    href="https://wa.me/447449338679"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-2xs"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Chat on WhatsApp</span>
+                  </a>
+                  <a
+                    href="tel:+447449338679"
+                    className="w-full flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2 px-3 rounded-xl text-xs font-bold transition-all border border-slate-200"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-slate-600" />
+                    <span>+44 7449 338679</span>
+                  </a>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              <button
-                id="footer-btn-feedback"
-                onClick={() => setIsFeedbackModalOpen(true)}
-                className="text-amber-800 hover:text-amber-950 font-extrabold flex items-center space-x-1 cursor-pointer bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200 transition-colors shadow-2xs"
-              >
-                <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
-                <span>Leave Feedback</span>
-              </button>
-
-              <button
-                id="footer-btn-orders"
-                onClick={() => setIsCartOpen(true)}
-                className="text-emerald-800 hover:text-emerald-950 font-extrabold flex items-center space-x-1 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors shadow-2xs"
-              >
-                <ShoppingBag className="w-3 h-3 text-emerald-600" />
-                <span>Order List ({totalCartCount})</span>
-              </button>
-
-              <a
-                href="https://wa.me/447449338679"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center space-x-1 px-2 py-1 hover:bg-slate-50 rounded-lg transition-colors"
-              >
-                <MessageCircle className="w-3 h-3" />
-                <span>WhatsApp Stall</span>
-              </a>
+            {/* Bottom Bar */}
+            <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+              <div className="flex items-center space-x-1.5">
+                <span>© {new Date().getFullYear()} Top Fruit and Veg Ltd. Pitch 18 Brixton Market. All rights reserved.</span>
+              </div>
+              <div className="flex items-center space-x-3 text-slate-500">
+                <button
+                  onClick={handleSecretAdminTrigger}
+                  className="hover:text-emerald-700 transition-colors cursor-pointer"
+                  title="Staff Portal (Click 3 times)"
+                >
+                  Stall Partner Access
+                </button>
+                <span>•</span>
+                <span>Pope's Road, London SW9 8PB</span>
+              </div>
             </div>
           </div>
         </footer>
       </div>
 
       {/* ========================================================= */}
-      {/* FLOATING STICKY ORDER BUTTON / BAR (FOLLOWS USER AS THEY SCROLL) */}
+      {/* MINIMALIST FLOATING ORDER BUTTON (LIGHT COLOR, MINIMALIST, ITEMS ONLY + CLEAN BUTTON) */}
       {/* ========================================================= */}
       {totalCartCount > 0 && (
-        <div className="fixed bottom-4 sm:bottom-6 inset-x-0 mx-auto w-[94%] sm:w-auto sm:min-w-[400px] max-w-lg z-40 animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-slate-900/95 text-white backdrop-blur-md border border-emerald-500/40 shadow-2xl rounded-2xl p-2.5 sm:p-3 flex items-center justify-between gap-3 ring-1 ring-black/20">
+        <div className="fixed bottom-4 inset-x-0 mx-auto w-fit z-40 animate-in slide-in-from-bottom-3 duration-200 px-3">
+          <div className="bg-white/95 text-slate-800 backdrop-blur-md border border-slate-200/80 shadow-lg rounded-full px-3.5 py-1.5 flex items-center gap-3">
             <div
               onClick={() => setIsCartOpen(true)}
-              className="flex items-center space-x-3 cursor-pointer select-none group flex-1 min-w-0"
+              className="flex items-center gap-2 cursor-pointer select-none text-xs font-bold text-slate-700 pl-1"
             >
-              <div className="relative w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black shadow-md shrink-0 group-hover:scale-105 transition-transform">
-                <ShoppingBag className="w-5 h-5 text-slate-950" />
-                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black rounded-full px-1.5 py-0.2 shadow-sm border border-slate-900">
-                  {totalCartCount}
-                </span>
+              <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-black shrink-0">
+                {totalCartCount}
               </div>
-              <div className="min-w-0">
-                <div className="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5 truncate">
-                  <span>{totalCartCount} {totalCartCount === 1 ? 'item' : 'items'} in order</span>
-                </div>
-                <div className="text-[11px] sm:text-xs text-emerald-300 font-bold truncate">
-                  {showPrices
-                    ? `${formatCurrency(cartSubtotal)} • Tap to place order`
-                    : 'Pitch 18 Fresh • Tap to place order'}
-                </div>
-              </div>
+              <span className="whitespace-nowrap">
+                {totalCartCount} {totalCartCount === 1 ? 'item' : 'items'}
+              </span>
             </div>
 
             <button
               id="sticky-order-now-btn"
               onClick={() => setIsCartOpen(true)}
-              className="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center space-x-1.5 shadow-lg shadow-emerald-500/30 cursor-pointer transition-all shrink-0"
+              className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold px-3.5 py-1.5 rounded-full text-xs flex items-center space-x-1 shadow-xs cursor-pointer transition-all shrink-0"
             >
               <span>Place Order</span>
-              <span className="text-base leading-none">→</span>
+              <span className="text-xs">→</span>
             </button>
           </div>
         </div>

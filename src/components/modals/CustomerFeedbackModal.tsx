@@ -6,7 +6,6 @@ import {
   X,
   Star,
   MessageSquare,
-  Sparkles,
   CheckCircle2,
   Send,
   Heart,
@@ -131,7 +130,7 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
         {isSubmitted ? (
           <div className="p-8 text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 mx-auto">
-              <Sparkles className="w-8 h-8 text-emerald-600" />
+              <CheckCircle2 className="w-8 h-8 text-emerald-600" />
             </div>
             <div className="space-y-1.5">
               <h4 className="text-xl font-black text-slate-900">Thank You For Your Feedback!</h4>

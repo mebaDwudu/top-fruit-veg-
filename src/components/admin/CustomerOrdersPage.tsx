@@ -22,7 +22,7 @@ import {
   ChevronRight,
   Filter,
   Layers,
-  Sparkles,
+  Volume2,
 } from 'lucide-react';
 
 interface CustomerOrdersPageProps {
@@ -46,6 +46,7 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
     isCloudConnected,
     lastSyncedAt,
     refreshCloudData,
+    playOrderNotificationSound,
   } = useStore();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,6 +55,7 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isTestingSound, setIsTestingSound] = useState(false);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -245,8 +247,22 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
             </div>
           </div>
 
-          {/* Right actions: Cloud sync status, manual refresh & Storefront button */}
+          {/* Right actions: Cloud sync status, manual refresh, sound test & Storefront button */}
           <div className="flex items-center space-x-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                playOrderNotificationSound(true);
+                setIsTestingSound(true);
+                setTimeout(() => setIsTestingSound(false), 800);
+              }}
+              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              title="Test the loud admin alert chime for new incoming orders"
+            >
+              <Volume2 className={`w-3.5 h-3.5 text-emerald-600 ${isTestingSound ? 'animate-bounce' : ''}`} />
+              <span>{isTestingSound ? 'Chiming...' : 'Test Sound'}</span>
+            </button>
+
             <button
               onClick={handleManualRefresh}
               disabled={isRefreshing}

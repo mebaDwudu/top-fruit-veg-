@@ -18,6 +18,7 @@ import {
   MapPin,
   ExternalLink,
   RefreshCw,
+  Volume2,
 } from 'lucide-react';
 
 interface CustomerOrdersViewProps {
@@ -36,6 +37,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
     refreshCloudData,
     dbStatus,
     lastSyncedAt,
+    playOrderNotificationSound,
   } = useStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,6 +46,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isTestingSound, setIsTestingSound] = useState(false);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -212,6 +215,20 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              playOrderNotificationSound(true);
+              setIsTestingSound(true);
+              setTimeout(() => setIsTestingSound(false), 800);
+            }}
+            className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
+            title="Test the loud admin alert chime for new customer orders"
+          >
+            <Volume2 className={`w-3.5 h-3.5 text-emerald-600 ${isTestingSound ? 'animate-bounce' : ''}`} />
+            <span>{isTestingSound ? 'Chiming...' : 'Test Loud Sound'}</span>
+          </button>
+
           <button
             onClick={handleManualRefresh}
             disabled={isRefreshing}

@@ -28,7 +28,7 @@ export const CustomerOrderTrackerModal: React.FC<CustomerOrderTrackerModalProps>
   onClose,
   initialOrderCode = '',
 }) => {
-  const { customerOrders, formatCurrency, settings, refreshCloudData } = useStore();
+  const { customerOrders, settings, refreshCloudData } = useStore();
   const [inputCode, setInputCode] = useState(initialOrderCode);
   const [searchedCode, setSearchedCode] = useState(initialOrderCode.trim().toUpperCase());
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -332,11 +332,6 @@ export const CustomerOrderTrackerModal: React.FC<CustomerOrderTrackerModalProps>
               <div className="space-y-2">
                 <div className="text-xs font-bold text-slate-700 flex justify-between">
                   <span>Reserved Produce ({matchedOrder.items?.length || 0} items)</span>
-                  {matchedOrder.totalAmount !== undefined && (
-                    <span className="text-emerald-800 font-extrabold">
-                      Est: {formatCurrency(matchedOrder.totalAmount)}
-                    </span>
-                  )}
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2 max-h-48 overflow-y-auto">

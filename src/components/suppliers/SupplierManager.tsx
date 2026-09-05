@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   X,
   AlertCircle,
-  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 
 export const SupplierManager: React.FC = () => {
@@ -164,7 +164,7 @@ export const SupplierManager: React.FC = () => {
             onClick={handleAutoGenerateLowStockPO}
             className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
           >
-            <Sparkles className="w-4 h-4 text-amber-600" />
+            <RefreshCw className="w-4 h-4 text-amber-600" />
             <span>Auto-Restock Low Items</span>
           </button>
 

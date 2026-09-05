@@ -10,7 +10,6 @@ import {
   Boxes,
   Lock,
   LogOut,
-  Sparkles,
   ShieldAlert,
   Globe,
   Store,

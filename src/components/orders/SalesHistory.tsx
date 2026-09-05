@@ -14,7 +14,6 @@ import {
   Download,
   Calendar as CalendarIcon,
   X,
-  Sparkles,
   Clock,
   CheckCircle2,
   CalendarDays,
@@ -239,7 +238,7 @@ export const SalesHistory: React.FC = () => {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Clock className="w-3.5 h-3.5" />
               <span>Today</span>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-md ${
@@ -383,7 +382,7 @@ export const SalesHistory: React.FC = () => {
               Avg. Basket
             </span>
             <span className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
-              <Sparkles className="w-4 h-4" />
+              <Receipt className="w-4 h-4" />
             </span>
           </div>
           <p className="text-2xl font-black text-slate-900">{formatCurrency(avgOrderValue)}</p>

@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Sparkles,
   ShoppingBag,
   Boxes,
   Receipt,

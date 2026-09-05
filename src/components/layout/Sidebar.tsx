@@ -18,7 +18,6 @@ import {
   UserCheck,
   ChevronDown,
   LogOut,
-  Sparkles,
   DollarSign,
   Globe,
   QrCode,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../../types/store';
 import { useStore } from '../../context/StoreContext';
-import { X, Sparkles, AlertCircle } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
 import { sanitizeText, sanitizeURL } from '../../utils/sanitize';
 import { SecureImageUploader } from '../common/SecureImageUploader';
 

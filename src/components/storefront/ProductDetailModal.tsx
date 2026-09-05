@@ -8,7 +8,6 @@ import {
   Minus,
   ShoppingBag,
   MapPin,
-  Sparkles,
   ShieldCheck,
   Flame,
   Tag,
@@ -119,7 +118,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               {/* Fresh Daily Badge */}
               <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-white/95 backdrop-blur-xs rounded-xl shadow-md border border-slate-100 flex items-center gap-1 text-[11px] font-bold text-slate-800">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 <span>Brixton Pitch 18 Fresh</span>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { ActiveTab } from './types/store';
 import { CustomerStorefront } from './components/storefront/CustomerStorefront';
 import { AdminPortal } from './components/admin/AdminPortal';
 import { CustomerOrdersPage } from './components/admin/CustomerOrdersPage';
-import { ShoppingBag, Shield, ArrowRight, ExternalLink, Sparkles, Store } from 'lucide-react';
+import { ShoppingBag, Shield, ArrowRight, ExternalLink, Store } from 'lucide-react';
 
 function parseCurrentRoute(): 'customer' | 'admin' | 'customer-orders' | 'hub' {
   try {
@@ -176,7 +176,7 @@ function StoreAppContent() {
       <main className="max-w-4xl mx-auto w-full px-6 py-12 flex-1 flex flex-col justify-center">
         <div className="text-center mb-10">
           <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
-            <Sparkles className="w-3.5 h-3.5" /> 2 Independent Portals
+            2 Independent Portals
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Top Fruit & Veg Portals

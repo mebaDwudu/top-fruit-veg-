@@ -9,7 +9,6 @@ import {
   Trash2,
   MapPin,
   Clock,
-  Sparkles,
   CheckCircle2,
   Copy,
   Check,
@@ -232,55 +231,57 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 w-full h-full min-h-screen bg-slate-100 flex flex-col overflow-hidden text-slate-900 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
       style={{ touchAction: 'pan-y' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleCloseAndReset();
+      }}
     >
-      {/* Full Screen Top Navigation Bar */}
-      <header className="sticky top-0 z-20 bg-emerald-900 text-white px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 border-b border-emerald-800 shadow-md shrink-0 flex items-center justify-between gap-4">
-        <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
-          <button
-            onClick={handleCloseAndReset}
-            className="flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-emerald-100 hover:text-white transition-all text-xs sm:text-sm font-bold shadow-xs cursor-pointer border border-emerald-700/60 shrink-0 active:scale-95"
-            title="Return to Produce Catalog"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Produce</span>
-            <span className="sm:hidden">Back</span>
-          </button>
-          <div className="h-6 w-px bg-emerald-700/60 shrink-0" />
-          <div className="flex items-center space-x-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 font-bold shrink-0">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-black text-sm sm:text-base text-white tracking-tight leading-tight truncate">
-                Place Your Order
-              </h2>
-              <p className="text-[11px] text-emerald-200 font-medium truncate">
-                Top Fruit and Veg • Pitch 18 Brixton Market
-              </p>
+      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
+        {/* Full Screen Top Navigation Bar */}
+        <header className="sticky top-0 z-20 bg-emerald-900 text-white px-4 sm:px-6 py-3.5 border-b border-emerald-800 shadow-md shrink-0 flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 min-w-0">
+            <button
+              onClick={handleCloseAndReset}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-emerald-100 hover:text-white transition-all text-xs font-bold shadow-xs cursor-pointer border border-emerald-700/60 shrink-0 active:scale-95"
+              title="Return to Produce Catalog"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </button>
+            <div className="h-5 w-px bg-emerald-700/60 shrink-0" />
+            <div className="flex items-center space-x-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 font-bold shrink-0">
+                <ShoppingBag className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-bold text-sm sm:text-base text-white tracking-tight leading-tight truncate">
+                  Place Your Order
+                </h2>
+                <p className="text-[11px] text-emerald-200 font-medium truncate">
+                  Top Fruit and Veg • Pitch 18 Brixton Market
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-          <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-800/80 text-emerald-200 text-xs font-semibold rounded-full border border-emerald-700">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>{totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} in order</span>
-          </span>
-          <button
-            onClick={handleCloseAndReset}
-            className="p-2 text-emerald-200 hover:text-white rounded-xl hover:bg-emerald-800 transition-colors cursor-pointer"
-            aria-label="Close order screen"
-            title="Close order screen"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      </header>
+          <div className="flex items-center space-x-2 shrink-0">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-800/80 text-emerald-200 text-xs font-semibold rounded-full border border-emerald-700">
+              <span>{totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} in order</span>
+            </span>
+            <button
+              onClick={handleCloseAndReset}
+              className="p-1.5 text-emerald-200 hover:text-white rounded-xl hover:bg-emerald-800 transition-colors cursor-pointer"
+              aria-label="Close order screen"
+              title="Close order screen"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </header>
 
-      {/* Main Full-Screen Content Area */}
-      <main className="flex-1 overflow-y-auto overscroll-contain bg-slate-100 p-4 sm:p-6 lg:p-8">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto overscroll-contain bg-white p-4 sm:p-6">
 
         {/* 1. ORDER SUCCESS SCREEN (FULL SCREEN CENTERED CARD) */}
         {submittedOrder ? (
@@ -512,13 +513,10 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                           setCustomerName(e.target.value);
                           if (nameError) setNameError(null);
                         }}
-                        onBlur={() => {
-                          window.scrollTo({ top: window.scrollY, behavior: 'instant' });
-                        }}
-                        className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-base sm:text-sm outline-hidden font-medium transition-colors ${
+                        className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm outline-hidden font-medium transition-colors ${
                           nameError
-                            ? 'border-rose-400 focus:border-rose-600 bg-rose-50/40 text-slate-900'
-                            : 'border-slate-300 focus:border-emerald-600 focus:bg-white'
+                            ? 'border-rose-400 focus:border-rose-600 text-slate-900'
+                            : 'border-slate-300 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 text-slate-900'
                         }`}
                         required
                       />
@@ -544,13 +542,10 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                             setDeliveryAddress(e.target.value);
                             if (addressError) setAddressError(null);
                           }}
-                          onBlur={() => {
-                            window.scrollTo({ top: window.scrollY, behavior: 'instant' });
-                          }}
-                          className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-base sm:text-sm outline-hidden font-medium transition-colors ${
+                          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm outline-hidden font-medium transition-colors ${
                             addressError
-                              ? 'border-rose-400 focus:border-rose-600 bg-rose-50/40 text-slate-900'
-                              : 'border-slate-300 focus:border-emerald-600 focus:bg-white'
+                              ? 'border-rose-400 focus:border-rose-600 text-slate-900'
+                              : 'border-slate-300 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 text-slate-900'
                           }`}
                           required
                         />
@@ -735,10 +730,10 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                           return !lp || lp.stock <= 0;
                         })
                       }
-                      className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-xl text-sm font-black flex items-center justify-center space-x-2 transition-all shadow-md cursor-pointer disabled:opacity-50"
+                      className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-xl text-sm font-bold flex items-center justify-center space-x-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
                     >
                       <Send className="w-4 h-4" />
-                      <span>{isSubmitting ? 'Submitting...' : 'Order'}</span>
+                      <span>{isSubmitting ? 'Submitting...' : 'Place Order'}</span>
                     </button>
 
                     <p className="text-center text-[11px] text-slate-500 font-medium">
@@ -751,6 +746,7 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 };
