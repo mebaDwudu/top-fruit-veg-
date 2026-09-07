@@ -33,6 +33,7 @@ import {
   Tag,
   Lock,
   Truck,
+  Sparkles,
 } from 'lucide-react';
 
 interface CustomerStorefrontProps {
@@ -63,6 +64,30 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   const [preFilledOrderCode, setPreFilledOrderCode] = useState('');
 
   const showPrices = settings.showPricesToCustomers ?? false;
+
+  // Single featured fruit spotlight for landing page (e.g. Dominican Sweet Mango, Papaya, or top stall fruit)
+  const featuredFruit = useMemo(() => {
+    return (
+      products.find(
+        (p) =>
+          (p.name.toLowerCase().includes('mango') ||
+            p.name.toLowerCase().includes('papaya') ||
+            p.name.toLowerCase().includes('pineapple') ||
+            p.name.toLowerCase().includes('passion') ||
+            p.name.toLowerCase().includes('plantain') ||
+            p.name.toLowerCase().includes('melon')) &&
+          p.stock > 0
+      ) ||
+      products.find((p) => p.category.toLowerCase().includes('fruit') && p.stock > 0) ||
+      products[0] ||
+      null
+    );
+  }, [products]);
+
+  const featuredFruitMeta = useMemo(() => {
+    if (!featuredFruit) return null;
+    return getProduceMeta(featuredFruit.name, featuredFruit.category, featuredFruit.image);
+  }, [featuredFruit]);
 
   // Contact Form State
   const [contactForm, setContactForm] = useState({
@@ -257,7 +282,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   };
 
   return (
-    <div className="min-h-screen w-full max-w-full bg-emerald-50/40 text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white">
+    <div className={`min-h-screen w-full max-w-full text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white ${
+      currentTab === 'landing' ? 'bg-white' : 'bg-emerald-50/40'
+    }`}>
       {/* ========================================================= */}
       {/* 1. LEFT SIDEBAR (Clean bright solid theme, no scrollbar, no admin login) */}
       {/* ========================================================= */}
@@ -307,9 +334,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             </div>
 
             {/* Primary Navigation Buttons in Left Sidebar */}
-            <nav className="space-y-1.5">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-2 flex items-center justify-between">
-                <span>Stall</span>
+            <nav className="space-y-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2.5 pb-0.5">
+                Stall Navigation
               </div>
 
               {/* Button 1: Home / Landing */}
@@ -319,25 +346,16 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setCurrentTab('landing');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   currentTab === 'landing'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60'
+                    ? 'bg-slate-900 text-white font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm">🏠</span>
+                  <span>🏠</span>
                   <span>Home</span>
                 </div>
-                <span
-                  className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
-                    currentTab === 'landing'
-                      ? 'bg-emerald-800 text-white'
-                      : 'bg-white text-emerald-800 border border-emerald-200'
-                  }`}
-                >
-                  Welcome
-                </span>
               </button>
 
               {/* Button 2: Produce Catalog */}
@@ -348,23 +366,17 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setSelectedCategory('All');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   currentTab === 'home'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60'
+                    ? 'bg-slate-900 text-white font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm">🥭</span>
+                  <span>🥭</span>
                   <span>Produce</span>
                 </div>
-                <span
-                  className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
-                    currentTab === 'home'
-                      ? 'bg-emerald-800 text-white'
-                      : 'bg-white text-emerald-800 border border-emerald-200'
-                  }`}
-                >
+                <span className={`text-[11px] ${currentTab === 'home' ? 'text-slate-300' : 'text-slate-400'}`}>
                   {products.length}
                 </span>
               </button>
@@ -376,15 +388,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setIsTrackerModalOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 transition-all cursor-pointer shadow-2xs"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
-                  <Truck className="w-4 h-4 text-sky-600" />
-                  <span>Track</span>
+                  <Truck className="w-4 h-4 text-slate-500" />
+                  <span>Track Order</span>
                 </div>
-                <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded-md border border-sky-200">
-                  Code
-                </span>
               </button>
 
               {/* Button 4: Feedback */}
@@ -394,15 +403,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setIsFeedbackModalOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">⭐</span>
                   <span>Feedback</span>
                 </div>
-                <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-md border border-amber-200">
-                  Review
-                </span>
               </button>
 
               {/* Button 5: About */}
@@ -412,17 +418,17 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setCurrentTab('about_contact');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   currentTab === 'about_contact'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200'
+                    ? 'bg-slate-900 text-white font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm">📍</span>
-                  <span>About</span>
+                  <span>📍</span>
+                  <span>About Stall</span>
                 </div>
-                <span className="text-[10px] text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded-md font-bold">
+                <span className={`text-[11px] ${currentTab === 'about_contact' ? 'text-slate-300' : 'text-slate-400'}`}>
                   Pitch 18
                 </span>
               </button>
@@ -430,33 +436,33 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           </div>
 
           <div className="space-y-2">
-            {/* Brixton Market Quick Info Card */}
-            <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-              <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
-                <div className="flex items-center space-x-1">
-                  <Store className="w-3.5 h-3.5 text-emerald-700" />
+            {/* Brixton Market Clean Info */}
+            <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1 text-xs">
+              <div className="flex items-center justify-between font-semibold text-slate-800">
+                <div className="flex items-center space-x-1.5">
+                  <Store className="w-3.5 h-3.5 text-slate-600" />
                   <span>Brixton Market</span>
                 </div>
-                <span className="text-[10px] px-1 py-0.2 bg-emerald-200 text-emerald-900 rounded font-bold">Open</span>
+                <span className="text-[10px] text-emerald-700 font-medium">Open Daily</span>
               </div>
-              <p className="text-[10px] text-slate-700 leading-snug">
-                Pitch 18 Pope's Road, SW9 8PB.
+              <p className="text-[11px] text-slate-500">
+                Pitch 18 Pope's Road, London SW9
               </p>
-              <div className="flex items-center space-x-1 text-[10px] text-emerald-800 font-bold">
-                <Phone className="w-3 h-3 text-emerald-600" />
-                <a href="tel:+447449338679" className="hover:underline">
+              <div className="flex items-center space-x-1 text-[11px] text-slate-600 pt-0.5">
+                <Phone className="w-3 h-3 text-slate-400" />
+                <a href="tel:+447449338679" className="hover:text-emerald-700 transition-colors">
                   +44 7449 338679
                 </a>
               </div>
             </div>
 
-            {/* Minimalist 2-in-1 Action Buttons: WhatsApp & Share */}
+            {/* Action Buttons: WhatsApp & Share */}
             <div className="grid grid-cols-2 gap-1.5">
               <a
                 href="https://wa.me/447449338679?text=Hello%20Top%20Fruits%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20a%20pre-order."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center space-x-1 transition-all cursor-pointer shadow-2xs"
+                className="py-2 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
                 <span>WhatsApp</span>
@@ -536,9 +542,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             <button
               id="header-btn-track"
               onClick={() => setIsTrackerModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 hover:bg-sky-100 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
             >
-              <Truck className="w-3.5 h-3.5 text-sky-600" />
+              <Truck className="w-3.5 h-3.5 text-slate-500" />
               <span>Track</span>
             </button>
 
@@ -546,7 +552,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             <button
               id="header-btn-feedback"
               onClick={() => setIsFeedbackModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
             >
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
               <span>Feedback</span>
@@ -555,9 +561,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             {/* Direct Stall Call */}
             <a
               href="tel:+447449338679"
-              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-all shadow-2xs"
+              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-colors"
             >
-              <Phone className="w-3.5 h-3.5 text-emerald-600" />
+              <Phone className="w-3.5 h-3.5 text-slate-500" />
               <span>+44 7449 338679</span>
             </a>
 
@@ -565,12 +571,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             <button
               id="header-btn-orders"
               onClick={() => setIsCartOpen(true)}
-              className="relative py-2 px-3.5 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center space-x-2 transition-all shadow-xs cursor-pointer active:scale-95"
+              className="relative py-1.5 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer active:scale-95"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>Orders</span>
               {totalCartCount > 0 && (
-                <span className="px-1.5 py-0.5 bg-white text-emerald-800 rounded-full text-[11px] font-black leading-none shadow-xs">
+                <span className="px-1.5 py-0.5 bg-white text-emerald-800 rounded-full text-[10px] font-bold leading-none">
                   {totalCartCount}
                 </span>
               )}
@@ -579,89 +585,244 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         </header>
 
         {/* ========================================================= */}
-        {/* VIEW 0: LANDING PAGE (WELCOME, PRODUCE HIGHLIGHTS, STORY) */}
+        {/* VIEW 0: LANDING PAGE (LIGHTER PALETTE: 5% YELLOW, 5% GREEN, 5% PINK, REST WHITE) */}
         {/* ========================================================= */}
         {currentTab === 'landing' && (
-          <main className="flex-1 w-full p-3 sm:p-6 lg:p-8 space-y-8 animate-in fade-in duration-200">
-            {/* Hero Section */}
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-900 to-teal-950 text-white p-6 sm:p-10 lg:p-12 shadow-xl border border-emerald-700/50">
-              <div className="relative z-10 max-w-3xl space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-200 text-xs font-bold border border-white/20">
-                  <Store className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>Brixton Market • Pitch 18 Pope's Road London SW9</span>
+          <main
+            className="flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200"
+            style={{
+              background:
+                'radial-gradient(ellipse 70% 35% at 10% 5%, rgba(254, 240, 138, 0.22) 0%, transparent 60%), ' +
+                'radial-gradient(ellipse 70% 35% at 90% 10%, rgba(167, 243, 208, 0.22) 0%, transparent 60%), ' +
+                'radial-gradient(ellipse 60% 45% at 50% 95%, rgba(251, 207, 232, 0.20) 0%, transparent 60%), #ffffff',
+            }}
+          >
+            {/* Lighter Color Hero Banner: White with 5% Yellow, 5% Green, 5% Pink Accents */}
+            <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-7 md:p-8 lg:p-10 shadow-xs">
+              {/* Soft Ambient Corner Accents (5% Yellow, 5% Green, 5% Pink) */}
+              <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-yellow-100/50 blur-3xl pointer-events-none" />
+              <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-emerald-100/50 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-20 left-1/3 w-64 h-64 rounded-full bg-pink-100/50 blur-3xl pointer-events-none" />
+
+              {/* Main 2-Column Responsive Layout: Left Info & Actions, Right 1 Fruit Spotlight */}
+              <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-center">
+                {/* LEFT SIDE: Text, Badges, CTAs, Location (md:col-span-7) */}
+                <div className="md:col-span-7 space-y-4">
+                  {/* 3 Balanced Soft Color Badges: Yellow (5%), Green (5%), Pink (5%) */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-800 border border-yellow-200/80 text-xs font-semibold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block" />
+                      <span>Sun-Fresh Daily</span>
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                      <span>Pitch 18 • Brixton Market</span>
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-pink-50 text-pink-800 border border-pink-200/80 text-xs font-semibold flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-pink-500 inline-block" />
+                      <span>Tropical & Exotic Goods</span>
+                    </span>
+                  </div>
+
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight font-display">
+                    Top Fruit & Veg
+                  </h1>
+
+                  <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl font-normal">
+                    Fresh tropical produce, Jamaican yams, sweet plantains, and market goods delivered fresh to our stall at 5:00 AM daily.
+                  </p>
+
+                  <div className="pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3">
+                    <button
+                      onClick={() => {
+                        setCurrentTab('home');
+                        setSelectedCategory('All');
+                      }}
+                      className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center gap-2 active:scale-95 shadow-2xs"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>Browse Produce</span>
+                      <span>→</span>
+                    </button>
+
+                    <button
+                      onClick={() => setIsTrackerModalOpen(true)}
+                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer shadow-2xs"
+                    >
+                      Track Order
+                    </button>
+
+                    <a
+                      href="https://wa.me/447449338679"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-pink-50 text-slate-700 hover:text-pink-700 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 shadow-2xs"
+                    >
+                      <MessageCircle className="w-4 h-4 text-emerald-600" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+
+                  {/* Minimal Location & Schedule Strip */}
+                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Pope's Road, London SW9 8PB
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-yellow-600 shrink-0" />
+                      Mon–Sat 8:00–18:30 • Sun 9:00–16:00
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                      Daily Selection
+                    </span>
+                  </div>
                 </div>
 
-                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white font-display">
-                  Brixton's Best Fruit & Fresh Tropical Produce
-                </h1>
+                {/* RIGHT SIDE: 1 FRUIT SPOTLIGHT WITH BALANCED PROPORTIONS (md:col-span-5) */}
+                <div className="md:col-span-5 w-full">
+                  {featuredFruit && (
+                    <div
+                      onClick={() => setSelectedProduct(featuredFruit)}
+                      className="group relative bg-white/95 border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-3.5 sm:p-4 transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-xs flex flex-col justify-between max-w-sm sm:max-w-md mx-auto md:max-w-none"
+                    >
+                      {/* Top Header inside fruit card: 5% Yellow / Green accents */}
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <span className="px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-900 border border-yellow-200/80 text-[11px] font-semibold flex items-center gap-1.5 truncate">
+                          <span>☀️</span>
+                          <span>Today's Spotlight</span>
+                        </span>
+                        <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70 flex items-center gap-1 shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
+                          <span>Pitch 18 Pick</span>
+                        </span>
+                      </div>
 
-                <p className="text-emerald-100 text-xs sm:text-base leading-relaxed max-w-2xl font-medium">
-                  Family-run market stall since 1998. Hand-picked yellow yams, sweet plantains, juicy mangoes, scotch bonnet peppers, and authentic African & Caribbean kitchen staples. Delivered fresh to our stall at 5:00 AM daily.
-                </p>
+                      {/* Fruit Image Container: Responsively proportioned on phone, tablet, and desktop */}
+                      <div className="relative w-full h-40 sm:h-48 md:h-44 lg:h-52 rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
+                        <img
+                          src={featuredFruitMeta?.imageUrl || featuredFruit.image}
+                          alt={featuredFruit.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80';
+                          }}
+                        />
 
-                <div className="pt-2 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => {
-                      setCurrentTab('home');
-                      setSelectedCategory('All');
-                    }}
-                    className="px-5 py-3 bg-emerald-400 hover:bg-emerald-300 text-slate-950 rounded-2xl text-xs sm:text-sm font-black shadow-lg shadow-emerald-950/40 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
-                  >
-                    <ShoppingBag className="w-4 h-4 text-slate-950" />
-                    <span>Browse Fresh Produce</span>
-                    <span className="text-sm">→</span>
-                  </button>
+                        {/* Top Right Ripeness Badge (Pink 5% touch) */}
+                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-pink-50/95 border border-pink-200/80 text-pink-900 text-[10px] font-semibold shadow-2xs">
+                          {featuredFruitMeta?.estimatedWeight || 'Tropical Fresh'}
+                        </span>
 
-                  <button
-                    onClick={() => setIsTrackerModalOpen(true)}
-                    className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-xs sm:text-sm font-bold border border-white/20 backdrop-blur-md transition-all cursor-pointer flex items-center gap-2"
-                  >
-                    <Truck className="w-4 h-4 text-emerald-300" />
-                    <span>Track Order</span>
-                  </button>
+                        {/* Bottom Left Origin Badge */}
+                        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
+                          <span className="px-2 py-0.5 rounded-md bg-white/95 text-slate-800 text-[10px] font-medium shadow-2xs border border-slate-200/80 flex items-center gap-1 backdrop-blur-xs">
+                            <MapPin className="w-3 h-3 text-emerald-600" />
+                            {featuredFruitMeta?.origin || 'Brixton Stall'}
+                          </span>
+                          {featuredFruitMeta?.isOrganic && (
+                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-semibold flex items-center gap-1">
+                              <Leaf className="w-3 h-3" />
+                              Organic
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                  <a
-                    href="https://wa.me/447449338679"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-3 bg-emerald-600/60 hover:bg-emerald-600 text-white rounded-2xl text-xs sm:text-sm font-bold border border-emerald-400/30 transition-all flex items-center gap-2"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>WhatsApp Stall</span>
-                  </a>
+                      {/* Fruit Metadata & Add to Cart button */}
+                      <div className="pt-3 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block truncate">
+                            {featuredFruit.category}
+                          </span>
+                          <h3 className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
+                            {featuredFruit.name}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {showPrices ? (
+                              <span className="text-xs sm:text-sm font-bold text-slate-900">
+                                {formatCurrency(featuredFruit.sellingPrice)}{' '}
+                                <span className="text-[10px] font-normal text-slate-500">
+                                  / {featuredFruit.unit}
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                Sold per {featuredFruit.unit || 'kg'}
+                              </span>
+                            )}
+                            <span className="text-[10px] text-emerald-700 font-medium">
+                              {featuredFruit.stock > 0 ? `${featuredFruit.stock} in stock` : 'Fresh arrival'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(featuredFruit);
+                          }}
+                          className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs active:scale-95"
+                          title="Add to Basket"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3 Accent Feature Cards: 5% Yellow, 5% Green, 5% Pink seated on White */}
+              <div className="relative z-10 pt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* 5% Yellow Card */}
+                <div className="bg-yellow-50/80 border border-yellow-200/80 rounded-xl p-3.5 space-y-1">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-100 text-yellow-800 flex items-center justify-center text-xs font-bold mb-1">
+                    ☀️
+                  </div>
+                  <div className="text-xs font-bold text-yellow-950">5:00 AM Dawn Fresh</div>
+                  <div className="text-[11px] text-yellow-900/80 leading-relaxed">
+                    Morning wholesale deliveries picked for top ripeness and authentic flavor.
+                  </div>
                 </div>
 
-                {/* Quick Trust Badges */}
-                <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-white/10 text-xs">
-                  <div className="flex items-center gap-2 text-emerald-200">
-                    <span className="text-base">🥭</span>
-                    <span>Daily Fresh Stock</span>
+                {/* 5% Green Card */}
+                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3.5 space-y-1">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold mb-1">
+                    🌱
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-200">
-                    <span className="text-base">📍</span>
-                    <span>Pitch 18 Pope's Rd</span>
+                  <div className="text-xs font-bold text-emerald-950">Pitch 18 Pope's Road</div>
+                  <div className="text-[11px] text-emerald-900/80 leading-relaxed">
+                    Iconic Brixton Market stall. Reserve online for stall collection or delivery.
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-200">
-                    <span className="text-base">📦</span>
-                    <span>Collect or Delivery</span>
+                </div>
+
+                {/* 5% Pink Card */}
+                <div className="bg-pink-50/80 border border-pink-200/80 rounded-xl p-3.5 space-y-1">
+                  <div className="w-7 h-7 rounded-lg bg-pink-100 text-pink-800 flex items-center justify-center text-xs font-bold mb-1">
+                    🌸
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-200">
-                    <span className="text-base">🔒</span>
-                    <span>No Upfront Fees</span>
+                  <div className="text-xs font-bold text-pink-950">Authentic Tropical Produce</div>
+                  <div className="text-[11px] text-pink-900/80 leading-relaxed">
+                    Yellow yams, sweet plantains, mangoes, breadfruit & Caribbean specialties.
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* Popular Produce Categories Showcase */}
-            <section className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            {/* Produce Categories on Landing: Clean White with 5% Yellow, Green, Pink accents */}
+            <section className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight font-display">
-                    Explore Our Produce Specialties
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+                    Produce Categories
                   </h2>
                   <p className="text-xs text-slate-500">
-                    Direct from London wholesale markets every morning
+                    Select a category to view fresh produce
                   </p>
                 </div>
                 <button
@@ -669,145 +830,52 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     setCurrentTab('home');
                     setSelectedCategory('All');
                   }}
-                  className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer flex items-center gap-1"
                 >
-                  <span>View full catalog ({products.length} items)</span>
+                  <span>View all ({products.length})</span>
                   <span>→</span>
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Tropical Fruits */}
-                <div
-                  onClick={() => {
-                    setCurrentTab('home');
-                    const fruitCat = categories.find((c) => c.toLowerCase().includes('fruit')) || 'All';
-                    setSelectedCategory(fruitCat);
-                  }}
-                  className="bg-white p-5 rounded-3xl border border-emerald-100 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group space-y-3"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                    🥭
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
-                      Exotic & Tropical Fruits
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Sweet mangoes, papayas, green & ripe plantains, sweet bananas, and seasonal exotic fruits.
-                    </p>
-                  </div>
-                  <div className="flex items-center text-xs font-bold text-emerald-700 group-hover:translate-x-0.5 transition-transform">
-                    <span>Browse fruits →</span>
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {categories.map((cat, idx) => {
+                  const emoji = getCategoryEmoji(cat);
+                  const count = products.filter((p) => p.category === cat).length;
+                  const mod = idx % 3;
+                  const accentBadge =
+                    mod === 0
+                      ? 'bg-yellow-50 text-yellow-800 border-yellow-200/60'
+                      : mod === 1
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200/60'
+                      : 'bg-pink-50 text-pink-800 border-pink-200/60';
+                  const hoverBorder =
+                    mod === 0
+                      ? 'hover:border-yellow-300'
+                      : mod === 1
+                      ? 'hover:border-emerald-300'
+                      : 'hover:border-pink-300';
 
-                {/* Card 2: Yams & Roots */}
-                <div
-                  onClick={() => {
-                    setCurrentTab('home');
-                    const rootCat = categories.find((c) => c.toLowerCase().includes('yam') || c.toLowerCase().includes('root') || c.toLowerCase().includes('tuber')) || 'All';
-                    setSelectedCategory(rootCat);
-                  }}
-                  className="bg-white p-5 rounded-3xl border border-emerald-100 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group space-y-3"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                    🍠
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
-                      Yams, Roots & Tubers
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Authentic Jamaican yellow yam, Ghanaian white yam, cassava, sweet potatoes, and cocoyam.
-                    </p>
-                  </div>
-                  <div className="flex items-center text-xs font-bold text-emerald-700 group-hover:translate-x-0.5 transition-transform">
-                    <span>Browse tubers & roots →</span>
-                  </div>
-                </div>
-
-                {/* Card 3: Seasonings & Fresh Veg */}
-                <div
-                  onClick={() => {
-                    setCurrentTab('home');
-                    const vegCat = categories.find((c) => c.toLowerCase().includes('veg') || c.toLowerCase().includes('green')) || 'All';
-                    setSelectedCategory(vegCat);
-                  }}
-                  className="bg-white p-5 rounded-3xl border border-emerald-100 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group space-y-3"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
-                    🌶️
-                  </div>
-                  <div>
-                    <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
-                      Caribbean Seasonings & Veg
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                      Fiery scotch bonnet peppers, callaloo, fresh thyme, ginger root, garlic, and kitchen seasonings.
-                    </p>
-                  </div>
-                  <div className="flex items-center text-xs font-bold text-emerald-700 group-hover:translate-x-0.5 transition-transform">
-                    <span>Browse seasonings & veg →</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* How It Works */}
-            <section className="bg-white rounded-3xl p-6 sm:p-8 border border-emerald-100 shadow-2xs space-y-6">
-              <div className="text-center max-w-xl mx-auto space-y-1">
-                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight font-display">
-                  How Online Pre-Orders Work
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Save time at the market. Hand-picked and packed before you arrive.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="text-center space-y-2">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center font-black text-sm">
-                    1
-                  </div>
-                  <h3 className="font-bold text-xs text-slate-900">Select Your Produce</h3>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Browse our daily live catalog and add fresh fruits, yams, and vegetables to your order.
-                  </p>
-                </div>
-
-                <div className="text-center space-y-2">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center font-black text-sm">
-                    2
-                  </div>
-                  <h3 className="font-bold text-xs text-slate-900">Submit Without Paying</h3>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Enter your name and pick collection at Pitch 18 or direct local delivery. No upfront card required.
-                  </p>
-                </div>
-
-                <div className="text-center space-y-2">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 mx-auto flex items-center justify-center font-black text-sm">
-                    3
-                  </div>
-                  <h3 className="font-bold text-xs text-slate-900">Collect & Pay in Person</h3>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Receive an instant order tracking code. Pick up your packed bag at Pitch 18 and pay as normal.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-2 text-center">
-                <button
-                  onClick={() => {
-                    setCurrentTab('home');
-                    setSelectedCategory('All');
-                  }}
-                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer inline-flex items-center gap-2"
-                >
-                  <span>Start Your Order Now</span>
-                  <span>→</span>
-                </button>
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        setCurrentTab('home');
+                        setSelectedCategory(cat);
+                      }}
+                      className={`p-4 rounded-xl bg-white border border-slate-200/80 ${hoverBorder} transition-all text-left group cursor-pointer hover:shadow-2xs`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-2xl">{emoji}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${accentBadge}`}>
+                          {count} {count === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
+                      <div className="font-semibold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
+                        {cat}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </section>
           </main>
@@ -819,16 +887,16 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         {currentTab === 'home' && (
           <main className="flex-1 w-full p-3 sm:p-6 lg:p-8 space-y-6">
             {/* Top Category Buttons Bar (Clean Solid Styling) */}
-            <section className="w-full bg-white border border-emerald-100 rounded-3xl p-4 sm:p-5 shadow-2xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-100 pb-3">
+            <section className="w-full bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                 <div className="flex items-center space-x-2">
                   <Tag className="w-4 h-4 text-emerald-600" />
-                  <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-800">
-                    Filter by Produce Category
+                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800">
+                    Produce Category
                   </h3>
                 </div>
-                <div className="text-xs text-slate-500 font-bold">
-                  Showing <span className="text-emerald-700 font-black">{filteredProducts.length}</span> of {products.length} fresh items
+                <div className="text-xs text-slate-500 font-medium">
+                  Showing <span className="text-emerald-700 font-semibold">{filteredProducts.length}</span> of {products.length} items
                 </div>
               </div>
 
@@ -837,18 +905,18 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 {/* All Fruits Master Button */}
                 <button
                   onClick={() => setSelectedCategory('All')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center space-x-1.5 shadow-2xs ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
                     selectedCategory === 'All'
-                      ? 'bg-emerald-600 text-white shadow-xs'
+                      ? 'bg-slate-900 text-white'
                       : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                   }`}
                 >
                   <span className="text-sm">🥭</span>
                   <span>All</span>
                   <span
-                    className={`px-1.5 py-0.2 rounded-md text-[10px] ${
+                    className={`px-1.5 py-0.2 rounded text-[10px] ${
                       selectedCategory === 'All'
-                        ? 'bg-emerald-800 text-white font-bold'
+                        ? 'bg-slate-800 text-white font-semibold'
                         : 'bg-slate-200 text-slate-700 font-medium'
                     }`}
                   >
@@ -866,18 +934,18 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center space-x-1.5 shadow-2xs ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
                         isSelected
-                          ? 'bg-emerald-600 text-white shadow-xs'
+                          ? 'bg-slate-900 text-white'
                           : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                       }`}
                     >
                       <span className="text-sm">{emoji}</span>
                       <span>{cat}</span>
                       <span
-                        className={`px-1.5 py-0.2 rounded-md text-[10px] ${
+                        className={`px-1.5 py-0.2 rounded text-[10px] ${
                           isSelected
-                            ? 'bg-emerald-800 text-white font-bold'
+                            ? 'bg-slate-800 text-white font-semibold'
                             : 'bg-emerald-100 text-emerald-800 font-medium'
                         }`}
                       >
@@ -889,7 +957,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               </div>
 
               {/* Secondary Fast Filters & Search Row */}
-              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-emerald-100 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-100 text-xs">
                 {/* Quick Search */}
                 <div className="relative flex-1 min-w-[180px] max-w-sm">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -902,8 +970,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         window.scrollTo({ top: window.scrollY, behavior: 'smooth' });
                       }
                     }}
-                    placeholder="Search fruits, veg, yams..."
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                    placeholder="Search produce..."
+                    className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-slate-900 focus:bg-white"
                   />
                 </div>
 
@@ -913,9 +981,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     onClick={() =>
                       setSelectedOrganicFilter((prev) => (prev === 'organic' ? 'all' : 'organic'))
                     }
-                    className={`px-3 py-2 rounded-xl font-bold flex items-center space-x-1 transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-lg font-medium flex items-center space-x-1 transition-colors cursor-pointer ${
                       selectedOrganicFilter === 'organic'
-                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
                     }`}
                   >
@@ -929,9 +997,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         prev === 'in-stock' ? 'all' : 'in-stock'
                       )
                     }
-                    className={`px-3 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
                       selectedAvailabilityFilter === 'in-stock'
-                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        ? 'bg-slate-900 text-white'
                         : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
                     }`}
                   >
@@ -942,7 +1010,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 text-slate-800 text-xs font-bold focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                    className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 text-xs font-medium focus:outline-hidden focus:border-slate-900 focus:bg-white"
                   >
                     <option value="name_asc">A–Z</option>
                     <option value="name_desc">Z–A</option>
@@ -961,11 +1029,11 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             {/* FULL SCREEN FRUITS GRID: 5 ITEMS PER ROW ON PC & LARGER CARDS */}
             <section className="w-full">
               {filteredProducts.length === 0 ? (
-                <div className="w-full bg-white border border-emerald-100 rounded-3xl p-12 text-center my-6 shadow-2xs">
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-3 text-emerald-600">
-                    <Search className="w-7 h-7 text-emerald-600" />
+                <div className="w-full bg-white border border-slate-200 rounded-xl p-12 text-center my-6">
+                  <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-500">
+                    <Search className="w-6 h-6" />
                   </div>
-                  <h4 className="text-base font-bold text-slate-900 mb-1">No fruits matched</h4>
+                  <h4 className="text-base font-bold text-slate-900 mb-1">No produce matched</h4>
                   <p className="text-xs text-slate-500 mb-4">
                     Try clearing your search query or selecting "All".
                   </p>
@@ -976,7 +1044,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       setSelectedOrganicFilter('all');
                       setSelectedAvailabilityFilter('all');
                     }}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
                   >
                     Reset
                   </button>
@@ -993,7 +1061,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     return (
                       <div
                         key={prod.id}
-                        className="group bg-white hover:border-emerald-500 border border-slate-200/90 rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-200 flex flex-col shadow-2xs hover:shadow-md hover:-translate-y-0.5"
+                        className="group bg-white hover:border-slate-400 border border-slate-200 rounded-xl overflow-hidden transition-all duration-200 flex flex-col hover:shadow-sm"
                       >
                         {/* Fruit Image Container (Enlarged for 5-per-row layout on PC) */}
                         <div

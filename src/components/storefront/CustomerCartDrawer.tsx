@@ -231,51 +231,46 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-slate-900/30 flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
       style={{ touchAction: 'pan-y' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) handleCloseAndReset();
       }}
     >
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-200 my-auto animate-in zoom-in-95 duration-200">
-        {/* Full Screen Top Navigation Bar */}
-        <header className="sticky top-0 z-20 bg-emerald-900 text-white px-4 sm:px-6 py-3.5 border-b border-emerald-800 shadow-md shrink-0 flex items-center justify-between gap-4">
+      <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-200 my-auto">
+        {/* Top Navigation Bar */}
+        <header className="sticky top-0 z-20 bg-slate-900 text-white px-4 sm:px-6 py-3 border-b border-slate-800 shrink-0 flex items-center justify-between gap-4">
           <div className="flex items-center space-x-3 min-w-0">
             <button
               onClick={handleCloseAndReset}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-emerald-100 hover:text-white transition-all text-xs font-bold shadow-xs cursor-pointer border border-emerald-700/60 shrink-0 active:scale-95"
+              className="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-xs font-medium cursor-pointer shrink-0"
               title="Return to Produce Catalog"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back</span>
             </button>
-            <div className="h-5 w-px bg-emerald-700/60 shrink-0" />
-            <div className="flex items-center space-x-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 font-bold shrink-0">
-                <ShoppingBag className="w-4 h-4" />
-              </div>
+            <div className="h-4 w-px bg-slate-700 shrink-0" />
+            <div className="flex items-center space-x-2 min-w-0">
+              <ShoppingBag className="w-4 h-4 text-emerald-400" />
               <div className="min-w-0">
-                <h2 className="font-bold text-sm sm:text-base text-white tracking-tight leading-tight truncate">
-                  Place Your Order
+                <h2 className="font-semibold text-sm sm:text-base text-white truncate">
+                  Place Order
                 </h2>
-                <p className="text-[11px] text-emerald-200 font-medium truncate">
-                  Top Fruit and Veg • Pitch 18 Brixton Market
-                </p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-2 shrink-0">
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-800/80 text-emerald-200 text-xs font-semibold rounded-full border border-emerald-700">
-              <span>{totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'} in order</span>
+            <span className="text-xs text-slate-400 font-medium">
+              {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
             </span>
             <button
               onClick={handleCloseAndReset}
-              className="p-1.5 text-emerald-200 hover:text-white rounded-xl hover:bg-emerald-800 transition-colors cursor-pointer"
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               aria-label="Close order screen"
               title="Close order screen"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </header>
@@ -420,19 +415,19 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
             </button>
           </div>
         ) : (
-          /* 3. ACTIVE BASKET & CHECKOUT (FULL-SCREEN RESPONSIVE LAYOUT) */
-          <div className="max-w-6xl mx-auto space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-              {/* LEFT COLUMN: FULFILLMENT & CUSTOMER DETAILS (7 cols on lg) */}
-              <div className="lg:col-span-7 space-y-6">
+          /* 3. ACTIVE BASKET & CHECKOUT */
+          <div className="max-w-6xl mx-auto space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* LEFT COLUMN: FULFILLMENT & CUSTOMER DETAILS */}
+              <div className="lg:col-span-7 space-y-4">
                 {/* Fulfillment Method Card */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                  <div className="flex items-center space-x-2 text-sm font-black text-slate-900">
-                    <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs flex items-center justify-center font-bold">1</span>
-                    <h3>How do you want to receive your produce?</h3>
+                <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-900">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-[11px] flex items-center justify-center font-bold">1</span>
+                    <h3>Fulfillment Method</h3>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5">
                     {/* Pick Up Myself */}
                     <button
                       type="button"
@@ -440,25 +435,15 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                         setFulfillmentType('pickup');
                         setAddressError(null);
                       }}
-                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                      className={`p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                         fulfillmentType === 'pickup'
-                          ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-500/20 text-emerald-950 shadow-xs'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/80'
+                          ? 'border-slate-900 bg-slate-900 text-white'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className={`p-2 rounded-xl ${fulfillmentType === 'pickup' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
-                          <Store className="w-5 h-5" />
-                        </div>
-                        {fulfillmentType === 'pickup' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white">
-                            Selected
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-sm font-black">Pick Up Myself</div>
-                        <div className="text-xs text-slate-500 mt-0.5">Collect at Pitch 18 Pope's Road, Brixton</div>
+                      <div className="text-xs font-semibold">Pick Up</div>
+                      <div className={`text-[11px] mt-0.5 ${fulfillmentType === 'pickup' ? 'text-slate-300' : 'text-slate-500'}`}>
+                        Pitch 18 Brixton
                       </div>
                     </button>
 
@@ -468,61 +453,51 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                       onClick={() => {
                         setFulfillmentType('delivery');
                       }}
-                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                      className={`p-3 rounded-lg border text-left transition-colors cursor-pointer ${
                         fulfillmentType === 'delivery'
-                          ? 'bg-emerald-50/80 border-emerald-600 ring-2 ring-emerald-500/20 text-emerald-950 shadow-xs'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/80'
+                          ? 'border-slate-900 bg-slate-900 text-white'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className={`p-2 rounded-xl ${fulfillmentType === 'delivery' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
-                          <Truck className="w-5 h-5" />
-                        </div>
-                        {fulfillmentType === 'delivery' && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white">
-                            Selected
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-sm font-black">Delivery</div>
-                        <div className="text-xs text-slate-500 mt-0.5">We deliver fresh to your address</div>
+                      <div className="text-xs font-semibold">Delivery</div>
+                      <div className={`text-[11px] mt-0.5 ${fulfillmentType === 'delivery' ? 'text-slate-300' : 'text-slate-500'}`}>
+                        To your address
                       </div>
                     </button>
                   </div>
                 </div>
 
                 {/* Customer Details Form */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                  <div className="flex items-center space-x-2 text-sm font-black text-slate-900">
-                    <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs flex items-center justify-center font-bold">2</span>
-                    <h3>{fulfillmentType === 'pickup' ? 'Your Contact Information' : 'Delivery Details'}</h3>
+                <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-900">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-[11px] flex items-center justify-center font-bold">2</span>
+                    <h3>{fulfillmentType === 'pickup' ? 'Your Information' : 'Delivery Details'}</h3>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {/* Customer Name Field */}
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                        Customer Full Name <span className="text-rose-600 font-black">*</span>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1">
+                        Full Name <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. Sarah Jenkins"
+                        placeholder="Your name"
                         value={customerName}
                         onChange={(e) => {
                           setCustomerName(e.target.value);
                           if (nameError) setNameError(null);
                         }}
-                        className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm outline-hidden font-medium transition-colors ${
+                        className={`w-full px-3 py-2 bg-white border rounded-lg text-xs outline-hidden font-normal transition-colors text-slate-900 ${
                           nameError
-                            ? 'border-rose-400 focus:border-rose-600 text-slate-900'
-                            : 'border-slate-300 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 text-slate-900'
+                            ? 'border-rose-400 focus:border-rose-600'
+                            : 'border-slate-200 focus:border-slate-900'
                         }`}
                         required
                       />
                       {nameError && (
-                        <p className="text-xs text-rose-600 font-bold mt-1.5 flex items-center gap-1">
-                          <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                        <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
                           {nameError}
                         </p>
                       )}
@@ -531,69 +506,64 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                     {/* Delivery Address (if delivery selected) */}
                     {fulfillmentType === 'delivery' && (
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                          Delivery Street Address <span className="text-rose-600 font-black">*</span>
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">
+                          Delivery Address <span className="text-rose-600">*</span>
                         </label>
                         <input
                           type="text"
-                          placeholder="e.g. Flat 3, 42 Atlantic Road, Brixton, SW9 8GW"
+                          placeholder="Street address, postcode"
                           value={deliveryAddress}
                           onChange={(e) => {
                             setDeliveryAddress(e.target.value);
                             if (addressError) setAddressError(null);
                           }}
-                          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm outline-hidden font-medium transition-colors ${
+                          className={`w-full px-3 py-2 bg-white border rounded-lg text-xs outline-hidden font-normal transition-colors text-slate-900 ${
                             addressError
-                              ? 'border-rose-400 focus:border-rose-600 text-slate-900'
-                              : 'border-slate-300 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 text-slate-900'
+                              ? 'border-rose-400 focus:border-rose-600'
+                              : 'border-slate-200 focus:border-slate-900'
                           }`}
                           required
                         />
                         {addressError && (
-                          <p className="text-xs text-rose-600 font-bold mt-1.5 flex items-center gap-1">
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
                             {addressError}
                           </p>
                         )}
                       </div>
                     )}
 
-                    {/* Market Location Info Notice */}
-                    <div className="flex items-start space-x-3 text-xs text-slate-600 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-                      <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div className="space-y-0.5">
-                        <span className="font-bold text-slate-800">
-                          {fulfillmentType === 'delivery' ? 'Direct Market Delivery' : 'Brixton Market Stall Collection'}
-                        </span>
-                        <p className="text-slate-500 text-[11px]">
-                          {fulfillmentType === 'delivery'
-                            ? 'Orders are prepared fresh at Brixton Market and delivered to your designated address.'
-                            : 'Collect directly at Pitch 18 Pope\'s Road, Brixton Market. Payment can be settled upon collection.'}
-                        </p>
-                      </div>
+                    {/* Location Info Notice */}
+                    <div className="flex items-center space-x-2 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                      <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                      <span>
+                        {fulfillmentType === 'delivery'
+                          ? 'Orders delivered fresh from Brixton Market.'
+                          : 'Collect at Pitch 18 Pope\'s Road, London SW9.'}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* RIGHT COLUMN: BASKET ITEMS REVIEW & PLACE ORDER (5 cols on lg) */}
-              <div className="lg:col-span-5 space-y-6">
+              <div className="lg:col-span-5 space-y-4">
                 {/* Basket Items Card */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-sm font-black text-slate-900">
-                      <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs flex items-center justify-center font-bold">3</span>
-                      <h3>Review Items ({totalItemsCount})</h3>
+                    <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-slate-900">
+                      <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-[11px] flex items-center justify-center font-bold">3</span>
+                      <h3>Items ({totalItemsCount})</h3>
                     </div>
                     <button
                       onClick={onClearBag}
-                      className="text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                      className="text-xs text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                     >
-                      Clear basket
+                      Clear
                     </button>
                   </div>
 
-                  <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
                     {items.map((item) => {
                       const liveProd = products.find((p) => p.id === item.product.id) || item.product;
                       const isItemOutOfStock = liveProd.stock <= 0;
@@ -602,12 +572,12 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                       return (
                       <div
                         key={item.product.id}
-                        className={`p-3 border rounded-2xl flex items-center justify-between gap-3 ${
-                          isItemOutOfStock ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-200'
+                        className={`p-2.5 border rounded-lg flex items-center justify-between gap-2.5 ${
+                          isItemOutOfStock ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50/70 border-slate-200'
                         }`}
                       >
-                        <div className="flex items-center space-x-3 min-w-0 flex-1">
-                          <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                        <div className="flex items-center space-x-2.5 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
                             {item.product.image ? (
                               <img
                                 src={item.product.image}
@@ -618,43 +588,38 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                                 }}
                               />
                             ) : (
-                              <Store className="w-5 h-5 text-emerald-600" />
+                              <Store className="w-4 h-4 text-emerald-600" />
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="font-bold text-xs text-slate-900 truncate">
+                            <h4 className="font-semibold text-xs text-slate-900 truncate">
                               {item.product.name}
                             </h4>
-                            <p className="text-[11px] text-emerald-800 font-bold">
+                            <p className="text-[11px] text-slate-600">
                               {item.quantity} {item.product.unit || 'unit'}
-                              {showPrices && (
-                                <span className="text-slate-500 font-normal ml-1.5">
-                                  (£{item.product.sellingPrice.toFixed(2)}/unit)
-                                </span>
-                              )}
                             </p>
                             {isItemOutOfStock ? (
-                              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-bold">
+                              <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-medium">
                                 Out of stock
                               </span>
                             ) : isItemOverStock ? (
-                              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
-                                Only {liveProd.stock} left in stock
+                              <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-medium">
+                                Only {liveProd.stock} left
                               </span>
                             ) : null}
                           </div>
                         </div>
 
                         {/* Quantity controls */}
-                        <div className="flex items-center space-x-1 bg-white border border-slate-200 rounded-xl p-1 shrink-0">
+                        <div className="flex items-center space-x-1 bg-white border border-slate-200 rounded-lg p-0.5 shrink-0">
                           <button
                             onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
-                            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                            className="w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                             aria-label="Decrease quantity"
                           >
-                            <Minus className="w-3 h-3" />
+                            <Minus className="w-2.5 h-2.5" />
                           </button>
-                          <span className="w-6 text-center font-bold text-xs text-slate-900">
+                          <span className="w-5 text-center font-semibold text-xs text-slate-900">
                             {item.quantity}
                           </span>
                           <button
@@ -665,57 +630,41 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                               )
                             }
                             disabled={isItemOutOfStock || item.quantity >= liveProd.stock}
-                            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-30 transition-colors cursor-pointer"
+                            className="w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 disabled:opacity-30 transition-colors cursor-pointer"
                             aria-label="Increase quantity"
                           >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-2.5 h-2.5" />
                           </button>
                         </div>
 
-                        {/* Line Total & Remove */}
-                        <div className="text-right shrink-0 flex items-center gap-2">
-                          {showPrices && (
-                            <span className="font-black text-xs text-slate-900 block">
-                              {formatCurrency(item.product.sellingPrice * item.quantity)}
-                            </span>
-                          )}
-                          <button
-                            onClick={() => onRemoveItem(item.product.id)}
-                            className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer p-1"
-                            title="Remove item"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        {/* Remove */}
+                        <button
+                          onClick={() => onRemoveItem(item.product.id)}
+                          className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer p-1"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     );
                     })}
                   </div>
 
                   {/* Summary & Submit Action */}
-                  <div className="pt-4 border-t border-slate-200 space-y-4">
-                    {showPrices && (
-                      <div className="flex items-center justify-between text-slate-800">
-                        <span className="text-sm font-bold">Estimated Total:</span>
-                        <span className="text-2xl font-black text-emerald-800">
-                          {formatCurrency(totalAmount)}
-                        </span>
-                      </div>
-                    )}
-
+                  <div className="pt-3 border-t border-slate-200 space-y-3">
                     {items.some((it) => {
                       const lp = products.find((x) => x.id === it.product.id);
                       return !lp || lp.stock <= 0;
                     }) && (
-                      <div className="p-3 bg-rose-50 border border-rose-300 rounded-2xl flex items-center space-x-2 text-rose-800 text-xs font-bold">
-                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                        <span>Some items in your basket are out of stock. Please remove them before placing order.</span>
+                      <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg flex items-center space-x-1.5 text-rose-800 text-xs font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>Some items in your basket are out of stock.</span>
                       </div>
                     )}
 
                     {submitError && (
-                      <div className="p-3 bg-rose-50 border border-rose-300 rounded-2xl flex items-center space-x-2 text-rose-800 text-xs font-bold">
-                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-lg flex items-center space-x-1.5 text-rose-800 text-xs font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                         <span>{submitError}</span>
                       </div>
                     )}
@@ -730,14 +679,14 @@ export const CustomerCartDrawer: React.FC<CustomerCartDrawerProps> = ({
                           return !lp || lp.stock <= 0;
                         })
                       }
-                      className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-xl text-sm font-bold flex items-center justify-center space-x-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                      className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      <Send className="w-4 h-4" />
-                      <span>{isSubmitting ? 'Submitting...' : 'Place Order'}</span>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isSubmitting ? 'Placing Order...' : 'Place Order'}</span>
                     </button>
 
-                    <p className="text-center text-[11px] text-slate-500 font-medium">
-                      🔒 No upfront online payment required. Pay when you collect or upon delivery.
+                    <p className="text-center text-[11px] text-slate-400 font-normal">
+                      No upfront payment. Pay when collecting or upon delivery.
                     </p>
                   </div>
                 </div>
