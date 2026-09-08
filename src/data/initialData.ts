@@ -14,6 +14,7 @@ import {
   CustomerFeedback,
   CustomerOnlineOrder,
 } from '../types/store';
+import { USER_REQUESTED_PRODUCE_LIST } from './userProduceList';
 
 export const INITIAL_STAFF: StaffMember[] = [
   {
@@ -135,7 +136,28 @@ export const INITIAL_SUPPLIERS: Supplier[] = [
   },
 ];
 
+const USER_PRODUCTS_MAPPED: Product[] = USER_REQUESTED_PRODUCE_LIST.map((item, idx) => ({
+  id: item.id,
+  sku: `PRD-${(idx + 1).toString().padStart(3, '0')}`,
+  name: item.name,
+  category: item.category,
+  costPrice: item.costPrice,
+  sellingPrice: item.sellingPrice,
+  stock: item.stock,
+  damaged: 0,
+  returned: 0,
+  minStockLevel: item.minStockLevel,
+  barcode: `501000100${(idx + 500).toString()}`,
+  unit: item.unit,
+  supplierId: 'sup-1',
+  image: item.image,
+  description: item.description,
+  createdAt: '2026-08-01T00:00:00.000Z',
+  updatedAt: '2026-08-21T00:00:00.000Z',
+}));
+
 export const INITIAL_PRODUCTS: Product[] = [
+  ...USER_PRODUCTS_MAPPED,
   // 1. Wash potat white
   {
     id: 'prod-01',
@@ -1333,26 +1355,6 @@ export const INITIAL_PRODUCTS: Product[] = [
     supplierId: 'sup-1',
     image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=400&q=80',
     description: 'Tender, nutrient-rich dark green spinach leaves, perfect raw in salads or sautéed.',
-    createdAt: '2026-08-01T00:00:00.000Z',
-    updatedAt: '2026-08-21T00:00:00.000Z',
-  },
-  // 61. Domenican mango
-  {
-    id: 'prod-61',
-    sku: 'MNG-DOM-001',
-    name: 'Dominican Mangoes',
-    category: 'Exotic & Tropical Produce',
-    costPrice: 1.30,
-    sellingPrice: 2.50,
-    stock: 45,
-    damaged: 0,
-    returned: 0,
-    minStockLevel: 8,
-    barcode: '501000100161',
-    unit: 'each',
-    supplierId: 'sup-2',
-    image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=400&q=80',
-    description: 'Sweet, highly fragrant Dominican tropical mangoes with minimal fibers.',
     createdAt: '2026-08-01T00:00:00.000Z',
     updatedAt: '2026-08-21T00:00:00.000Z',
   },

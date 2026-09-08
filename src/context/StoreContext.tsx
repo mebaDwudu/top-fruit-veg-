@@ -251,7 +251,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
   SETTINGS: 'topfruit_store_settings_v7',
-  PRODUCTS: 'topfruit_products_v7',
+  PRODUCTS: 'topfruit_products_v8',
   CATEGORIES: 'topfruit_categories_v7',
   ORDERS: 'topfruit_orders_v7',
   CUSTOMERS: 'topfruit_customers_v7',

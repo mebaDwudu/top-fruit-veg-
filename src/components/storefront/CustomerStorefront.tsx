@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Product } from '../../types/store';
 import { getProduceMeta } from '../../utils/produceImages';
@@ -7,6 +7,7 @@ import { CustomerCartDrawer, CustomerCartItem } from './CustomerCartDrawer';
 import { CustomerFeedbackModal } from '../modals/CustomerFeedbackModal';
 import { ShareStoreModal } from '../modals/ShareStoreModal';
 import { CustomerOrderTrackerModal } from './CustomerOrderTrackerModal';
+import { LivingBackground } from '../common/LivingBackground';
 import { sanitizeText, sanitizeEmail, sanitizePhone } from '../../utils/sanitize';
 import { validateHumanSubmission } from '../../utils/security';
 import {
@@ -33,7 +34,7 @@ import {
   Tag,
   Lock,
   Truck,
-  Sparkles,
+  Check,
 } from 'lucide-react';
 
 interface CustomerStorefrontProps {
@@ -63,31 +64,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
   const [preFilledOrderCode, setPreFilledOrderCode] = useState('');
 
+  // Micro-interaction states for tactile feedback
+  const [cartBounce, setCartBounce] = useState(false);
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+  const [cartToastMessage, setCartToastMessage] = useState<string | null>(null);
+  const cartToastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const showPrices = settings.showPricesToCustomers ?? false;
-
-  // Single featured fruit spotlight for landing page (e.g. Dominican Sweet Mango, Papaya, or top stall fruit)
-  const featuredFruit = useMemo(() => {
-    return (
-      products.find(
-        (p) =>
-          (p.name.toLowerCase().includes('mango') ||
-            p.name.toLowerCase().includes('papaya') ||
-            p.name.toLowerCase().includes('pineapple') ||
-            p.name.toLowerCase().includes('passion') ||
-            p.name.toLowerCase().includes('plantain') ||
-            p.name.toLowerCase().includes('melon')) &&
-          p.stock > 0
-      ) ||
-      products.find((p) => p.category.toLowerCase().includes('fruit') && p.stock > 0) ||
-      products[0] ||
-      null
-    );
-  }, [products]);
-
-  const featuredFruitMeta = useMemo(() => {
-    if (!featuredFruit) return null;
-    return getProduceMeta(featuredFruit.name, featuredFruit.category, featuredFruit.image);
-  }, [featuredFruit]);
 
   // Contact Form State
   const [contactForm, setContactForm] = useState({
@@ -157,6 +140,20 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       }
       return [...prev, { product, quantity }];
     });
+
+    // Tactile micro-interaction feedback
+    setRecentlyAddedId(product.id);
+    setCartBounce(true);
+    setCartToastMessage(`Added ${product.name} to basket`);
+
+    if (cartToastTimeoutRef.current) {
+      clearTimeout(cartToastTimeoutRef.current);
+    }
+    cartToastTimeoutRef.current = setTimeout(() => {
+      setRecentlyAddedId(null);
+      setCartBounce(false);
+      setCartToastMessage(null);
+    }, 1800);
   };
 
   const handleUpdateCartQuantity = (productId: string, quantity: number) => {
@@ -281,10 +278,335 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
     }, 4000);
   };
 
+  const renderProduceCatalogContent = () => (
+    <div className="space-y-4">
+      {/* Top Category Buttons Bar */}
+      <section className="w-full bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div className="flex items-center space-x-2">
+            <Tag className="w-4 h-4 text-emerald-600" />
+            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800">
+              Filter by Category
+            </h3>
+          </div>
+          <div className="text-xs text-slate-500 font-medium">
+            Showing <span className="text-emerald-700 font-bold">{filteredProducts.length}</span> of {products.length} items
+          </div>
+        </div>
+
+        {/* Category Pill Buttons */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-emerald-200">
+          <button
+            onClick={() => setSelectedCategory('All')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
+              selectedCategory === 'All'
+                ? 'bg-slate-900 text-white'
+                : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <span className="text-sm">🥭</span>
+            <span>All</span>
+            <span
+              className={`px-1.5 py-0.2 rounded text-[10px] ${
+                selectedCategory === 'All'
+                  ? 'bg-slate-800 text-white font-semibold'
+                  : 'bg-slate-200 text-slate-700 font-medium'
+              }`}
+            >
+              {products.length}
+            </span>
+          </button>
+
+          {categories.map((cat) => {
+            const emoji = getCategoryEmoji(cat);
+            const isSelected = selectedCategory === cat;
+            const catCount = products.filter((p) => p.category === cat).length;
+
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
+                  isSelected
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <span className="text-sm">{emoji}</span>
+                <span>{cat}</span>
+                <span
+                  className={`px-1.5 py-0.2 rounded text-[10px] ${
+                    isSelected
+                      ? 'bg-slate-800 text-white font-semibold'
+                      : 'bg-emerald-100 text-emerald-800 font-medium'
+                  }`}
+                >
+                  {catCount}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Secondary Fast Filters & Search Row */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-100 text-xs">
+          {/* Quick Search */}
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search fruits, veg, herbs..."
+              className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-slate-900 focus:bg-white"
+            />
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center space-x-1.5">
+            <button
+              onClick={() =>
+                setSelectedOrganicFilter((prev) => (prev === 'organic' ? 'all' : 'organic'))
+              }
+              className={`px-3 py-2 rounded-lg font-medium flex items-center space-x-1 transition-colors cursor-pointer ${
+                selectedOrganicFilter === 'organic'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <Leaf className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Organic</span>
+            </button>
+
+            <button
+              onClick={() =>
+                setSelectedAvailabilityFilter((prev) =>
+                  prev === 'in-stock' ? 'all' : 'in-stock'
+                )
+              }
+              className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
+                selectedAvailabilityFilter === 'in-stock'
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <span>In Stock</span>
+            </button>
+
+            {/* Sort Selection */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 text-xs font-medium focus:outline-hidden focus:border-slate-900 focus:bg-white"
+            >
+              <option value="name_asc">A–Z</option>
+              <option value="name_desc">Z–A</option>
+              {showPrices && (
+                <>
+                  <option value="price_asc">Price Low</option>
+                  <option value="price_desc">Price High</option>
+                </>
+              )}
+              <option value="newest">Newest</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Produce Grid */}
+      <section className="w-full">
+        {filteredProducts.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center space-y-3">
+            <div className="text-3xl">🧺</div>
+            <h4 className="text-base font-bold text-slate-800">No Produce Found</h4>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              No fresh produce matched "{searchQuery}". Try searching for another fruit, vegetable, or reset the filters.
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+                setSelectedOrganicFilter('all');
+                setSelectedAvailabilityFilter('all');
+              }}
+              className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
+            {filteredProducts.map((prod) => {
+              const meta = getProduceMeta(prod.name, prod.category, prod.image);
+              const isOutOfStock = prod.stock <= 0;
+              const isLowStock = prod.stock > 0 && prod.stock <= prod.minStockLevel;
+              const existingCartItem = cartItems.find((item) => item.product.id === prod.id);
+              const cartQty = existingCartItem?.quantity || 0;
+
+              return (
+                <div
+                  key={prod.id}
+                  className="group bg-white hover:border-emerald-400 border border-slate-200/90 rounded-2xl p-3 sm:p-3.5 card-hover-lift transition-all duration-300 flex flex-col justify-between"
+                >
+                  {/* Fruit Image Container with Real Photo */}
+                  <div
+                    onClick={() => setSelectedProduct(prod)}
+                    className="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden cursor-pointer flex items-center justify-center"
+                  >
+                    <img
+                      src={meta.imageUrl}
+                      alt={prod.name}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=600&q=80';
+                      }}
+                    />
+
+                    {/* Organic Badge */}
+                    {meta.isOrganic && (
+                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-bold rounded-md shadow-xs flex items-center gap-0.5">
+                        <Leaf className="w-3 h-3" />
+                        <span className="hidden sm:inline">Organic</span>
+                      </span>
+                    )}
+
+                    {/* Origin Country Tag */}
+                    <span className="absolute top-2 right-2 px-2 py-0.5 bg-white/95 text-slate-800 border border-slate-200 text-[9px] sm:text-[10px] font-bold rounded-md uppercase tracking-wider shadow-2xs">
+                      {meta.origin}
+                    </span>
+
+                    {/* Stock Status Badge */}
+                    <div className="absolute bottom-2 left-2">
+                      {isOutOfStock ? (
+                        <span className="px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-bold rounded-md">
+                          Out of Stock
+                        </span>
+                      ) : isLowStock ? (
+                        <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold rounded-md">
+                          {prod.stock} left
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Fruit Info & Pricing */}
+                  <div className="pt-2.5 flex-1 flex flex-col justify-between space-y-2">
+                    <div>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider truncate">
+                          {prod.category}
+                        </span>
+                        {/* Rating Stars: 5.0 */}
+                        <div className="flex items-center gap-0.5 text-amber-400 text-[10px]">
+                          <span>★★★★★</span>
+                          <span className="text-[9px] text-slate-400 font-semibold">(5.0)</span>
+                        </div>
+                      </div>
+
+                      <h4
+                        onClick={() => setSelectedProduct(prod)}
+                        className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 transition-colors cursor-pointer mt-0.5 truncate"
+                        title={prod.name}
+                      >
+                        {prod.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 hidden sm:block">
+                        {prod.description || `Fresh top grade ${prod.name}`}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+                      <div>
+                        {showPrices ? (
+                          <>
+                            <div className="text-sm sm:text-base font-extrabold text-slate-900 leading-none">
+                              {formatCurrency(prod.sellingPrice)}
+                            </div>
+                            <div className="text-[9px] sm:text-[10px] text-slate-400 font-medium mt-0.5">
+                              per {prod.unit || 'kg'}
+                            </div>
+                          </>
+                        ) : (
+                          <div>
+                            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
+                              per {prod.unit || 'kg'}
+                            </span>
+                            <div className="text-[9px] text-slate-400 font-medium mt-0.5">
+                              Pitch 18 Fresh
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Add / Quantity Stepper Button */}
+                      {cartQty > 0 ? (
+                        <div className="flex items-center space-x-1 bg-emerald-50 border border-emerald-300 rounded-xl p-0.5 shadow-2xs">
+                          <button
+                            onClick={() => handleUpdateCartQuantity(prod.id, cartQty - 1)}
+                            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-700 hover:bg-white transition-colors cursor-pointer"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="w-4 text-center font-bold text-xs text-emerald-800">
+                            {cartQty}
+                          </span>
+                          <button
+                            onClick={() =>
+                              handleUpdateCartQuantity(
+                                prod.id,
+                                Math.min(prod.stock, cartQty + 1)
+                              )
+                            }
+                            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-700 hover:bg-white transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleAddToCart(prod, 1)}
+                          disabled={isOutOfStock}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1 transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                            isOutOfStock
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : recentlyAddedId === prod.id
+                              ? 'bg-emerald-700 text-white shadow-emerald-500/20 scale-105'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          }`}
+                        >
+                          {recentlyAddedId === prod.id ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 animate-in zoom-in-50" />
+                              <span>Added!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+
   return (
-    <div className={`min-h-screen w-full max-w-full text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white ${
-      currentTab === 'landing' ? 'bg-white' : 'bg-emerald-50/40'
+    <div className={`relative min-h-screen w-full max-w-full text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white ${
+      currentTab === 'landing' ? 'bg-slate-50/40' : 'bg-emerald-50/30'
     }`}>
+      {/* Living animated backdrop with subtle gradient orbs & dot grid */}
+      <LivingBackground />
       {/* ========================================================= */}
       {/* 1. LEFT SIDEBAR (Clean bright solid theme, no scrollbar, no admin login) */}
       {/* ========================================================= */}
@@ -298,14 +620,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen w-60 max-w-[85vw] bg-white border-r border-emerald-100 shadow-xl lg:shadow-none flex flex-col justify-between p-3 sm:p-4 transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto ${
-          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed top-0 left-0 z-50 h-screen w-72 max-w-[85vw] bg-white border-r border-slate-200 shadow-2xl lg:hidden flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto ${
+          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="space-y-3 flex-1 flex flex-col justify-between">
+        <div className="space-y-4 flex-1 flex flex-col justify-between">
           <div>
             {/* Brand Header with Secret 3-Click Admin Trigger */}
-            <div className="flex items-center justify-between border-b border-emerald-100 pb-3 mb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div
                 onClick={handleSecretAdminTrigger}
                 className="flex items-center space-x-2.5 cursor-pointer group select-none"
@@ -327,16 +649,17 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               {/* Mobile close button */}
               <button
                 onClick={() => setIsMobileSidebarOpen(false)}
-                className="lg:hidden p-1.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900"
+                className="p-1.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 cursor-pointer"
+                title="Close Navigation"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Primary Navigation Buttons in Left Sidebar */}
-            <nav className="space-y-1">
+            {/* Primary Navigation Buttons in Mobile Drawer */}
+            <nav className="space-y-1.5">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2.5 pb-0.5">
-                Stall Navigation
+                Navigation
               </div>
 
               {/* Button 1: Home / Landing */}
@@ -346,13 +669,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setCurrentTab('landing');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentTab === 'landing'
-                    ? 'bg-slate-900 text-white font-semibold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2.5">
                   <span>🏠</span>
                   <span>Home</span>
                 </div>
@@ -366,17 +689,17 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setSelectedCategory('All');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentTab === 'home'
-                    ? 'bg-slate-900 text-white font-semibold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2.5">
                   <span>🥭</span>
-                  <span>Produce</span>
+                  <span>All Produce</span>
                 </div>
-                <span className={`text-[11px] ${currentTab === 'home' ? 'text-slate-300' : 'text-slate-400'}`}>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full ${currentTab === 'home' ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'}`}>
                   {products.length}
                 </span>
               </button>
@@ -388,10 +711,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setIsTrackerModalOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <div className="flex items-center space-x-2">
-                  <Truck className="w-4 h-4 text-slate-500" />
+                <div className="flex items-center space-x-2.5">
+                  <Truck className="w-4 h-4 text-emerald-600" />
                   <span>Track Order</span>
                 </div>
               </button>
@@ -403,11 +726,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setIsFeedbackModalOpen(true);
                   setIsMobileSidebarOpen(false);
                 }}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">⭐</span>
-                  <span>Feedback</span>
+                <div className="flex items-center space-x-2.5">
+                  <span>Customer Reviews</span>
                 </div>
               </button>
 
@@ -418,51 +740,48 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   setCurrentTab('about_contact');
                   setIsMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentTab === 'about_contact'
-                    ? 'bg-slate-900 text-white font-semibold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2.5">
                   <span>📍</span>
-                  <span>About Stall</span>
+                  <span>About Pitch 18</span>
                 </div>
-                <span className={`text-[11px] ${currentTab === 'about_contact' ? 'text-slate-300' : 'text-slate-400'}`}>
-                  Pitch 18
-                </span>
               </button>
             </nav>
           </div>
 
           <div className="space-y-2">
             {/* Brixton Market Clean Info */}
-            <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1 text-xs">
-              <div className="flex items-center justify-between font-semibold text-slate-800">
+            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1 text-xs">
+              <div className="flex items-center justify-between font-bold text-slate-800">
                 <div className="flex items-center space-x-1.5">
-                  <Store className="w-3.5 h-3.5 text-slate-600" />
+                  <Store className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Brixton Market</span>
                 </div>
-                <span className="text-[10px] text-emerald-700 font-medium">Open Daily</span>
+                <span className="text-[10px] text-emerald-700 font-bold">Open Daily</span>
               </div>
               <p className="text-[11px] text-slate-500">
                 Pitch 18 Pope's Road, London SW9
               </p>
-              <div className="flex items-center space-x-1 text-[11px] text-slate-600 pt-0.5">
-                <Phone className="w-3 h-3 text-slate-400" />
-                <a href="tel:+447449338679" className="hover:text-emerald-700 transition-colors">
+              <div className="flex items-center space-x-1 text-[11px] text-slate-700 pt-0.5">
+                <Phone className="w-3 h-3 text-emerald-600" />
+                <a href="tel:+447449338679" className="hover:text-emerald-700 font-semibold transition-colors">
                   +44 7449 338679
                 </a>
               </div>
             </div>
 
             {/* Action Buttons: WhatsApp & Share */}
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-2">
               <a
                 href="https://wa.me/447449338679?text=Hello%20Top%20Fruits%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20a%20pre-order."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center space-x-1 transition-colors cursor-pointer"
+                className="py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer shadow-xs"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
                 <span>WhatsApp</span>
@@ -470,7 +789,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-1 transition-colors cursor-pointer border border-slate-200"
+                className="py-2.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer border border-slate-200"
               >
                 <Share2 className="w-3.5 h-3.5 text-slate-600" />
                 <span>Share</span>
@@ -479,8 +798,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           </div>
         </div>
 
-        {/* Sidebar Footer */}
-        <div className="pt-2 border-t border-emerald-100">
+        {/* Drawer Footer */}
+        <div className="pt-3 border-t border-slate-100">
           <div
             onClick={handleSecretAdminTrigger}
             className="text-center text-[10px] text-slate-400 select-none cursor-pointer hover:text-slate-600 transition-colors"
@@ -492,153 +811,234 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       </aside>
 
       {/* ========================================================= */}
-      {/* 2. MAIN CONTENT AREA (PC OFFSET BY FIXED SIDEBAR) */}
+      {/* 2. MAIN CONTENT AREA (CLEAN FULL WIDTH TOP-HEADER LAYOUT) */}
       {/* ========================================================= */}
-      <div className="flex-1 min-w-0 lg:pl-60 flex flex-col min-h-screen bg-transparent">
-        {/* Top Header Bar (Solid bright clean look) */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 shadow-2xs">
-          <div className="flex items-center space-x-3">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200"
-              title="Open Navigation Menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            <div>
-              <h2 className="text-sm sm:text-lg font-extrabold text-slate-900 leading-tight flex items-center gap-1.5 sm:gap-2">
-                {currentTab === 'landing' ? (
-                  <>
-                    <Store className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 inline-block shrink-0" />
-                    <span className="sm:hidden">Top Fruit & Veg</span>
-                    <span className="hidden sm:inline">Top Fruit & Veg • Pitch 18 Brixton Market</span>
-                  </>
-                ) : currentTab === 'home' ? (
-                  <>
-                    <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 inline-block shrink-0" />
-                    <span className="sm:hidden">Produce</span>
-                    <span className="hidden sm:inline">Fresh Produce Catalog</span>
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 inline-block shrink-0" />
-                    <span className="sm:hidden">About</span>
-                    <span className="hidden sm:inline">About Us & Stall Contacts</span>
-                  </>
-                )}
-              </h2>
-              <p className="text-[11px] text-emerald-700 font-bold hidden sm:flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
-                <span>Brixton Market Pitch 18 • Fresh Daily</span>
-              </p>
+      <div className="flex-1 min-w-0 w-full flex flex-col min-h-screen bg-transparent">
+        {/* Top Announcement Bar */}
+        <div className="w-full bg-slate-900 text-slate-200 text-[11px] py-1.5 px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="truncate">
+                🌱 Brixton Market Pitch 18 Pope's Road • Fresh Dawn Deliveries • Open Mon–Sat 8:00 AM – 6:30 PM
+              </span>
+            </div>
+            <div className="hidden md:flex items-center gap-4 shrink-0 text-slate-300">
+              <a href="tel:+447449338679" className="hover:text-white transition-colors flex items-center gap-1.5 font-medium">
+                <Phone className="w-3 h-3 text-emerald-400" />
+                <span>+44 7449 338679</span>
+              </a>
+              <button
+                onClick={handleSecretAdminTrigger}
+                className="text-slate-400 hover:text-slate-200 text-[10px] cursor-pointer"
+                title="Staff Portal (Triple Click)"
+              >
+                Staff Portal
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Top Right Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Customer Track Order Button */}
-            <button
-              id="header-btn-track"
-              onClick={() => setIsTrackerModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
-            >
-              <Truck className="w-3.5 h-3.5 text-slate-500" />
-              <span>Track</span>
-            </button>
+        {/* Top Sticky Header Bar (Crisp White Organic Store Navigation) */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-3 shadow-2xs">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-6">
+            {/* Logo & Mobile Menu Toggle */}
+            <div className="flex items-center space-x-3 shrink-0">
+              <button
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 cursor-pointer"
+                title="Open Navigation Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
 
-            {/* Customer Feedback Button in Header */}
-            <button
-              id="header-btn-feedback"
-              onClick={() => setIsFeedbackModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
-            >
-              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-              <span>Feedback</span>
-            </button>
+              <div
+                onClick={() => {
+                  setCurrentTab('landing');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex items-center space-x-2.5 cursor-pointer select-none group"
+              >
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 transition-all flex items-center justify-center text-white text-xl shadow-xs">
+                  🥭
+                </div>
+                <div>
+                  <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-tight group-hover:text-emerald-700 transition-colors">
+                    Top Fruit & Veg
+                  </h1>
+                  <p className="text-[10px] text-emerald-700 font-bold hidden sm:flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                    <span>Brixton Market • Pitch 18</span>
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            {/* Direct Stall Call */}
-            <a
-              href="tel:+447449338679"
-              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition-colors"
-            >
-              <Phone className="w-3.5 h-3.5 text-slate-500" />
-              <span>+44 7449 338679</span>
-            </a>
+            {/* Desktop Navigation Links */}
+            <nav className="hidden lg:flex items-center space-x-1 text-xs font-semibold text-slate-600">
+              <button
+                onClick={() => {
+                  setCurrentTab('landing');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                  currentTab === 'landing'
+                    ? 'bg-slate-900 text-white font-bold'
+                    : 'hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                Home
+              </button>
 
-            {/* Shopping Basket Drawer Trigger */}
-            <button
-              id="header-btn-orders"
-              onClick={() => setIsCartOpen(true)}
-              className="relative py-1.5 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer active:scale-95"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Orders</span>
-              {totalCartCount > 0 && (
-                <span className="px-1.5 py-0.5 bg-white text-emerald-800 rounded-full text-[10px] font-bold leading-none">
-                  {totalCartCount}
+              <button
+                onClick={() => {
+                  setCurrentTab('home');
+                  setSelectedCategory('All');
+                }}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  currentTab === 'home'
+                    ? 'bg-slate-900 text-white font-bold'
+                    : 'hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <span>Produce Catalog</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  currentTab === 'home' ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {products.length}
                 </span>
-              )}
-            </button>
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentTab('about_contact');
+                }}
+                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                  currentTab === 'about_contact'
+                    ? 'bg-slate-900 text-white font-bold'
+                    : 'hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                About Pitch 18
+              </button>
+            </nav>
+
+            {/* Header Right Actions */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Customer Track Order Button */}
+              <button
+                id="header-btn-track"
+                onClick={() => setIsTrackerModalOpen(true)}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
+              >
+                <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="hidden sm:inline">Track</span>
+              </button>
+
+              {/* Customer Feedback Button */}
+              <button
+                id="header-btn-feedback"
+                onClick={() => setIsFeedbackModalOpen(true)}
+                className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
+              >
+                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                <span>Reviews</span>
+              </button>
+
+              {/* WhatsApp Button */}
+              <a
+                href="https://wa.me/447449338679?text=Hello%20Top%20Fruit%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20an%20order."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-xs font-semibold transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>WhatsApp</span>
+              </a>
+
+              {/* Shopping Basket Button with Micro-bounce */}
+              <button
+                id="header-btn-orders"
+                onClick={() => setIsCartOpen(true)}
+                className={`relative py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-2 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  cartBounce ? 'animate-cart-bounce ring-2 ring-emerald-400 ring-offset-1' : ''
+                }`}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>Orders</span>
+                {totalCartCount > 0 && (
+                  <span className={`px-1.5 py-0.5 bg-white text-emerald-800 rounded-full text-[10px] font-black leading-none ${
+                    cartBounce ? 'animate-badge-pop' : ''
+                  }`}>
+                    {totalCartCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </header>
 
         {/* ========================================================= */}
-        {/* VIEW 0: LANDING PAGE (LIGHTER PALETTE: 5% YELLOW, 5% GREEN, 5% PINK, REST WHITE) */}
+        {/* VIEW 0: LANDING PAGE (LIGHT YELLOW & LIGHT BLUE LINEAR PALETTE, ZERO PINK) */}
         {/* ========================================================= */}
         {currentTab === 'landing' && (
           <main
             className="flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200"
             style={{
               background:
-                'radial-gradient(ellipse 70% 35% at 10% 5%, rgba(254, 240, 138, 0.22) 0%, transparent 60%), ' +
-                'radial-gradient(ellipse 70% 35% at 90% 10%, rgba(167, 243, 208, 0.22) 0%, transparent 60%), ' +
-                'radial-gradient(ellipse 60% 45% at 50% 95%, rgba(251, 207, 232, 0.20) 0%, transparent 60%), #ffffff',
+                'linear-gradient(145deg, rgba(254, 249, 195, 0.45) 0%, rgba(240, 249, 255, 0.50) 50%, rgba(224, 242, 254, 0.55) 100%)',
             }}
           >
-            {/* Lighter Color Hero Banner: White with 5% Yellow, 5% Green, 5% Pink Accents */}
-            <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-7 md:p-8 lg:p-10 shadow-xs">
-              {/* Soft Ambient Corner Accents (5% Yellow, 5% Green, 5% Pink) */}
-              <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-yellow-100/50 blur-3xl pointer-events-none" />
-              <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-emerald-100/50 blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-20 left-1/3 w-64 h-64 rounded-full bg-pink-100/50 blur-3xl pointer-events-none" />
+            {/* Hero Banner: Light Yellow and Light Blue combination background */}
+            <section
+              className="relative overflow-hidden rounded-2xl border border-amber-200/70 p-5 sm:p-7 md:p-8 lg:p-10 shadow-xs"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(254, 249, 195, 0.85) 0%, rgba(254, 240, 138, 0.45) 35%, rgba(240, 249, 255, 0.65) 65%, rgba(224, 242, 254, 0.85) 100%)',
+              }}
+            >
+              {/* Soft Linear Accent Overlays: Light Yellow & Light Blue (No circular dots or spread) */}
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-transparent to-sky-200/25 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-sky-100/30 pointer-events-none" />
 
-              {/* Main 2-Column Responsive Layout: Left Info & Actions, Right 1 Fruit Spotlight */}
-              <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-center">
-                {/* LEFT SIDE: Text, Badges, CTAs, Location (md:col-span-7) */}
-                <div className="md:col-span-7 space-y-4">
-                  {/* 3 Balanced Soft Color Badges: Yellow (5%), Green (5%), Pink (5%) */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-800 border border-yellow-200/80 text-xs font-semibold flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block" />
+              {/* Main Responsive Grid Layout: Left Info & Right Fruit Combination Showcase */}
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+                {/* Left Column: Top Fruit & Veg, badges, text, actions, hours (lg:col-span-7) */}
+                <div className="lg:col-span-7 space-y-4">
+                  {/* Balanced Soft Color Badges: Yellow & Sky Blue (Zero Pink) */}
+                  <div className="flex flex-wrap items-center gap-2 animate-enter stagger-1">
+                    <span className="px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-800 border border-yellow-200/80 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block animate-pulse" />
                       <span>Sun-Fresh Daily</span>
                     </span>
-                    <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                    <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                      </span>
                       <span>Pitch 18 • Brixton Market</span>
                     </span>
-                    <span className="px-2.5 py-1 rounded-md bg-pink-50 text-pink-800 border border-pink-200/80 text-xs font-semibold flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-pink-500 inline-block" />
+                    <span className="px-2.5 py-1 rounded-md bg-sky-50 text-sky-800 border border-sky-200/80 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 inline-block" />
                       <span>Tropical & Exotic Goods</span>
                     </span>
                   </div>
 
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight font-display">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight font-display animate-enter stagger-2">
                     Top Fruit & Veg
                   </h1>
 
-                  <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl font-normal">
+                  <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl font-normal animate-enter stagger-3">
                     Fresh tropical produce, Jamaican yams, sweet plantains, and market goods delivered fresh to our stall at 5:00 AM daily.
                   </p>
 
-                  <div className="pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3">
+                  <div className="pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3 animate-enter stagger-4">
                     <button
                       onClick={() => {
                         setCurrentTab('home');
                         setSelectedCategory('All');
                       }}
-                      className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-colors cursor-pointer flex items-center gap-2 active:scale-95 shadow-2xs"
+                      className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-sm hover:shadow-md"
                     >
                       <ShoppingBag className="w-4 h-4" />
                       <span>Browse Produce</span>
@@ -647,7 +1047,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
                     <button
                       onClick={() => setIsTrackerModalOpen(true)}
-                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer shadow-2xs"
+                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                     >
                       Track Order
                     </button>
@@ -656,7 +1056,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       href="https://wa.me/447449338679"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-pink-50 text-slate-700 hover:text-pink-700 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 shadow-2xs"
+                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-sky-50/70 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                     >
                       <MessageCircle className="w-4 h-4 text-emerald-600" />
                       <span>WhatsApp</span>
@@ -664,7 +1064,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   </div>
 
                   {/* Minimal Location & Schedule Strip */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500">
+                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 animate-enter stagger-4">
                     <span className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       Pope's Road, London SW9 8PB
@@ -674,114 +1074,43 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       Mon–Sat 8:00–18:30 • Sun 9:00–16:00
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                      <Sparkles className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                       Daily Selection
                     </span>
                   </div>
                 </div>
 
-                {/* RIGHT SIDE: 1 FRUIT SPOTLIGHT WITH BALANCED PROPORTIONS (md:col-span-5) */}
-                <div className="md:col-span-5 w-full">
-                  {featuredFruit && (
-                    <div
-                      onClick={() => setSelectedProduct(featuredFruit)}
-                      className="group relative bg-white/95 border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-3.5 sm:p-4 transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-xs flex flex-col justify-between max-w-sm sm:max-w-md mx-auto md:max-w-none"
-                    >
-                      {/* Top Header inside fruit card: 5% Yellow / Green accents */}
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <span className="px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-900 border border-yellow-200/80 text-[11px] font-semibold flex items-center gap-1.5 truncate">
-                          <span>☀️</span>
-                          <span>Today's Spotlight</span>
-                        </span>
-                        <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70 flex items-center gap-1 shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                          <span>Pitch 18 Pick</span>
-                        </span>
-                      </div>
+                {/* Right Column: High Quality Image of Combination of Fruits (lg:col-span-5) */}
+                <div className="lg:col-span-5 w-full flex justify-center lg:justify-end animate-enter stagger-3">
+                  <div className="relative w-full max-w-md group">
+                    {/* Glowing ambient aura backing (Yellow & Light Blue, Zero Pink) */}
+                    <div className="absolute -inset-2 bg-gradient-to-tr from-yellow-300/40 via-sky-200/40 to-sky-300/40 rounded-3xl blur-xl opacity-80 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                      {/* Fruit Image Container: Responsively proportioned on phone, tablet, and desktop */}
-                      <div className="relative w-full h-40 sm:h-48 md:h-44 lg:h-52 rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
-                        <img
-                          src={featuredFruitMeta?.imageUrl || featuredFruit.image}
-                          alt={featuredFruit.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=600&q=80';
-                          }}
-                        />
-
-                        {/* Top Right Ripeness Badge (Pink 5% touch) */}
-                        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-pink-50/95 border border-pink-200/80 text-pink-900 text-[10px] font-semibold shadow-2xs">
-                          {featuredFruitMeta?.estimatedWeight || 'Tropical Fresh'}
-                        </span>
-
-                        {/* Bottom Left Origin Badge */}
-                        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
-                          <span className="px-2 py-0.5 rounded-md bg-white/95 text-slate-800 text-[10px] font-medium shadow-2xs border border-slate-200/80 flex items-center gap-1 backdrop-blur-xs">
-                            <MapPin className="w-3 h-3 text-emerald-600" />
-                            {featuredFruitMeta?.origin || 'Brixton Stall'}
-                          </span>
-                          {featuredFruitMeta?.isOrganic && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-semibold flex items-center gap-1">
-                              <Leaf className="w-3 h-3" />
-                              Organic
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Fruit Metadata & Add to Cart button */}
-                      <div className="pt-3 flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block truncate">
-                            {featuredFruit.category}
-                          </span>
-                          <h3 className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
-                            {featuredFruit.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {showPrices ? (
-                              <span className="text-xs sm:text-sm font-bold text-slate-900">
-                                {formatCurrency(featuredFruit.sellingPrice)}{' '}
-                                <span className="text-[10px] font-normal text-slate-500">
-                                  / {featuredFruit.unit}
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                Sold per {featuredFruit.unit || 'kg'}
-                              </span>
-                            )}
-                            <span className="text-[10px] text-emerald-700 font-medium">
-                              {featuredFruit.stock > 0 ? `${featuredFruit.stock} in stock` : 'Fresh arrival'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(featuredFruit);
-                          }}
-                          className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs active:scale-95"
-                          title="Add to Basket"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Add</span>
-                        </button>
-                      </div>
+                    {/* Main High-Quality Fruit Combination Image Container */}
+                    <div className="relative z-10 w-full h-56 sm:h-64 md:h-72 lg:h-80 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm bg-slate-100">
+                      <img
+                        src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?auto=format&fit=crop&w=1200&q=85"
+                        alt="Fresh combination of fruits"
+                        loading="eager"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85';
+                        }}
+                      />
+                      {/* Subtle soft gradient reflection */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
-              {/* 3 Accent Feature Cards: 5% Yellow, 5% Green, 5% Pink seated on White */}
+              {/* 3 Accent Feature Cards: Yellow, Green, Sky Blue (Zero Pink) */}
               <div className="relative z-10 pt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* 5% Yellow Card */}
-                <div className="bg-yellow-50/80 border border-yellow-200/80 rounded-xl p-3.5 space-y-1">
-                  <div className="w-7 h-7 rounded-lg bg-yellow-100 text-yellow-800 flex items-center justify-center text-xs font-bold mb-1">
+                {/* Yellow Card */}
+                <div className="bg-yellow-50/80 border border-yellow-200/80 rounded-xl p-3.5 space-y-1 card-hover-lift group cursor-default transition-all duration-300">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-100 text-yellow-800 flex items-center justify-center text-xs font-bold mb-1 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
                     ☀️
                   </div>
                   <div className="text-xs font-bold text-yellow-950">5:00 AM Dawn Fresh</div>
@@ -790,9 +1119,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   </div>
                 </div>
 
-                {/* 5% Green Card */}
-                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3.5 space-y-1">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold mb-1">
+                {/* Green Card */}
+                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3.5 space-y-1 card-hover-lift group cursor-default transition-all duration-300">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold mb-1 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
                     🌱
                   </div>
                   <div className="text-xs font-bold text-emerald-950">Pitch 18 Pope's Road</div>
@@ -801,20 +1130,20 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   </div>
                 </div>
 
-                {/* 5% Pink Card */}
-                <div className="bg-pink-50/80 border border-pink-200/80 rounded-xl p-3.5 space-y-1">
-                  <div className="w-7 h-7 rounded-lg bg-pink-100 text-pink-800 flex items-center justify-center text-xs font-bold mb-1">
-                    🌸
+                {/* Sky Blue Card (Replaced Pink) */}
+                <div className="bg-sky-50/80 border border-sky-200/80 rounded-xl p-3.5 space-y-1 card-hover-lift group cursor-default transition-all duration-300">
+                  <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 flex items-center justify-center text-xs font-bold mb-1 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+                    🌊
                   </div>
-                  <div className="text-xs font-bold text-pink-950">Authentic Tropical Produce</div>
-                  <div className="text-[11px] text-pink-900/80 leading-relaxed">
+                  <div className="text-xs font-bold text-sky-950">Authentic Tropical Produce</div>
+                  <div className="text-[11px] text-sky-900/80 leading-relaxed">
                     Yellow yams, sweet plantains, mangoes, breadfruit & Caribbean specialties.
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* Produce Categories on Landing: Clean White with 5% Yellow, Green, Pink accents */}
+            {/* Produce Categories on Landing */}
             <section className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <div>
@@ -830,10 +1159,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     setCurrentTab('home');
                     setSelectedCategory('All');
                   }}
-                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer flex items-center gap-1"
+                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer flex items-center gap-1 group"
                 >
                   <span>View all ({products.length})</span>
-                  <span>→</span>
+                  <span className="group-hover:translate-x-0.5 transition-transform duration-200">→</span>
                 </button>
               </div>
 
@@ -847,25 +1176,30 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       ? 'bg-yellow-50 text-yellow-800 border-yellow-200/60'
                       : mod === 1
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200/60'
-                      : 'bg-pink-50 text-pink-800 border-pink-200/60';
+                      : 'bg-sky-50 text-sky-800 border-sky-200/60';
                   const hoverBorder =
                     mod === 0
                       ? 'hover:border-yellow-300'
                       : mod === 1
                       ? 'hover:border-emerald-300'
-                      : 'hover:border-pink-300';
+                      : 'hover:border-sky-300';
 
                   return (
                     <button
                       key={cat}
                       onClick={() => {
-                        setCurrentTab('home');
                         setSelectedCategory(cat);
+                        const el = document.getElementById('market-produce');
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                          setCurrentTab('home');
+                        }
                       }}
-                      className={`p-4 rounded-xl bg-white border border-slate-200/80 ${hoverBorder} transition-all text-left group cursor-pointer hover:shadow-2xs`}
+                      className={`p-4 rounded-xl bg-white border border-slate-200/80 ${hoverBorder} card-hover-lift transition-all duration-200 text-left group cursor-pointer hover:shadow-xs active:scale-[0.98]`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-2xl">{emoji}</span>
+                        <span className="text-2xl group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 inline-block">{emoji}</span>
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${accentBadge}`}>
                           {count} {count === 1 ? 'item' : 'items'}
                         </span>
@@ -878,318 +1212,50 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 })}
               </div>
             </section>
+
+            {/* ========================================================= */}
+            {/* DIRECT PRODUCE CATALOG ON LANDING (Matches Clean UI) */}
+            {/* ========================================================= */}
+            <section id="market-produce" className="w-full space-y-4 pt-4 border-t border-slate-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                    Market Produce Catalog
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Handpicked at 5:00 AM daily • Pitch 18 Pope's Road Brixton Market
+                  </p>
+                </div>
+                <div className="text-xs text-slate-500 font-medium">
+                  Showing <span className="text-emerald-700 font-bold">{filteredProducts.length}</span> of {products.length} items
+                </div>
+              </div>
+
+              {renderProduceCatalogContent()}
+            </section>
           </main>
         )}
 
         {/* ========================================================= */}
-        {/* VIEW 1: HOME (ONLY ALL THE FRUITS + TOP CATEGORY BUTTONS) */}
+        {/* VIEW 1: PRODUCE CATALOG (DEDICATED FULL VIEW) */}
         {/* ========================================================= */}
         {currentTab === 'home' && (
-          <main className="flex-1 w-full p-3 sm:p-6 lg:p-8 space-y-6">
-            {/* Top Category Buttons Bar (Clean Solid Styling) */}
-            <section className="w-full bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div className="flex items-center space-x-2">
-                  <Tag className="w-4 h-4 text-emerald-600" />
-                  <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800">
-                    Produce Category
-                  </h3>
-                </div>
-                <div className="text-xs text-slate-500 font-medium">
-                  Showing <span className="text-emerald-700 font-semibold">{filteredProducts.length}</span> of {products.length} items
-                </div>
+          <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                  Fresh Produce Catalog
+                </h2>
+                <p className="text-xs text-slate-500">
+                  All 90+ fruits, vegetables, roots & fresh herbs available today at Pitch 18 Brixton
+                </p>
               </div>
-
-              {/* Category Pill Buttons with Clean Solid Active States */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-emerald-200">
-                {/* All Fruits Master Button */}
-                <button
-                  onClick={() => setSelectedCategory('All')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
-                    selectedCategory === 'All'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
-                  }`}
-                >
-                  <span className="text-sm">🥭</span>
-                  <span>All</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] ${
-                      selectedCategory === 'All'
-                        ? 'bg-slate-800 text-white font-semibold'
-                        : 'bg-slate-200 text-slate-700 font-medium'
-                    }`}
-                  >
-                    {products.length}
-                  </span>
-                </button>
-
-                {/* Individual Category Buttons */}
-                {categories.map((cat) => {
-                  const emoji = getCategoryEmoji(cat);
-                  const isSelected = selectedCategory === cat;
-                  const catCount = products.filter((p) => p.category === cat).length;
-
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
-                        isSelected
-                          ? 'bg-slate-900 text-white'
-                          : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
-                      }`}
-                    >
-                      <span className="text-sm">{emoji}</span>
-                      <span>{cat}</span>
-                      <span
-                        className={`px-1.5 py-0.2 rounded text-[10px] ${
-                          isSelected
-                            ? 'bg-slate-800 text-white font-semibold'
-                            : 'bg-emerald-100 text-emerald-800 font-medium'
-                        }`}
-                      >
-                        {catCount}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="text-xs text-slate-500 font-medium">
+                Showing <span className="text-emerald-700 font-bold">{filteredProducts.length}</span> of {products.length} items
               </div>
+            </div>
 
-              {/* Secondary Fast Filters & Search Row */}
-              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-100 text-xs">
-                {/* Quick Search */}
-                <div className="relative flex-1 min-w-[180px] max-w-sm">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onBlur={() => {
-                      if (window.innerWidth < 768) {
-                        window.scrollTo({ top: window.scrollY, behavior: 'smooth' });
-                      }
-                    }}
-                    placeholder="Search produce..."
-                    className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-slate-900 focus:bg-white"
-                  />
-                </div>
-
-                {/* Filter Pills */}
-                <div className="flex items-center space-x-1.5">
-                  <button
-                    onClick={() =>
-                      setSelectedOrganicFilter((prev) => (prev === 'organic' ? 'all' : 'organic'))
-                    }
-                    className={`px-3 py-2 rounded-lg font-medium flex items-center space-x-1 transition-colors cursor-pointer ${
-                      selectedOrganicFilter === 'organic'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
-                    }`}
-                  >
-                    <Leaf className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>Organic</span>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setSelectedAvailabilityFilter((prev) =>
-                        prev === 'in-stock' ? 'all' : 'in-stock'
-                      )
-                    }
-                    className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
-                      selectedAvailabilityFilter === 'in-stock'
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
-                    }`}
-                  >
-                    <span>In Stock</span>
-                  </button>
-
-                  {/* Sort Selection */}
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
-                    className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 text-xs font-medium focus:outline-hidden focus:border-slate-900 focus:bg-white"
-                  >
-                    <option value="name_asc">A–Z</option>
-                    <option value="name_desc">Z–A</option>
-                    {showPrices && (
-                      <>
-                        <option value="price_asc">Price Low</option>
-                        <option value="price_desc">Price High</option>
-                      </>
-                    )}
-                    <option value="newest">Newest</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-
-            {/* FULL SCREEN FRUITS GRID: 5 ITEMS PER ROW ON PC & LARGER CARDS */}
-            <section className="w-full">
-              {filteredProducts.length === 0 ? (
-                <div className="w-full bg-white border border-slate-200 rounded-xl p-12 text-center my-6">
-                  <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-500">
-                    <Search className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-base font-bold text-slate-900 mb-1">No produce matched</h4>
-                  <p className="text-xs text-slate-500 mb-4">
-                    Try clearing your search query or selecting "All".
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('All');
-                      setSelectedOrganicFilter('all');
-                      setSelectedAvailabilityFilter('all');
-                    }}
-                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                  >
-                    Reset
-                  </button>
-                </div>
-              ) : (
-                <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
-                  {filteredProducts.map((prod) => {
-                    const meta = getProduceMeta(prod.name, prod.category, prod.image);
-                    const isOutOfStock = prod.stock <= 0;
-                    const isLowStock = prod.stock > 0 && prod.stock <= prod.minStockLevel;
-                    const existingCartItem = cartItems.find((item) => item.product.id === prod.id);
-                    const cartQty = existingCartItem?.quantity || 0;
-
-                    return (
-                      <div
-                        key={prod.id}
-                        className="group bg-white hover:border-slate-400 border border-slate-200 rounded-xl overflow-hidden transition-all duration-200 flex flex-col hover:shadow-sm"
-                      >
-                        {/* Fruit Image Container (Enlarged for 5-per-row layout on PC) */}
-                        <div
-                          onClick={() => setSelectedProduct(prod)}
-                          className="relative w-full h-44 sm:h-52 md:h-56 lg:h-64 bg-emerald-50/50 overflow-hidden cursor-pointer flex items-center justify-center"
-                        >
-                          <img
-                            src={meta.imageUrl}
-                            alt={prod.name}
-                            loading="lazy"
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-
-                          {/* Organic Badge */}
-                          {meta.isOrganic && (
-                            <span className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-extrabold rounded-lg shadow-xs flex items-center gap-0.5">
-                              <Leaf className="w-3 h-3" />
-                              <span className="hidden sm:inline">Organic</span>
-                            </span>
-                          )}
-
-                          {/* Origin Country Flag / Badge */}
-                          <span className="absolute top-2 right-2 px-2 py-0.5 bg-white/95 text-amber-900 border border-amber-200 text-[10px] font-extrabold rounded-lg uppercase tracking-wider shadow-2xs">
-                            {meta.origin}
-                          </span>
-
-                          {/* Stock Status Badge */}
-                          <div className="absolute bottom-2 left-2">
-                            {isOutOfStock ? (
-                              <span className="px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-extrabold rounded-lg">
-                                Out of Stock
-                              </span>
-                            ) : isLowStock ? (
-                              <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold rounded-lg">
-                                {prod.stock} left
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-
-                        {/* Fruit Info & Pricing */}
-                        <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
-                          <div>
-                            <span className="text-[10px] sm:text-[11px] font-extrabold text-emerald-700 block truncate">
-                              {prod.category}
-                            </span>
-                            <h4
-                              onClick={() => setSelectedProduct(prod)}
-                              className="font-extrabold text-xs sm:text-sm md:text-base text-slate-900 group-hover:text-emerald-700 transition-colors cursor-pointer mt-0.5 truncate"
-                              title={prod.name}
-                            >
-                              {prod.name}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 hidden sm:block">
-                              {prod.description || `Fresh top grade ${prod.name}`}
-                            </p>
-                          </div>
-
-                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
-                            <div>
-                              {showPrices ? (
-                                <>
-                                  <div className="text-sm sm:text-base font-black text-slate-900">
-                                    {formatCurrency(prod.sellingPrice)}
-                                  </div>
-                                  <div className="text-[9px] sm:text-[10px] text-slate-400 font-bold">
-                                    per {prod.unit || 'kg'}
-                                  </div>
-                                </>
-                              ) : (
-                                <div>
-                                  <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
-                                    per {prod.unit || 'kg'}
-                                  </span>
-                                  <div className="text-[9px] text-slate-400 font-medium mt-0.5">
-                                    Pitch 18 Fresh
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Add / Quantity Stepper Button */}
-                            {cartQty > 0 ? (
-                              <div className="flex items-center space-x-1 bg-emerald-50 border border-emerald-300 rounded-xl p-0.5 shadow-2xs">
-                                <button
-                                  onClick={() => handleUpdateCartQuantity(prod.id, cartQty - 1)}
-                                  className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-700 hover:bg-white transition-colors cursor-pointer"
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <span className="w-4 text-center font-black text-xs text-emerald-800">
-                                  {cartQty}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                   handleUpdateCartQuantity(
-                                      prod.id,
-                                      Math.min(prod.stock, cartQty + 1)
-                                    )
-                                  }
-                                  className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-700 hover:bg-white transition-colors cursor-pointer"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => handleAddToCart(prod, 1)}
-                                disabled={isOutOfStock}
-                                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center space-x-1 transition-all cursor-pointer shadow-2xs ${
-                                  isOutOfStock
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                    : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95'
-                                }`}
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>Add</span>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
+            {renderProduceCatalogContent()}
           </main>
         )}
 
@@ -1581,6 +1647,22 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               <span className="text-xs">→</span>
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Dynamic Toast Feedback for Basket Actions */}
+      {cartToastMessage && (
+        <div className="fixed bottom-16 right-4 sm:right-6 z-50 animate-toast-enter flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-900/95 text-white text-xs font-semibold shadow-xl shadow-slate-900/20 backdrop-blur-md border border-slate-700/60">
+          <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <Check className="w-3 h-3" />
+          </div>
+          <span>{cartToastMessage}</span>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="ml-1 text-emerald-400 hover:text-emerald-300 font-bold underline cursor-pointer text-[11px]"
+          >
+            View Bag
+          </button>
         </div>
       )}
 

@@ -2,10 +2,304 @@
 
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+    background-color: #ffffff;
+    -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, .font-fruit {
-    font-family: 'Fredoka', 'Plus Jakarta Sans', system-ui, sans-serif;
+  h1, h2, h3, h4, .font-display, .font-fruit {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ========================================================= */
+/* ACETERNITY / COMPONENTRY-INSPIRED LIVING MOTION & POLISH   */
+/* ========================================================= */
+
+/* Living Floating Ambient Orbs (GPU accelerated via translate3d) */
+@keyframes float-orb-1 {
+  0% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate3d(45px, -35px, 0px) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-30px, 25px, 0px) scale(0.95);
+  }
+}
+
+@keyframes float-orb-2 {
+  0% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate3d(-50px, 40px, 0px) scale(1.15);
+  }
+  100% {
+    transform: translate3d(35px, -25px, 0px) scale(0.92);
+  }
+}
+
+@keyframes float-orb-3 {
+  0% {
+    transform: translate3d(0px, 0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate3d(30px, 45px, 0px) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-45px, -30px, 0px) scale(1.02);
+  }
+}
+
+/* Subtle Aurora Sweep across the canvas */
+@keyframes aurora-sweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Shimmer Highlight for Badges and Cards */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+/* Subtle Breathing Pulse for Live Beacons */
+@keyframes beacon-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.4);
+  }
+}
+
+/* Cart Bounce Micro-Interaction */
+@keyframes cart-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22);
+  }
+  70% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Staggered entrance animations */
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Toast Slide in from bottom */
+@keyframes toast-slide-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.animate-float-1 {
+  animation: float-orb-1 18s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  will-change: transform;
+}
+
+.animate-float-2 {
+  animation: float-orb-2 22s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  will-change: transform;
+}
+
+.animate-float-3 {
+  animation: float-orb-3 26s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  will-change: transform;
+}
+
+.animate-cart-bounce {
+  animation: cart-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-toast-enter {
+  animation: toast-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered Entry Utility Classes */
+.animate-enter {
+  animation: enter-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 {
+  animation-delay: 60ms;
+}
+
+.stagger-2 {
+  animation-delay: 120ms;
+}
+
+.stagger-3 {
+  animation-delay: 180ms;
+}
+
+.stagger-4 {
+  animation-delay: 240ms;
+}
+
+/* ========================================================= */
+/* LANDO NORRIS STYLE FLOATING BACKGROUND FRUITS & MOTIONS    */
+/* ========================================================= */
+
+@keyframes fruit-bob-1 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(12px, -24px, 0) rotate(8deg) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-8px, -40px, 0) rotate(-6deg) scale(0.96);
+  }
+}
+
+@keyframes fruit-bob-2 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-5deg) scale(0.96);
+  }
+  50% {
+    transform: translate3d(-18px, -28px, 0) rotate(10deg) scale(1.08);
+  }
+  100% {
+    transform: translate3d(14px, -18px, 0) rotate(-8deg) scale(1);
+  }
+}
+
+@keyframes fruit-bob-3 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(6deg) scale(1);
+  }
+  50% {
+    transform: translate3d(20px, 25px, 0) rotate(-10deg) scale(1.05);
+  }
+  100% {
+    transform: translate3d(-15px, 10px, 0) rotate(4deg) scale(0.94);
+  }
+}
+
+@keyframes fruit-bob-4 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate3d(-22px, 20px, 0) rotate(-14deg) scale(1.1);
+  }
+  100% {
+    transform: translate3d(10px, -30px, 0) rotate(12deg) scale(0.95);
+  }
+}
+
+@keyframes fruit-bob-5 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-8deg) scale(1.02);
+  }
+  50% {
+    transform: translate3d(16px, -32px, 0) rotate(14deg) scale(0.94);
+  }
+  100% {
+    transform: translate3d(-12px, 22px, 0) rotate(-4deg) scale(1.05);
+  }
+}
+
+.animate-fruit-1 {
+  animation: fruit-bob-1 7.5s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.animate-fruit-2 {
+  animation: fruit-bob-2 9s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.animate-fruit-3 {
+  animation: fruit-bob-3 11.5s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.animate-fruit-4 {
+  animation: fruit-bob-4 8.5s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.animate-fruit-5 {
+  animation: fruit-bob-5 13s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Aceternity-inspired Dot Matrix Pattern */
+.bg-grid-dots {
+  background-image: radial-gradient(rgba(16, 185, 129, 0.12) 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+/* Soft Mask for Background Grid */
+.mask-radial-faded {
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 15%, black 40%, transparent 95%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 15%, black 40%, transparent 95%);
+}
+
+/* Subtle Card Glow on Hover */
+.card-hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* Respect user's reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-1,
+  .animate-float-2,
+  .animate-float-3,
+  .animate-cart-bounce,
+  .animate-toast-enter,
+  .animate-enter,
+  .animate-fruit-1,
+  .animate-fruit-2,
+  .animate-fruit-3,
+  .animate-fruit-4,
+  .animate-fruit-5 {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 }
