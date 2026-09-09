@@ -174,95 +174,6 @@
   animation-delay: 240ms;
 }
 
-/* ========================================================= */
-/* LANDO NORRIS STYLE FLOATING BACKGROUND FRUITS & MOTIONS    */
-/* ========================================================= */
-
-@keyframes fruit-bob-1 {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translate3d(12px, -24px, 0) rotate(8deg) scale(1.06);
-  }
-  100% {
-    transform: translate3d(-8px, -40px, 0) rotate(-6deg) scale(0.96);
-  }
-}
-
-@keyframes fruit-bob-2 {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(-5deg) scale(0.96);
-  }
-  50% {
-    transform: translate3d(-18px, -28px, 0) rotate(10deg) scale(1.08);
-  }
-  100% {
-    transform: translate3d(14px, -18px, 0) rotate(-8deg) scale(1);
-  }
-}
-
-@keyframes fruit-bob-3 {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(6deg) scale(1);
-  }
-  50% {
-    transform: translate3d(20px, 25px, 0) rotate(-10deg) scale(1.05);
-  }
-  100% {
-    transform: translate3d(-15px, 10px, 0) rotate(4deg) scale(0.94);
-  }
-}
-
-@keyframes fruit-bob-4 {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-  }
-  50% {
-    transform: translate3d(-22px, 20px, 0) rotate(-14deg) scale(1.1);
-  }
-  100% {
-    transform: translate3d(10px, -30px, 0) rotate(12deg) scale(0.95);
-  }
-}
-
-@keyframes fruit-bob-5 {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(-8deg) scale(1.02);
-  }
-  50% {
-    transform: translate3d(16px, -32px, 0) rotate(14deg) scale(0.94);
-  }
-  100% {
-    transform: translate3d(-12px, 22px, 0) rotate(-4deg) scale(1.05);
-  }
-}
-
-.animate-fruit-1 {
-  animation: fruit-bob-1 7.5s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-.animate-fruit-2 {
-  animation: fruit-bob-2 9s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-.animate-fruit-3 {
-  animation: fruit-bob-3 11.5s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-.animate-fruit-4 {
-  animation: fruit-bob-4 8.5s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-.animate-fruit-5 {
-  animation: fruit-bob-5 13s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
 /* Aceternity-inspired Dot Matrix Pattern */
 .bg-grid-dots {
   background-image: radial-gradient(rgba(16, 185, 129, 0.12) 1.2px, transparent 1.2px);
@@ -285,6 +196,19 @@
   box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
 }
 
+/* Header PC Navigation Animated Links */
+.nav-link-animated {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-link-animated:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.nav-link-animated:active {
+  transform: translateY(0px) scale(0.97);
+}
+
 /* Respect user's reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .animate-float-1,
@@ -292,12 +216,7 @@
   .animate-float-3,
   .animate-cart-bounce,
   .animate-toast-enter,
-  .animate-enter,
-  .animate-fruit-1,
-  .animate-fruit-2,
-  .animate-fruit-3,
-  .animate-fruit-4,
-  .animate-fruit-5 {
+  .animate-enter {
     animation: none !important;
     transition: none !important;
     transform: none !important;

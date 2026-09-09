@@ -35,7 +35,19 @@ import {
   Lock,
   Truck,
   Check,
+  Home,
 } from 'lucide-react';
+
+const formatCategoryName = (cat: string): string => {
+  const lower = cat.toLowerCase();
+  if (lower.includes('fruit')) return 'Fruits';
+  if (lower.includes('veg')) return 'Vegetables';
+  if (lower.includes('root') || lower.includes('tuber')) return 'Roots';
+  if (lower.includes('herb')) return 'Herbs';
+  if (lower.includes('exotic') || lower.includes('tropical')) return 'Exotics';
+  if (lower.includes('drink') || lower.includes('grocer')) return 'Groceries';
+  return cat.split(' ')[0] || cat;
+};
 
 interface CustomerStorefrontProps {
   onSwitchToStaff: () => void;
@@ -280,69 +292,33 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
   const renderProduceCatalogContent = () => (
     <div className="space-y-4">
-      {/* Top Category Buttons Bar */}
-      <section className="w-full bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-          <div className="flex items-center space-x-2">
-            <Tag className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800">
-              Filter by Category
-            </h3>
-          </div>
-          <div className="text-xs text-slate-500 font-medium">
-            Showing <span className="text-emerald-700 font-bold">{filteredProducts.length}</span> of {products.length} items
-          </div>
-        </div>
-
-        {/* Category Pill Buttons */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-emerald-200">
+      {/* Category Filter: Clean Minimal Single-Word Buttons */}
+      <section className="w-full bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-4 space-y-3 shadow-2xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => setSelectedCategory('All')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               selectedCategory === 'All'
-                ? 'bg-slate-900 text-white'
-                : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-slate-900 text-white font-semibold'
+                : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
             }`}
           >
-            <span className="text-sm">🥭</span>
-            <span>All</span>
-            <span
-              className={`px-1.5 py-0.2 rounded text-[10px] ${
-                selectedCategory === 'All'
-                  ? 'bg-slate-800 text-white font-semibold'
-                  : 'bg-slate-200 text-slate-700 font-medium'
-              }`}
-            >
-              {products.length}
-            </span>
+            All
           </button>
-
           {categories.map((cat) => {
-            const emoji = getCategoryEmoji(cat);
             const isSelected = selectedCategory === cat;
-            const catCount = products.filter((p) => p.category === cat).length;
-
+            const singleWord = formatCategoryName(cat);
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center space-x-1.5 ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer shrink-0 ${
                   isSelected
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-50 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
+                    ? 'bg-slate-900 text-white font-semibold'
+                    : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                 }`}
               >
-                <span className="text-sm">{emoji}</span>
-                <span>{cat}</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded text-[10px] ${
-                    isSelected
-                      ? 'bg-slate-800 text-white font-semibold'
-                      : 'bg-emerald-100 text-emerald-800 font-medium'
-                  }`}
-                >
-                  {catCount}
-                </span>
+                {singleWord}
               </button>
             );
           })}
@@ -465,46 +441,22 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       }}
                     />
 
-                    {/* Organic Badge */}
-                    {meta.isOrganic && (
-                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-600 text-white text-[10px] font-bold rounded-md shadow-xs flex items-center gap-0.5">
-                        <Leaf className="w-3 h-3" />
-                        <span className="hidden sm:inline">Organic</span>
-                      </span>
-                    )}
-
-                    {/* Origin Country Tag */}
-                    <span className="absolute top-2 right-2 px-2 py-0.5 bg-white/95 text-slate-800 border border-slate-200 text-[9px] sm:text-[10px] font-bold rounded-md uppercase tracking-wider shadow-2xs">
-                      {meta.origin}
-                    </span>
-
                     {/* Stock Status Badge */}
-                    <div className="absolute bottom-2 left-2">
-                      {isOutOfStock ? (
+                    {isOutOfStock && (
+                      <div className="absolute bottom-2 left-2">
                         <span className="px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-bold rounded-md">
                           Out of Stock
                         </span>
-                      ) : isLowStock ? (
-                        <span className="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold rounded-md">
-                          {prod.stock} left
-                        </span>
-                      ) : null}
-                    </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Fruit Info & Pricing */}
                   <div className="pt-2.5 flex-1 flex flex-col justify-between space-y-2">
                     <div>
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider truncate">
-                          {prod.category}
-                        </span>
-                        {/* Rating Stars: 5.0 */}
-                        <div className="flex items-center gap-0.5 text-amber-400 text-[10px]">
-                          <span>★★★★★</span>
-                          <span className="text-[9px] text-slate-400 font-semibold">(5.0)</span>
-                        </div>
-                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
+                        {formatCategoryName(prod.category)}
+                      </span>
 
                       <h4
                         onClick={() => setSelectedProduct(prod)}
@@ -514,7 +466,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                         {prod.name}
                       </h4>
                       <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 hidden sm:block">
-                        {prod.description || `Fresh top grade ${prod.name}`}
+                        {prod.description || `Fresh ${prod.name}`}
                       </p>
                     </div>
 
@@ -534,9 +486,6 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                             <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
                               per {prod.unit || 'kg'}
                             </span>
-                            <div className="text-[9px] text-slate-400 font-medium mt-0.5">
-                              Pitch 18 Fresh
-                            </div>
                           </div>
                         )}
                       </div>
@@ -603,7 +552,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
   return (
     <div className={`relative min-h-screen w-full max-w-full text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white ${
-      currentTab === 'landing' ? 'bg-slate-50/40' : 'bg-emerald-50/30'
+      currentTab === 'landing' ? 'bg-white' : 'bg-emerald-50/40'
     }`}>
       {/* Living animated backdrop with subtle gradient orbs & dot grid */}
       <LivingBackground />
@@ -640,10 +589,6 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   <h1 className="text-sm font-extrabold text-slate-900 tracking-tight leading-none truncate">
                     Top Fruit & Veg
                   </h1>
-                  <p className="text-[10px] text-emerald-700 font-bold mt-1 flex items-center gap-1 truncate">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
-                    <span>Pitch 18 Brixton</span>
-                  </p>
                 </div>
               </div>
               {/* Mobile close button */}
@@ -662,7 +607,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 Navigation
               </div>
 
-              {/* Button 1: Home / Landing */}
+              {/* Button 1: Home */}
               <button
                 id="customer-nav-landing"
                 onClick={() => {
@@ -681,7 +626,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </div>
               </button>
 
-              {/* Button 2: Produce Catalog */}
+              {/* Button 2: Products */}
               <button
                 id="customer-nav-home"
                 onClick={() => {
@@ -697,7 +642,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               >
                 <div className="flex items-center space-x-2.5">
                   <span>🥭</span>
-                  <span>All Produce</span>
+                  <span>Products</span>
                 </div>
                 <span className={`text-[11px] px-2 py-0.5 rounded-full ${currentTab === 'home' ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'}`}>
                   {products.length}
@@ -719,21 +664,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </div>
               </button>
 
-              {/* Button 4: Feedback */}
-              <button
-                id="customer-nav-feedback"
-                onClick={() => {
-                  setIsFeedbackModalOpen(true);
-                  setIsMobileSidebarOpen(false);
-                }}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center space-x-2.5">
-                  <span>Customer Reviews</span>
-                </div>
-              </button>
-
-              {/* Button 5: About */}
+              {/* Button 4: About Us */}
               <button
                 id="customer-nav-about-contact"
                 onClick={() => {
@@ -748,7 +679,22 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               >
                 <div className="flex items-center space-x-2.5">
                   <span>📍</span>
-                  <span>About Pitch 18</span>
+                  <span>About Us</span>
+                </div>
+              </button>
+
+              {/* Button 5: Feedback */}
+              <button
+                id="customer-nav-feedback"
+                onClick={() => {
+                  setIsFeedbackModalOpen(true);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <span className="text-sm">⭐</span>
+                  <span>Feedback</span>
                 </div>
               </button>
             </nav>
@@ -803,9 +749,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           <div
             onClick={handleSecretAdminTrigger}
             className="text-center text-[10px] text-slate-400 select-none cursor-pointer hover:text-slate-600 transition-colors"
-            title="Pitch 18 Brixton Market"
+            title="Staff Portal"
           >
-            <span>Brixton Market • Pitch 18</span>
+            <span>Staff Portal</span>
           </div>
         </div>
       </aside>
@@ -814,39 +760,16 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       {/* 2. MAIN CONTENT AREA (CLEAN FULL WIDTH TOP-HEADER LAYOUT) */}
       {/* ========================================================= */}
       <div className="flex-1 min-w-0 w-full flex flex-col min-h-screen bg-transparent">
-        {/* Top Announcement Bar */}
-        <div className="w-full bg-slate-900 text-slate-200 text-[11px] py-1.5 px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-              <span className="truncate">
-                🌱 Brixton Market Pitch 18 Pope's Road • Fresh Dawn Deliveries • Open Mon–Sat 8:00 AM – 6:30 PM
-              </span>
-            </div>
-            <div className="hidden md:flex items-center gap-4 shrink-0 text-slate-300">
-              <a href="tel:+447449338679" className="hover:text-white transition-colors flex items-center gap-1.5 font-medium">
-                <Phone className="w-3 h-3 text-emerald-400" />
-                <span>+44 7449 338679</span>
-              </a>
-              <button
-                onClick={handleSecretAdminTrigger}
-                className="text-slate-400 hover:text-slate-200 text-[10px] cursor-pointer"
-                title="Staff Portal (Triple Click)"
-              >
-                Staff Portal
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Sticky Header Bar (Crisp White Organic Store Navigation) */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-3 shadow-2xs">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-6">
+        {/* ========================================================= */}
+        {/* FULL-WIDTH STICKY HEADER (AT THE VERY TOP OF THE WEBSITE) */}
+        {/* ========================================================= */}
+        <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 sm:gap-6">
             {/* Logo & Mobile Menu Toggle */}
             <div className="flex items-center space-x-3 shrink-0">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 cursor-pointer"
+                className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 cursor-pointer transition-colors"
                 title="Open Navigation Menu"
               >
                 <Menu className="w-5 h-5" />
@@ -859,110 +782,142 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 }}
                 className="flex items-center space-x-2.5 cursor-pointer select-none group"
               >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 transition-all flex items-center justify-center text-white text-xl shadow-xs">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 transition-colors flex items-center justify-center text-white text-xl shadow-xs">
                   🥭
                 </div>
                 <div>
                   <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-tight group-hover:text-emerald-700 transition-colors">
                     Top Fruit & Veg
                   </h1>
-                  <p className="text-[10px] text-emerald-700 font-bold hidden sm:flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
-                    <span>Brixton Market • Pitch 18</span>
-                  </p>
                 </div>
               </div>
             </div>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-1 text-xs font-semibold text-slate-600">
+            <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+              {/* 1. Home */}
               <button
+                id="header-nav-home"
                 onClick={() => {
                   setCurrentTab('landing');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
                   currentTab === 'landing'
-                    ? 'bg-slate-900 text-white font-bold'
-                    : 'hover:bg-slate-100 hover:text-slate-900'
+                    ? 'text-slate-950 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Home
+                <span className="inline-block transition-transform duration-200 ease-out group-hover:-translate-y-[1px]">
+                  Home
+                </span>
+                <span
+                  className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
+                    currentTab === 'landing'
+                      ? 'scale-x-100 opacity-100'
+                      : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
+                  }`}
+                />
               </button>
 
+              {/* 2. Products */}
               <button
+                id="header-nav-products"
                 onClick={() => {
                   setCurrentTab('home');
                   setSelectedCategory('All');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
                   currentTab === 'home'
-                    ? 'bg-slate-900 text-white font-bold'
-                    : 'hover:bg-slate-100 hover:text-slate-900'
+                    ? 'text-slate-950 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <span>Produce Catalog</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  currentTab === 'home' ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-700'
-                }`}>
-                  {products.length}
+                <span className="inline-block transition-transform duration-200 ease-out group-hover:-translate-y-[1px]">
+                  Products
                 </span>
+                <span
+                  className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
+                    currentTab === 'home'
+                      ? 'scale-x-100 opacity-100'
+                      : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
+                  }`}
+                />
               </button>
 
-              <button
-                onClick={() => {
-                  setCurrentTab('about_contact');
-                }}
-                className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                  currentTab === 'about_contact'
-                    ? 'bg-slate-900 text-white font-bold'
-                    : 'hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                About Pitch 18
-              </button>
-            </nav>
-
-            {/* Header Right Actions */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              {/* Customer Track Order Button */}
+              {/* 3. Track Order */}
               <button
                 id="header-btn-track"
                 onClick={() => setIsTrackerModalOpen(true)}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
+                className="group relative py-2 px-3 text-sm font-medium tracking-tight text-slate-600 hover:text-slate-900 cursor-pointer select-none transition-colors duration-200"
               >
-                <Truck className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="hidden sm:inline">Track</span>
+                <span className="inline-block transition-transform duration-200 ease-out group-hover:-translate-y-[1px]">
+                  Track Order
+                </span>
+                <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100" />
               </button>
 
-              {/* Customer Feedback Button */}
+              {/* 4. About Us */}
+              <button
+                id="header-nav-about"
+                onClick={() => {
+                  setCurrentTab('about_contact');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
+                  currentTab === 'about_contact'
+                    ? 'text-slate-950 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="inline-block transition-transform duration-200 ease-out group-hover:-translate-y-[1px]">
+                  About Us
+                </span>
+                <span
+                  className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
+                    currentTab === 'about_contact'
+                      ? 'scale-x-100 opacity-100'
+                      : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
+                  }`}
+                />
+              </button>
+
+              {/* 5. Feedback */}
               <button
                 id="header-btn-feedback"
                 onClick={() => setIsFeedbackModalOpen(true)}
-                className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-slate-700 hover:text-slate-950 hover:bg-slate-100 text-xs font-medium transition-colors cursor-pointer"
+                className="group relative py-2 px-3 text-sm font-medium tracking-tight text-slate-600 hover:text-slate-900 cursor-pointer select-none transition-colors duration-200"
               >
-                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                <span>Reviews</span>
+                <span className="inline-block transition-transform duration-200 ease-out group-hover:-translate-y-[1px]">
+                  Feedback
+                </span>
+                <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100" />
               </button>
+            </nav>
 
-              {/* WhatsApp Button */}
+            {/* Header Right Actions / CTAs */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* WhatsApp CTA Button */}
               <a
-                href="https://wa.me/447449338679?text=Hello%20Top%20Fruit%20and%20Veg%20Brixton!%20I%20would%20like%20to%20place%20an%20order."
+                href="https://wa.me/447449338679?text=Hello%20Top%20Fruit%20and%20Veg!%20I%20would%20like%20to%20place%20an%20order."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 border border-emerald-200 text-xs font-semibold transition-colors"
+                className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-emerald-700 hover:text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100/80 border border-emerald-200/80 text-xs font-semibold transition-colors duration-200"
+                title="Chat with stall on WhatsApp"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
                 <span>WhatsApp</span>
               </a>
 
-              {/* Shopping Basket Button with Micro-bounce */}
+              {/* Shopping Basket Button with subtle micro-bounce */}
               <button
                 id="header-btn-orders"
                 onClick={() => setIsCartOpen(true)}
-                className={`relative py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-2 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                className={`relative py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center space-x-2 transition-colors duration-200 cursor-pointer shadow-xs active:scale-95 ${
                   cartBounce ? 'animate-cart-bounce ring-2 ring-emerald-400 ring-offset-1' : ''
                 }`}
+                title="View shopping bag"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Orders</span>
@@ -978,259 +933,138 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
           </div>
         </header>
 
+        {/* Mobile Horizontal Navigation Bar */}
+        <nav className="md:hidden w-full bg-white border-b border-slate-200 px-4 py-2.5 flex items-center space-x-4 overflow-x-auto scrollbar-none text-xs font-medium">
+          <button
+            id="mobile-nav-home"
+            onClick={() => {
+              setCurrentTab('landing');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className={`shrink-0 transition-colors ${
+              currentTab === 'landing' ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Home
+          </button>
+          <button
+            id="mobile-nav-products"
+            onClick={() => {
+              setCurrentTab('home');
+              setSelectedCategory('All');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className={`shrink-0 transition-colors ${
+              currentTab === 'home' ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Products
+          </button>
+          <button
+            id="mobile-nav-track"
+            onClick={() => setIsTrackerModalOpen(true)}
+            className="shrink-0 text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            Track Order
+          </button>
+          <button
+            id="mobile-nav-about"
+            onClick={() => {
+              setCurrentTab('about_contact');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className={`shrink-0 transition-colors ${
+              currentTab === 'about_contact' ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            About Us
+          </button>
+          <button
+            id="mobile-nav-feedback"
+            onClick={() => setIsFeedbackModalOpen(true)}
+            className="shrink-0 text-slate-600 hover:text-slate-900 transition-colors"
+          >
+            Feedback
+          </button>
+        </nav>
+
         {/* ========================================================= */}
-        {/* VIEW 0: LANDING PAGE (LIGHT YELLOW & LIGHT BLUE LINEAR PALETTE, ZERO PINK) */}
+        {/* VIEW 0: LANDING PAGE (LIGHTER PALETTE: 5% YELLOW, 5% GREEN, 5% PINK, REST WHITE) */}
         {/* ========================================================= */}
         {currentTab === 'landing' && (
           <main
             className="flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200"
             style={{
               background:
-                'linear-gradient(145deg, rgba(254, 249, 195, 0.45) 0%, rgba(240, 249, 255, 0.50) 50%, rgba(224, 242, 254, 0.55) 100%)',
+                'radial-gradient(ellipse 70% 35% at 10% 5%, rgba(254, 240, 138, 0.22) 0%, transparent 60%), ' +
+                'radial-gradient(ellipse 70% 35% at 90% 10%, rgba(167, 243, 208, 0.22) 0%, transparent 60%), ' +
+                'radial-gradient(ellipse 60% 45% at 50% 95%, rgba(251, 207, 232, 0.20) 0%, transparent 60%), #ffffff',
             }}
           >
-            {/* Hero Banner: Light Yellow and Light Blue combination background */}
-            <section
-              className="relative overflow-hidden rounded-2xl border border-amber-200/70 p-5 sm:p-7 md:p-8 lg:p-10 shadow-xs"
-              style={{
-                background:
-                  'linear-gradient(135deg, rgba(254, 249, 195, 0.85) 0%, rgba(254, 240, 138, 0.45) 35%, rgba(240, 249, 255, 0.65) 65%, rgba(224, 242, 254, 0.85) 100%)',
-              }}
-            >
-              {/* Soft Linear Accent Overlays: Light Yellow & Light Blue (No circular dots or spread) */}
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-transparent to-sky-200/25 pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-sky-100/30 pointer-events-none" />
+            {/* Lighter Color Hero Banner: White with 5% Yellow, 5% Green, 5% Pink Accents */}
+            <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-7 md:p-8 lg:p-10 shadow-xs">
+              {/* Soft Ambient Corner Accents (5% Yellow, 5% Green, 5% Pink) */}
+              <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-yellow-100/50 blur-3xl pointer-events-none" />
+              <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-emerald-100/50 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-20 left-1/3 w-64 h-64 rounded-full bg-pink-100/50 blur-3xl pointer-events-none" />
 
-              {/* Main Responsive Grid Layout: Left Info & Right Fruit Combination Showcase */}
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
-                {/* Left Column: Top Fruit & Veg, badges, text, actions, hours (lg:col-span-7) */}
-                <div className="lg:col-span-7 space-y-4">
-                  {/* Balanced Soft Color Badges: Yellow & Sky Blue (Zero Pink) */}
-                  <div className="flex flex-wrap items-center gap-2 animate-enter stagger-1">
-                    <span className="px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-800 border border-yellow-200/80 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block animate-pulse" />
-                      <span>Sun-Fresh Daily</span>
-                    </span>
-                    <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
-                      </span>
-                      <span>Pitch 18 • Brixton Market</span>
-                    </span>
-                    <span className="px-2.5 py-1 rounded-md bg-sky-50 text-sky-800 border border-sky-200/80 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 inline-block" />
-                      <span>Tropical & Exotic Goods</span>
-                    </span>
-                  </div>
+              {/* Main Responsive Layout: Left Info & Actions */}
+              <div className="relative z-10 max-w-3xl space-y-4">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight font-display animate-enter stagger-1">
+                  Top Fruit & Veg
+                </h1>
 
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight font-display animate-enter stagger-2">
-                    Top Fruit & Veg
-                  </h1>
+                <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl font-normal animate-enter stagger-2">
+                  Fresh tropical produce, Jamaican yams, sweet plantains, and market goods delivered fresh daily.
+                </p>
 
-                  <p className="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl font-normal animate-enter stagger-3">
-                    Fresh tropical produce, Jamaican yams, sweet plantains, and market goods delivered fresh to our stall at 5:00 AM daily.
-                  </p>
+                <div className="pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3 animate-enter stagger-3">
+                  <button
+                    onClick={() => {
+                      setCurrentTab('home');
+                      setSelectedCategory('All');
+                    }}
+                    className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-sm hover:shadow-md"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Browse Produce</span>
+                    <span>→</span>
+                  </button>
 
-                  <div className="pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3 animate-enter stagger-4">
-                    <button
-                      onClick={() => {
-                        setCurrentTab('home');
-                        setSelectedCategory('All');
-                      }}
-                      className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-sm hover:shadow-md"
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      <span>Browse Produce</span>
-                      <span>→</span>
-                    </button>
+                  <button
+                    onClick={() => setIsTrackerModalOpen(true)}
+                    className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                  >
+                    Track Order
+                  </button>
 
-                    <button
-                      onClick={() => setIsTrackerModalOpen(true)}
-                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-                    >
-                      Track Order
-                    </button>
-
-                    <a
-                      href="https://wa.me/447449338679"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-sky-50/70 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-                    >
-                      <MessageCircle className="w-4 h-4 text-emerald-600" />
-                      <span>WhatsApp</span>
-                    </a>
-                  </div>
-
-                  {/* Minimal Location & Schedule Strip */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 animate-enter stagger-4">
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      Pope's Road, London SW9 8PB
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-yellow-600 shrink-0" />
-                      Mon–Sat 8:00–18:30 • Sun 9:00–16:00
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                      Daily Selection
-                    </span>
-                  </div>
+                  <a
+                    href="https://wa.me/447449338679"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-pink-50/60 text-slate-700 hover:text-pink-700 border border-slate-200 hover:border-pink-200 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                  >
+                    <MessageCircle className="w-4 h-4 text-emerald-600" />
+                    <span>WhatsApp</span>
+                  </a>
                 </div>
 
-                {/* Right Column: High Quality Image of Combination of Fruits (lg:col-span-5) */}
-                <div className="lg:col-span-5 w-full flex justify-center lg:justify-end animate-enter stagger-3">
-                  <div className="relative w-full max-w-md group">
-                    {/* Glowing ambient aura backing (Yellow & Light Blue, Zero Pink) */}
-                    <div className="absolute -inset-2 bg-gradient-to-tr from-yellow-300/40 via-sky-200/40 to-sky-300/40 rounded-3xl blur-xl opacity-80 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                    {/* Main High-Quality Fruit Combination Image Container */}
-                    <div className="relative z-10 w-full h-56 sm:h-64 md:h-72 lg:h-80 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm bg-slate-100">
-                      <img
-                        src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?auto=format&fit=crop&w=1200&q=85"
-                        alt="Fresh combination of fruits"
-                        loading="eager"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85';
-                        }}
-                      />
-                      {/* Subtle soft gradient reflection */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3 Accent Feature Cards: Yellow, Green, Sky Blue (Zero Pink) */}
-              <div className="relative z-10 pt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Yellow Card */}
-                <div className="bg-yellow-50/80 border border-yellow-200/80 rounded-xl p-3.5 space-y-1 card-hover-lift group cursor-default transition-all duration-300">
-                  <div className="w-7 h-7 rounded-lg bg-yellow-100 text-yellow-800 flex items-center justify-center text-xs font-bold mb-1 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-                    ☀️
-                  </div>
-                  <div className="text-xs font-bold text-yellow-950">5:00 AM Dawn Fresh</div>
-                  <div className="text-[11px] text-yellow-900/80 leading-relaxed">
-                    Morning wholesale deliveries picked for top ripeness and authentic flavor.
-                  </div>
-                </div>
-
-                {/* Green Card */}
-                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-3.5 space-y-1 card-hover-lift group cursor-default transition-all duration-300">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold mb-1 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-                    🌱
-                  </div>
-                  <div className="text-xs font-bold text-emerald-950">Pitch 18 Pope's Road</div>
-                  <div className="text-[11px] text-emerald-900/80 leading-relaxed">
-                    Iconic Brixton Market stall. Reserve online for stall collection or delivery.
-                  </div>
-                </div>
-
-                {/* Sky Blue Card (Replaced Pink) */}
-                <div className="bg-sky-50/80 border border-sky-200/80 rounded-xl p-3.5 space-y-1 card-hover-lift group cursor-default transition-all duration-300">
-                  <div className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 flex items-center justify-center text-xs font-bold mb-1 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-                    🌊
-                  </div>
-                  <div className="text-xs font-bold text-sky-950">Authentic Tropical Produce</div>
-                  <div className="text-[11px] text-sky-900/80 leading-relaxed">
-                    Yellow yams, sweet plantains, mangoes, breadfruit & Caribbean specialties.
-                  </div>
+                {/* Minimal Location & Schedule Strip */}
+                <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500 animate-enter stagger-4">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    Pope's Road, London SW9 8PB
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-yellow-600 shrink-0" />
+                    Mon–Sat 8:00–18:30 • Sun 9:00–16:00
+                  </span>
                 </div>
               </div>
             </section>
 
-            {/* Produce Categories on Landing */}
-            <section className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-                    Produce Categories
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Select a category to view fresh produce
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setCurrentTab('home');
-                    setSelectedCategory('All');
-                  }}
-                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer flex items-center gap-1 group"
-                >
-                  <span>View all ({products.length})</span>
-                  <span className="group-hover:translate-x-0.5 transition-transform duration-200">→</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {categories.map((cat, idx) => {
-                  const emoji = getCategoryEmoji(cat);
-                  const count = products.filter((p) => p.category === cat).length;
-                  const mod = idx % 3;
-                  const accentBadge =
-                    mod === 0
-                      ? 'bg-yellow-50 text-yellow-800 border-yellow-200/60'
-                      : mod === 1
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200/60'
-                      : 'bg-sky-50 text-sky-800 border-sky-200/60';
-                  const hoverBorder =
-                    mod === 0
-                      ? 'hover:border-yellow-300'
-                      : mod === 1
-                      ? 'hover:border-emerald-300'
-                      : 'hover:border-sky-300';
-
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        const el = document.getElementById('market-produce');
-                        if (el) {
-                          el.scrollIntoView({ behavior: 'smooth' });
-                        } else {
-                          setCurrentTab('home');
-                        }
-                      }}
-                      className={`p-4 rounded-xl bg-white border border-slate-200/80 ${hoverBorder} card-hover-lift transition-all duration-200 text-left group cursor-pointer hover:shadow-xs active:scale-[0.98]`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-2xl group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 inline-block">{emoji}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${accentBadge}`}>
-                          {count} {count === 1 ? 'item' : 'items'}
-                        </span>
-                      </div>
-                      <div className="font-semibold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
-                        {cat}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ========================================================= */}
-            {/* DIRECT PRODUCE CATALOG ON LANDING (Matches Clean UI) */}
-            {/* ========================================================= */}
-            <section id="market-produce" className="w-full space-y-4 pt-4 border-t border-slate-200/80">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                    Market Produce Catalog
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Handpicked at 5:00 AM daily • Pitch 18 Pope's Road Brixton Market
-                  </p>
-                </div>
-                <div className="text-xs text-slate-500 font-medium">
-                  Showing <span className="text-emerald-700 font-bold">{filteredProducts.length}</span> of {products.length} items
-                </div>
-              </div>
-
+            {/* DIRECT PRODUCE CATALOG ON LANDING */}
+            <section id="market-produce" className="w-full space-y-4 pt-2">
               {renderProduceCatalogContent()}
             </section>
           </main>
@@ -1241,18 +1075,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         {/* ========================================================= */}
         {currentTab === 'home' && (
           <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  Fresh Produce Catalog
-                </h2>
-                <p className="text-xs text-slate-500">
-                  All 90+ fruits, vegetables, roots & fresh herbs available today at Pitch 18 Brixton
-                </p>
-              </div>
-              <div className="text-xs text-slate-500 font-medium">
-                Showing <span className="text-emerald-700 font-bold">{filteredProducts.length}</span> of {products.length} items
-              </div>
+            <div className="pb-2 border-b border-slate-100">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                Products
+              </h2>
             </div>
 
             {renderProduceCatalogContent()}
