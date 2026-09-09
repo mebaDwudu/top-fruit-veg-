@@ -42,6 +42,17 @@ function parseCurrentRoute(): 'customer' | 'admin' | 'customer-orders' | 'hub' {
       rawHash === 'storefront' ||
       rawHash === 'customer' ||
       rawHash === 'market' ||
+      rawHash === 'home' ||
+      rawHash === 'landing' ||
+      rawHash === 'products' ||
+      rawHash === 'produce' ||
+      rawHash === 'track-order' ||
+      rawHash === 'track' ||
+      rawHash === 'about-us' ||
+      rawHash === 'about' ||
+      rawHash === 'contact' ||
+      rawHash === 'feedback' ||
+      rawHash === 'reviews' ||
       searchPage === 'customer' ||
       searchView === 'customer'
     ) {

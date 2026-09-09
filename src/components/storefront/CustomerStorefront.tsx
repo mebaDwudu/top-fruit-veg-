@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Product } from '../../types/store';
 import { getProduceMeta } from '../../utils/produceImages';
@@ -97,22 +97,21 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   const [contactSuccess, setContactSuccess] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
 
-  // Secret Admin Access Trigger (Keyboard shortcut & Triple-click on logo/footer)
-  const [secretClickCount, setSecretClickCount] = useState(0);
+  // Secret Admin Access Trigger (Keyboard shortcut & 4-click event on logo/footer trigger areas)
+  const secretClickCountRef = React.useRef(0);
   const secretClickTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSecretAdminTrigger = () => {
     if (secretClickTimerRef.current) {
       clearTimeout(secretClickTimerRef.current);
     }
-    const nextCount = secretClickCount + 1;
-    setSecretClickCount(nextCount);
-    if (nextCount >= 3) {
-      setSecretClickCount(0);
+    secretClickCountRef.current += 1;
+    if (secretClickCountRef.current >= 4) {
+      secretClickCountRef.current = 0;
       onSwitchToStaff();
     } else {
       secretClickTimerRef.current = setTimeout(() => {
-        setSecretClickCount(0);
+        secretClickCountRef.current = 0;
       }, 1500);
     }
   };
@@ -132,6 +131,85 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onSwitchToStaff]);
+
+  // Hash-based routing synchronization across desktop & mobile
+  const applyHashRoute = useCallback((hashStr: string) => {
+    const clean = hashStr.replace(/^#\/?/, '').toLowerCase().trim();
+    if (!clean) return;
+
+    if (clean === 'home' || clean === 'landing') {
+      setCurrentTab('landing');
+      setIsTrackerModalOpen(false);
+      setIsFeedbackModalOpen(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (clean === 'products' || clean === 'produce' || clean === 'catalog') {
+      setCurrentTab('home');
+      setSelectedCategory('All');
+      setIsTrackerModalOpen(false);
+      setIsFeedbackModalOpen(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (clean === 'track-order' || clean === 'track' || clean === 'trackorder') {
+      setIsTrackerModalOpen(true);
+      setIsFeedbackModalOpen(false);
+    } else if (clean === 'about-us' || clean === 'about' || clean === 'contact' || clean === 'about_contact') {
+      setCurrentTab('about_contact');
+      setIsTrackerModalOpen(false);
+      setIsFeedbackModalOpen(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (clean === 'feedback' || clean === 'reviews' || clean === 'review') {
+      setIsFeedbackModalOpen(true);
+      setIsTrackerModalOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (window.location.hash) {
+      applyHashRoute(window.location.hash);
+    }
+
+    const handleHashChange = () => {
+      applyHashRoute(window.location.hash);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [applyHashRoute]);
+
+  // Navigation click handler for hash-based routing paths
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    hash: '#/home' | '#/products' | '#/track-order' | '#/about-us' | '#/feedback'
+  ) => {
+    if (hash === '#/track-order') {
+      setIsTrackerModalOpen(true);
+      setIsFeedbackModalOpen(false);
+    } else if (hash === '#/feedback') {
+      setIsFeedbackModalOpen(true);
+      setIsTrackerModalOpen(false);
+    } else if (hash === '#/home') {
+      setCurrentTab('landing');
+      setIsTrackerModalOpen(false);
+      setIsFeedbackModalOpen(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (hash === '#/products') {
+      setCurrentTab('home');
+      setSelectedCategory('All');
+      setIsTrackerModalOpen(false);
+      setIsFeedbackModalOpen(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (hash === '#/about-us') {
+      setCurrentTab('about_contact');
+      setIsTrackerModalOpen(false);
+      setIsFeedbackModalOpen(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setIsMobileSidebarOpen(false);
+    if (window.location.hash !== hash) {
+      window.location.hash = hash;
+    }
+  };
 
   // Cart helper functions
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -575,12 +653,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       >
         <div className="space-y-4 flex-1 flex flex-col justify-between">
           <div>
-            {/* Brand Header with Secret 3-Click Admin Trigger */}
+            {/* Brand Header with Secret 4-Click Admin Trigger */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div
+                id="drawer-brand-admin-trigger"
                 onClick={handleSecretAdminTrigger}
                 className="flex items-center space-x-2.5 cursor-pointer group select-none"
-                title="Top Fruit and Veg"
+                title="Top Fruit and Veg (Click 4 times for Admin Portal)"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-2xs text-xl">
                   🥭
@@ -601,21 +680,19 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               </button>
             </div>
 
-            {/* Primary Navigation Buttons in Mobile Drawer */}
+            {/* Primary Navigation Links in Mobile Drawer */}
             <nav className="space-y-1.5">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2.5 pb-0.5">
                 Navigation
               </div>
 
-              {/* Button 1: Home */}
-              <button
+              {/* Link 1: Home */}
+              <a
+                href="#/home"
                 id="customer-nav-landing"
-                onClick={() => {
-                  setCurrentTab('landing');
-                  setIsMobileSidebarOpen(false);
-                }}
+                onClick={(e) => handleNavClick(e, '#/home')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                  currentTab === 'landing'
+                  currentTab === 'landing' && !isTrackerModalOpen && !isFeedbackModalOpen
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
@@ -624,18 +701,15 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   <span>🏠</span>
                   <span>Home</span>
                 </div>
-              </button>
+              </a>
 
-              {/* Button 2: Products */}
-              <button
+              {/* Link 2: Products */}
+              <a
+                href="#/products"
                 id="customer-nav-home"
-                onClick={() => {
-                  setCurrentTab('home');
-                  setSelectedCategory('All');
-                  setIsMobileSidebarOpen(false);
-                }}
+                onClick={(e) => handleNavClick(e, '#/products')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                  currentTab === 'home'
+                  currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
@@ -644,35 +718,35 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   <span>🥭</span>
                   <span>Products</span>
                 </div>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full ${currentTab === 'home' ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'}`}>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full ${currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'}`}>
                   {products.length}
                 </span>
-              </button>
+              </a>
 
-              {/* Button 3: Track Order */}
-              <button
+              {/* Link 3: Track Order */}
+              <a
+                href="#/track-order"
                 id="customer-nav-track"
-                onClick={() => {
-                  setIsTrackerModalOpen(true);
-                  setIsMobileSidebarOpen(false);
-                }}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                onClick={(e) => handleNavClick(e, '#/track-order')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                  isTrackerModalOpen
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <div className="flex items-center space-x-2.5">
                   <Truck className="w-4 h-4 text-emerald-600" />
                   <span>Track Order</span>
                 </div>
-              </button>
+              </a>
 
-              {/* Button 4: About Us */}
-              <button
+              {/* Link 4: About Us */}
+              <a
+                href="#/about-us"
                 id="customer-nav-about-contact"
-                onClick={() => {
-                  setCurrentTab('about_contact');
-                  setIsMobileSidebarOpen(false);
-                }}
+                onClick={(e) => handleNavClick(e, '#/about-us')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                  currentTab === 'about_contact'
+                  currentTab === 'about_contact' && !isTrackerModalOpen && !isFeedbackModalOpen
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
@@ -681,22 +755,24 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   <span>📍</span>
                   <span>About Us</span>
                 </div>
-              </button>
+              </a>
 
-              {/* Button 5: Feedback */}
-              <button
+              {/* Link 5: Feedback */}
+              <a
+                href="#/feedback"
                 id="customer-nav-feedback"
-                onClick={() => {
-                  setIsFeedbackModalOpen(true);
-                  setIsMobileSidebarOpen(false);
-                }}
-                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                onClick={(e) => handleNavClick(e, '#/feedback')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                  isFeedbackModalOpen
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+                }`}
               >
                 <div className="flex items-center space-x-2.5">
                   <span className="text-sm">⭐</span>
                   <span>Feedback</span>
                 </div>
-              </button>
+              </a>
             </nav>
           </div>
 
@@ -747,11 +823,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         {/* Drawer Footer */}
         <div className="pt-3 border-t border-slate-100">
           <div
+            id="drawer-admin-portal-trigger"
             onClick={handleSecretAdminTrigger}
             className="text-center text-[10px] text-slate-400 select-none cursor-pointer hover:text-slate-600 transition-colors"
-            title="Staff Portal"
+            title="Admin Portal (Click 4 times)"
           >
-            <span>Staff Portal</span>
+            <span>Staff / Admin Portal</span>
           </div>
         </div>
       </aside>
@@ -775,12 +852,15 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 <Menu className="w-5 h-5" />
               </button>
 
-              <div
-                onClick={() => {
-                  setCurrentTab('landing');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+              <a
+                href="#/home"
+                id="header-brand-admin-trigger"
+                onClick={(e) => {
+                  handleSecretAdminTrigger();
+                  handleNavClick(e, '#/home');
                 }}
                 className="flex items-center space-x-2.5 cursor-pointer select-none group"
+                title="Top Fruit & Veg (Click 4 times for Admin Portal)"
               >
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 transition-colors flex items-center justify-center text-white text-xl shadow-xs">
                   🥭
@@ -790,20 +870,18 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     Top Fruit & Veg
                   </h1>
                 </div>
-              </div>
+              </a>
             </div>
 
             {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
               {/* 1. Home */}
-              <button
+              <a
+                href="#/home"
                 id="header-nav-home"
-                onClick={() => {
-                  setCurrentTab('landing');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={(e) => handleNavClick(e, '#/home')}
                 className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
-                  currentTab === 'landing'
+                  currentTab === 'landing' && !isTrackerModalOpen && !isFeedbackModalOpen
                     ? 'text-slate-950 font-semibold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
@@ -813,23 +891,20 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </span>
                 <span
                   className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
-                    currentTab === 'landing'
+                    currentTab === 'landing' && !isTrackerModalOpen && !isFeedbackModalOpen
                       ? 'scale-x-100 opacity-100'
                       : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
                   }`}
                 />
-              </button>
+              </a>
 
               {/* 2. Products */}
-              <button
+              <a
+                href="#/products"
                 id="header-nav-products"
-                onClick={() => {
-                  setCurrentTab('home');
-                  setSelectedCategory('All');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={(e) => handleNavClick(e, '#/products')}
                 className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
-                  currentTab === 'home'
+                  currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen
                     ? 'text-slate-950 font-semibold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
@@ -839,34 +914,43 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </span>
                 <span
                   className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
-                    currentTab === 'home'
+                    currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen
                       ? 'scale-x-100 opacity-100'
                       : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
                   }`}
                 />
-              </button>
+              </a>
 
               {/* 3. Track Order */}
-              <button
+              <a
+                href="#/track-order"
                 id="header-btn-track"
-                onClick={() => setIsTrackerModalOpen(true)}
-                className="group relative py-2 px-3 text-sm font-medium tracking-tight text-slate-600 hover:text-slate-900 cursor-pointer select-none transition-colors duration-200"
+                onClick={(e) => handleNavClick(e, '#/track-order')}
+                className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
+                  isTrackerModalOpen
+                    ? 'text-slate-950 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
                 <span className="inline-block transition-transform duration-200 ease-out group-hover:-translate-y-[1px]">
                   Track Order
                 </span>
-                <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100" />
-              </button>
+                <span
+                  className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
+                    isTrackerModalOpen
+                      ? 'scale-x-100 opacity-100'
+                      : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
+                  }`}
+                />
+              </a>
 
               {/* 4. About Us */}
-              <button
+              <a
+                href="#/about-us"
                 id="header-nav-about"
-                onClick={() => {
-                  setCurrentTab('about_contact');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={(e) => handleNavClick(e, '#/about-us')}
                 className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
-                  currentTab === 'about_contact'
+                  currentTab === 'about_contact' && !isTrackerModalOpen && !isFeedbackModalOpen
                     ? 'text-slate-950 font-semibold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
@@ -876,24 +960,35 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </span>
                 <span
                   className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
-                    currentTab === 'about_contact'
+                    currentTab === 'about_contact' && !isTrackerModalOpen && !isFeedbackModalOpen
                       ? 'scale-x-100 opacity-100'
                       : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
                   }`}
                 />
-              </button>
+              </a>
 
               {/* 5. Feedback */}
-              <button
+              <a
+                href="#/feedback"
                 id="header-btn-feedback"
-                onClick={() => setIsFeedbackModalOpen(true)}
-                className="group relative py-2 px-3 text-sm font-medium tracking-tight text-slate-600 hover:text-slate-900 cursor-pointer select-none transition-colors duration-200"
+                onClick={(e) => handleNavClick(e, '#/feedback')}
+                className={`group relative py-2 px-3 text-sm font-medium tracking-tight cursor-pointer select-none transition-colors duration-200 ${
+                  isFeedbackModalOpen
+                    ? 'text-slate-950 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
                 <span className="inline-block transition-transform duration-200 ease-out group-hover:-translate-y-[1px]">
                   Feedback
                 </span>
-                <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100" />
-              </button>
+                <span
+                  className={`absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-emerald-600 transition-all duration-200 ease-out origin-center ${
+                    isFeedbackModalOpen
+                      ? 'scale-x-100 opacity-100'
+                      : 'scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100'
+                  }`}
+                />
+              </a>
             </nav>
 
             {/* Header Right Actions / CTAs */}
@@ -935,57 +1030,56 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
         {/* Mobile Horizontal Navigation Bar */}
         <nav className="md:hidden w-full bg-white border-b border-slate-200 px-4 py-2.5 flex items-center space-x-4 overflow-x-auto scrollbar-none text-xs font-medium">
-          <button
+          <a
+            href="#/home"
             id="mobile-nav-home"
-            onClick={() => {
-              setCurrentTab('landing');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onClick={(e) => handleNavClick(e, '#/home')}
             className={`shrink-0 transition-colors ${
-              currentTab === 'landing' ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'landing' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Home
-          </button>
-          <button
+          </a>
+          <a
+            href="#/products"
             id="mobile-nav-products"
-            onClick={() => {
-              setCurrentTab('home');
-              setSelectedCategory('All');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onClick={(e) => handleNavClick(e, '#/products')}
             className={`shrink-0 transition-colors ${
-              currentTab === 'home' ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Products
-          </button>
-          <button
+          </a>
+          <a
+            href="#/track-order"
             id="mobile-nav-track"
-            onClick={() => setIsTrackerModalOpen(true)}
-            className="shrink-0 text-slate-600 hover:text-slate-900 transition-colors"
+            onClick={(e) => handleNavClick(e, '#/track-order')}
+            className={`shrink-0 transition-colors ${
+              isTrackerModalOpen ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
             Track Order
-          </button>
-          <button
+          </a>
+          <a
+            href="#/about-us"
             id="mobile-nav-about"
-            onClick={() => {
-              setCurrentTab('about_contact');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onClick={(e) => handleNavClick(e, '#/about-us')}
             className={`shrink-0 transition-colors ${
-              currentTab === 'about_contact' ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+              currentTab === 'about_contact' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             About Us
-          </button>
-          <button
+          </a>
+          <a
+            href="#/feedback"
             id="mobile-nav-feedback"
-            onClick={() => setIsFeedbackModalOpen(true)}
-            className="shrink-0 text-slate-600 hover:text-slate-900 transition-colors"
+            onClick={(e) => handleNavClick(e, '#/feedback')}
+            className={`shrink-0 transition-colors ${
+              isFeedbackModalOpen ? 'text-emerald-700 font-bold' : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
             Feedback
-          </button>
+          </a>
         </nav>
 
         {/* ========================================================= */}
@@ -1019,24 +1113,25 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </p>
 
                 <div className="pt-1 flex flex-wrap items-center gap-2.5 sm:gap-3 animate-enter stagger-3">
-                  <button
-                    onClick={() => {
-                      setCurrentTab('home');
-                      setSelectedCategory('All');
-                    }}
+                  <a
+                    href="#/products"
+                    id="hero-cta-browse-products"
+                    onClick={(e) => handleNavClick(e, '#/products')}
                     className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-sm hover:shadow-md"
                   >
                     <ShoppingBag className="w-4 h-4" />
                     <span>Browse Produce</span>
                     <span>→</span>
-                  </button>
+                  </a>
 
-                  <button
-                    onClick={() => setIsTrackerModalOpen(true)}
+                  <a
+                    href="#/track-order"
+                    id="hero-cta-track-order"
+                    onClick={(e) => handleNavClick(e, '#/track-order')}
                     className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                   >
                     Track Order
-                  </button>
+                  </a>
 
                   <a
                     href="https://wa.me/447449338679"
@@ -1290,9 +1385,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               {/* Col 1: Stall Heritage */}
               <div className="space-y-3">
                 <div
+                  id="footer-brand-admin-trigger"
                   onClick={handleSecretAdminTrigger}
                   className="flex items-center space-x-2.5 cursor-pointer group select-none"
-                  title="Top Fruit and Veg • Pitch 18"
+                  title="Top Fruit and Veg • Pitch 18 (Click 4 times for Admin Portal)"
                 >
                   <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-lg shadow-2xs group-hover:bg-emerald-700 transition-colors">
                     🥭
@@ -1320,52 +1416,59 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 </h4>
                 <ul className="space-y-2 text-xs">
                   <li>
-                    <button
-                      onClick={() => setCurrentTab('landing')}
+                    <a
+                      href="#/home"
+                      id="footer-nav-home"
+                      onClick={(e) => handleNavClick(e, '#/home')}
                       className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <span>🏠</span>
                       <span>Home / Welcome</span>
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button
-                      onClick={() => {
-                        setCurrentTab('home');
-                        setSelectedCategory('All');
-                      }}
+                    <a
+                      href="#/products"
+                      id="footer-nav-products"
+                      onClick={(e) => handleNavClick(e, '#/products')}
                       className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <span>🥭</span>
                       <span>Browse Fresh Produce</span>
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button
-                      onClick={() => setIsTrackerModalOpen(true)}
+                    <a
+                      href="#/track-order"
+                      id="footer-nav-track"
+                      onClick={(e) => handleNavClick(e, '#/track-order')}
                       className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <Truck className="w-3.5 h-3.5 text-sky-600" />
                       <span>Track Your Order</span>
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button
-                      onClick={() => setIsFeedbackModalOpen(true)}
+                    <a
+                      href="#/feedback"
+                      id="footer-nav-feedback"
+                      onClick={(e) => handleNavClick(e, '#/feedback')}
                       className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
                       <span>Customer Reviews & Feedback</span>
-                    </button>
+                    </a>
                   </li>
                   <li>
-                    <button
-                      onClick={() => setCurrentTab('about_contact')}
+                    <a
+                      href="#/about-us"
+                      id="footer-nav-about"
+                      onClick={(e) => handleNavClick(e, '#/about-us')}
                       className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
                     >
                       <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                       <span>About Stall & Contact</span>
-                    </button>
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -1432,11 +1535,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               </div>
               <div className="flex items-center space-x-3 text-slate-500">
                 <button
+                  id="admin-portal-trigger-btn"
                   onClick={handleSecretAdminTrigger}
                   className="hover:text-emerald-700 transition-colors cursor-pointer"
-                  title="Staff Portal (Click 3 times)"
+                  title="Admin Portal (Click 4 times)"
                 >
-                  Stall Partner Access
+                  Admin Portal Access
                 </button>
                 <span>•</span>
                 <span>Pope's Road, London SW9 8PB</span>
@@ -1499,7 +1603,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       {/* Customer Feedback Modal */}
       <CustomerFeedbackModal
         isOpen={isFeedbackModalOpen}
-        onClose={() => setIsFeedbackModalOpen(false)}
+        onClose={() => {
+          setIsFeedbackModalOpen(false);
+          if (window.location.hash === '#/feedback' || window.location.hash === '#feedback') {
+            const fallbackHash = currentTab === 'landing' ? '#/home' : currentTab === 'home' ? '#/products' : '#/about-us';
+            window.location.hash = fallbackHash;
+          }
+        }}
       />
 
       {/* Product Detail Modal */}
@@ -1525,6 +1635,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         onTrackOrder={(code) => {
           setPreFilledOrderCode(code);
           setIsTrackerModalOpen(true);
+          window.location.hash = '#/track-order';
         }}
       />
 
@@ -1537,7 +1648,13 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
       {/* Customer Order Tracker Modal */}
       <CustomerOrderTrackerModal
         isOpen={isTrackerModalOpen}
-        onClose={() => setIsTrackerModalOpen(false)}
+        onClose={() => {
+          setIsTrackerModalOpen(false);
+          if (window.location.hash === '#/track-order' || window.location.hash === '#track-order') {
+            const fallbackHash = currentTab === 'landing' ? '#/home' : currentTab === 'home' ? '#/products' : '#/about-us';
+            window.location.hash = fallbackHash;
+          }
+        }}
         initialOrderCode={preFilledOrderCode}
       />
     </div>
