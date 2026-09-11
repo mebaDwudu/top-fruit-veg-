@@ -25,22 +25,13 @@ export const db: Firestore =
 
 // Enable offline persistence with multi-tab scenario handling
 if (typeof window !== 'undefined') {
-  enableIndexedDbPersistence(db)
-    .then(() => {
-      console.log('🔥 Offline persistence enabled successfully');
-    })
-    .catch((err: unknown) => {
-      if (err && typeof err === 'object' && 'code' in err) {
-        const error = err as { code: string; message?: string };
-        if (error.code === 'failed-precondition') {
-          console.warn('⚠️ Persistence failed: Multiple tabs open. Real-time sync remains active.');
-        } else if (error.code === 'unimplemented') {
-          console.warn('⚠️ Persistence not supported in this browser.');
-        } else {
-          console.warn('⚠️ Persistence error:', error.message || error.code);
-        }
-      }
+  try {
+    enableIndexedDbPersistence(db).catch(() => {
+      // Offline persistence is optional; real-time listener remains active
     });
+  } catch {
+    // Graceful fallback for restricted iframe sandbox
+  }
 }
 
 export const isFirebaseConfigured = Boolean(

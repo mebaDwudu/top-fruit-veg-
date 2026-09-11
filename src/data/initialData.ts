@@ -73,7 +73,6 @@ export const INITIAL_USERS: UserAccount[] = [
 ];
 
 export const INITIAL_CATEGORIES = [
-  'All',
   'Fresh Fruits',
   'Vegetables',
   'Roots & Tubers',

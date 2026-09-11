@@ -20,7 +20,6 @@ export function cleanProduceName(name: string): string {
 }
 
 export const MINIMAL_CATEGORIES = [
-  'All',
   'Fresh Fruits',
   'Vegetables',
   'Roots & Tubers',

@@ -247,43 +247,24 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
             </div>
           </div>
 
-          {/* Right actions: Cloud sync status, manual refresh, sound test & Storefront button */}
+          {/* Right actions: manual refresh & Storefront button */}
           <div className="flex items-center space-x-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                playOrderNotificationSound(true);
-                setIsTestingSound(true);
-                setTimeout(() => setIsTestingSound(false), 800);
-              }}
-              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
-              title="Test the loud admin alert chime for new incoming orders"
-            >
-              <Volume2 className={`w-3.5 h-3.5 text-emerald-600 ${isTestingSound ? 'animate-bounce' : ''}`} />
-              <span>{isTestingSound ? 'Chiming...' : 'Test Sound'}</span>
-            </button>
-
             <button
               onClick={handleManualRefresh}
               disabled={isRefreshing}
               className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
-              title="Force refresh live orders from Cloud database"
+              title="Refresh live orders"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
             </button>
-
-            <div className="flex items-center space-x-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-[11px] font-bold text-emerald-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Real-Time Cloud Sync {lastSyncedAt ? `(${lastSyncedAt})` : ''}</span>
-            </div>
 
             {onSwitchToStorefront && (
               <button
                 onClick={onSwitchToStorefront}
                 className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
               >
-                <span>Customer Storefront</span>
+                <span>Storefront</span>
                 <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
               </button>
             )}
@@ -303,8 +284,12 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <div className="text-[11px] font-bold opacity-80 uppercase tracking-wider">All Orders</div>
-            <div className="text-xl font-black mt-0.5">{counts.all}</div>
+            <div className={`text-[11px] font-bold uppercase tracking-wider ${statusFilter === 'all' ? 'text-white' : 'text-slate-600'}`}>
+              All Orders
+            </div>
+            <div className={`text-xl font-black mt-0.5 ${statusFilter === 'all' ? 'text-white' : 'text-slate-900'}`}>
+              {counts.all}
+            </div>
           </button>
 
           <button
@@ -315,10 +300,12 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <div className="text-[11px] font-bold opacity-80 uppercase tracking-wider text-amber-600">
+            <div className={`text-[11px] font-bold uppercase tracking-wider ${statusFilter === 'pending' ? 'text-white' : 'text-amber-600'}`}>
               Pending
             </div>
-            <div className="text-xl font-black mt-0.5">{counts.pending}</div>
+            <div className={`text-xl font-black mt-0.5 ${statusFilter === 'pending' ? 'text-white' : 'text-slate-900'}`}>
+              {counts.pending}
+            </div>
           </button>
 
           <button
@@ -329,10 +316,12 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <div className="text-[11px] font-bold opacity-80 uppercase tracking-wider text-sky-600">
+            <div className={`text-[11px] font-bold uppercase tracking-wider ${statusFilter === 'preparing' ? 'text-white' : 'text-sky-600'}`}>
               Packing
             </div>
-            <div className="text-xl font-black mt-0.5">{counts.preparing}</div>
+            <div className={`text-xl font-black mt-0.5 ${statusFilter === 'preparing' ? 'text-white' : 'text-slate-900'}`}>
+              {counts.preparing}
+            </div>
           </button>
 
           <button
@@ -343,10 +332,12 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <div className="text-[11px] font-bold opacity-80 uppercase tracking-wider text-emerald-700">
+            <div className={`text-[11px] font-bold uppercase tracking-wider ${statusFilter === 'ready' ? 'text-white' : 'text-emerald-700'}`}>
               Ready
             </div>
-            <div className="text-xl font-black mt-0.5">{counts.ready}</div>
+            <div className={`text-xl font-black mt-0.5 ${statusFilter === 'ready' ? 'text-white' : 'text-slate-900'}`}>
+              {counts.ready}
+            </div>
           </button>
 
           <button
@@ -357,10 +348,12 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <div className="text-[11px] font-bold opacity-80 uppercase tracking-wider text-slate-600">
+            <div className={`text-[11px] font-bold uppercase tracking-wider ${statusFilter === 'completed' ? 'text-white' : 'text-slate-600'}`}>
               Completed
             </div>
-            <div className="text-xl font-black mt-0.5">{counts.completed}</div>
+            <div className={`text-xl font-black mt-0.5 ${statusFilter === 'completed' ? 'text-white' : 'text-slate-900'}`}>
+              {counts.completed}
+            </div>
           </button>
 
           <button
@@ -371,10 +364,12 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <div className="text-[11px] font-bold opacity-80 uppercase tracking-wider text-rose-600">
+            <div className={`text-[11px] font-bold uppercase tracking-wider ${statusFilter === 'cancelled' ? 'text-white' : 'text-rose-600'}`}>
               Cancelled
             </div>
-            <div className="text-xl font-black mt-0.5">{counts.cancelled}</div>
+            <div className={`text-xl font-black mt-0.5 ${statusFilter === 'cancelled' ? 'text-white' : 'text-slate-900'}`}>
+              {counts.cancelled}
+            </div>
           </button>
         </div>
 

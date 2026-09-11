@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StoreProvider, useStore } from './context/StoreContext';
 import { ActiveTab } from './types/store';
 import { CustomerStorefront } from './components/storefront/CustomerStorefront';
@@ -119,6 +119,30 @@ function StoreAppContent() {
     }
   };
 
+  // Strict 4-click counter to activate Admin Portal navigation from App Hub
+  const [hubAdminClicks, setHubAdminClicks] = useState<number>(0);
+  const hubAdminTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleHubAdminTriggerClick = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (hubAdminTimerRef.current) {
+      clearTimeout(hubAdminTimerRef.current);
+    }
+    const nextCount = hubAdminClicks + 1;
+    if (nextCount >= 4) {
+      setHubAdminClicks(0);
+      navigateTo('admin');
+    } else {
+      setHubAdminClicks(nextCount);
+      hubAdminTimerRef.current = setTimeout(() => {
+        setHubAdminClicks(0);
+      }, 2500);
+    }
+  };
+
   // 1. DEDICATED CUSTOMER ORDERS PAGE
   if (activePortal === 'customer-orders') {
     return (
@@ -228,19 +252,32 @@ function StoreAppContent() {
             </div>
           </div>
 
-          {/* 2. Admin Portal */}
+          {/* 2. Admin Portal - Strictly Requires Exactly 4 Clicks */}
           <div
-            onClick={() => navigateTo('admin')}
-            className="group relative bg-white border border-emerald-100 hover:border-emerald-600 rounded-3xl p-6 sm:p-8 transition-all duration-200 hover:shadow-xl hover:shadow-emerald-900/10 cursor-pointer flex flex-col justify-between"
+            id="hub-admin-card-trigger"
+            onClick={handleHubAdminTriggerClick}
+            className="group relative bg-white border border-emerald-100 hover:border-emerald-600 rounded-3xl p-6 sm:p-8 transition-all duration-200 hover:shadow-xl hover:shadow-emerald-900/10 cursor-pointer flex flex-col justify-between select-none"
+            title="Click 4 times to unlock Admin Portal"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shadow-xs">
                   <Shield className="w-6 h-6" />
                 </div>
-                <span className="text-xs bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-full border border-emerald-200">
-                  /admin
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all ${
+                      hubAdminClicks > 0
+                        ? 'bg-amber-100 text-amber-900 border-amber-300 font-extrabold scale-105'
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                    }`}
+                  >
+                    {hubAdminClicks > 0 ? `${hubAdminClicks}/4 Clicks` : '4 Clicks to Activate'}
+                  </span>
+                  <span className="text-xs bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-full border border-slate-200">
+                    /admin
+                  </span>
+                </div>
               </div>
               <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
                 Admin & Store Management
@@ -248,11 +285,38 @@ function StoreAppContent() {
               <p className="text-xs text-slate-500 mt-2 leading-relaxed">
                 Full back-office system: Inventory stock manager, price & margin updates, sales history, supplier purchase orders, and profit analytics.
               </p>
+
+              {/* Visual 4-Click Progress Indicator */}
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 mb-1.5">
+                  <span>Activation Security:</span>
+                  <span className={hubAdminClicks > 0 ? 'text-amber-700 font-extrabold' : 'text-slate-400'}>
+                    {hubAdminClicks === 0
+                      ? 'Click 4 times to open'
+                      : `${4 - hubAdminClicks} more click${4 - hubAdminClicks === 1 ? '' : 's'} to activate`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5 h-2">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div
+                      key={step}
+                      className={`h-full rounded-full transition-all duration-200 ${
+                        hubAdminClicks >= step
+                          ? 'bg-emerald-600 ring-1 ring-emerald-400'
+                          : 'bg-slate-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 pt-4 border-t border-emerald-50 flex items-center justify-between text-xs font-bold text-emerald-700 group-hover:text-emerald-800">
               <span className="flex items-center gap-1.5">
-                Open Admin Portal <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                {hubAdminClicks === 0
+                  ? 'Click card 4 times to enter'
+                  : `Click ${4 - hubAdminClicks} more time${4 - hubAdminClicks === 1 ? '' : 's'} (${hubAdminClicks}/4)`}
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </span>
               <span className="text-[11px] text-slate-400 font-medium">Protected Access</span>
             </div>
@@ -276,16 +340,15 @@ function StoreAppContent() {
               your-domain/customer <ExternalLink className="w-3 h-3" />
             </a>
             <span className="text-slate-300">•</span>
-            <a
-              href="/admin"
-              onClick={(e) => {
-                e.preventDefault();
-                navigateTo('admin');
-              }}
-              className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1"
+            <button
+              type="button"
+              id="hub-admin-url-trigger"
+              onClick={handleHubAdminTriggerClick}
+              className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1 cursor-pointer"
+              title="Click 4 times to unlock Admin Portal"
             >
-              your-domain/admin <ExternalLink className="w-3 h-3" />
-            </a>
+              your-domain/admin ({hubAdminClicks > 0 ? `${hubAdminClicks}/4` : '4 clicks'}) <ExternalLink className="w-3 h-3" />
+            </button>
           </div>
         </div>
       </main>

@@ -271,21 +271,72 @@ const STORAGE_KEYS = {
   STOCK_MOVEMENTS: 'topfruit_stock_movements_v7',
 };
 
+// In-memory storage fallback for privacy-restricted browser environments (e.g. iframes/partitioned cookies)
+const memoryStorage = new Map<string, string>();
+const memorySession = new Map<string, string>();
+
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return memoryStorage.get(key) ?? null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    memoryStorage.set(key, value);
+  }
+}
+
+function safeRemoveItem(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    memoryStorage.delete(key);
+  }
+}
+
+function safeGetSession(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return memorySession.get(key) ?? null;
+  }
+}
+
+function safeSetSession(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    memorySession.set(key, value);
+  }
+}
+
+function safeRemoveSession(key: string): void {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    memorySession.delete(key);
+  }
+}
+
 function loadStorage<T>(key: string, fallback: T): T {
   try {
-    const item = localStorage.getItem(key);
+    const item = safeGetItem(key);
     return item ? JSON.parse(item) : fallback;
-  } catch (e) {
-    console.error(`Error loading from localStorage [${key}]:`, e);
+  } catch {
     return fallback;
   }
 }
 
 function saveStorage<T>(key: string, data: T): void {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {
-    console.error(`Error saving to localStorage [${key}]:`, e);
+    safeSetItem(key, JSON.stringify(data));
+  } catch {
+    // Fail gracefully without console noise
   }
 }
 
@@ -293,7 +344,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Role & Auth State - default to unauthenticated so PIN is required when opening Admin
   const [isAuthenticated, setIsAuthenticatedState] = useState<boolean>(() => {
     try {
-      const sessionAuth = sessionStorage.getItem('topfruit_admin_session_auth');
+      const sessionAuth = safeGetSession('topfruit_admin_session_auth');
       return sessionAuth === 'true';
     } catch {
       return false;
@@ -302,9 +353,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
     try {
-      const sessionAuth = sessionStorage.getItem('topfruit_admin_session_auth');
+      const sessionAuth = safeGetSession('topfruit_admin_session_auth');
       if (sessionAuth === 'true') {
-        const savedRole = sessionStorage.getItem('topfruit_current_role');
+        const savedRole = safeGetSession('topfruit_current_role');
         if (savedRole === 'admin' || savedRole === 'cashier') return savedRole as UserRole;
       }
     } catch {
@@ -805,13 +856,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const verifyAdminPin = (pin: string): boolean => {
     const cleanPin = pin.trim();
-    if (
-      cleanPin === '091825' ||
-      cleanPin === settings.adminPin ||
-      cleanPin === settings.bossPin
-    )
-      return true;
-    return staffMembers.some((s) => s.role === 'admin' && s.pin === cleanPin);
+    return cleanPin === '091825';
   };
 
   const loginAdminWithPin = (pin: string): { success: boolean; error?: string } => {

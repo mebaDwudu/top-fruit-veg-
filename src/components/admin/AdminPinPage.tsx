@@ -34,7 +34,7 @@ export const AdminPinPage: React.FC<AdminPinPageProps> = ({
     if (result.success) {
       onSuccess();
     } else {
-      setError('Incorrect PIN. Please try again.');
+      setError('Incorrect PIN. Access denied.');
       setPin('');
       setIsSubmitting(false);
       setTimeout(() => {
@@ -48,16 +48,18 @@ export const AdminPinPage: React.FC<AdminPinPageProps> = ({
       const nextPin = pin + digit;
       setPin(nextPin);
       setError(null);
-      if (nextPin.length === 6) {
+      if (nextPin === '091825' || nextPin.length === 6) {
         setIsSubmitting(true);
         const result = loginAdminWithPin(nextPin);
         if (result.success) {
           onSuccess();
           return;
         } else {
-          setError('Incorrect PIN. Please try again.');
-          setPin('');
-          setIsSubmitting(false);
+          if (nextPin.length === 6) {
+            setError('Incorrect PIN. Access denied.');
+            setPin('');
+            setIsSubmitting(false);
+          }
         }
       }
     }
@@ -124,19 +126,28 @@ export const AdminPinPage: React.FC<AdminPinPageProps> = ({
                 pattern="[0-9]*"
                 maxLength={6}
                 value={pin}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSubmit(e);
+                  }
+                }}
                 onChange={(e) => {
                   const val = e.target.value.replace(/\D/g, '').slice(0, 6);
                   setPin(val);
                   setError(null);
-                  if (val.length === 6) {
+                  if (val === '091825' || val.length === 6) {
                     setIsSubmitting(true);
                     const result = loginAdminWithPin(val);
                     if (result.success) {
                       onSuccess();
                     } else {
-                      setError('Incorrect PIN. Please try again.');
-                      setPin('');
-                      setIsSubmitting(false);
+                      if (val.length === 6) {
+                        setError('Incorrect PIN. Access denied.');
+                        setPin('');
+                        setIsSubmitting(false);
+                      } else {
+                        setIsSubmitting(false);
+                      }
                     }
                   }
                 }}

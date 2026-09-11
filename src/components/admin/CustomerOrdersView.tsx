@@ -200,43 +200,22 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-emerald-100 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Customer Orders</h2>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Orders</h2>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200">
-              {safeOrders.length} Total
+              {safeOrders.length}
             </span>
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-bold border border-emerald-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Real-time Live Sync</span>
-            </div>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Live orders submitted by customers from any phone or PC {lastSyncedAt ? `(Synced at ${lastSyncedAt})` : ''}
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
-            type="button"
-            onClick={() => {
-              playOrderNotificationSound(true);
-              setIsTestingSound(true);
-              setTimeout(() => setIsTestingSound(false), 800);
-            }}
-            className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
-            title="Test the loud admin alert chime for new customer orders"
-          >
-            <Volume2 className={`w-3.5 h-3.5 text-emerald-600 ${isTestingSound ? 'animate-bounce' : ''}`} />
-            <span>{isTestingSound ? 'Chiming...' : 'Test Loud Sound'}</span>
-          </button>
-
-          <button
             onClick={handleManualRefresh}
             disabled={isRefreshing}
             className="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-            title="Force refresh orders from Cloud database"
+            title="Refresh orders"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>{isRefreshing ? 'Syncing...' : 'Refresh Orders'}</span>
+            <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
           </button>
 
           {onOpenDedicatedPage && (
@@ -244,7 +223,7 @@ export const CustomerOrdersView: React.FC<CustomerOrdersViewProps> = ({
               onClick={onOpenDedicatedPage}
               className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer self-start sm:self-auto shadow-2xs"
             >
-              <span>Open Dedicated Orders Page</span>
+              <span>Full View</span>
               <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
             </button>
           )}

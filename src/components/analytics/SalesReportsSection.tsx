@@ -506,88 +506,80 @@ export const SalesReportsSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Selected Period Banner */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Selected Period Banner - Matches background */}
+      <div className="bg-slate-100 border border-slate-200 text-slate-900 p-4 sm:p-5 rounded-xl shadow-2xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider">
-            {period.toUpperCase()} EXECUTIVE SALES REPORT
+          <span className="text-emerald-700 text-[11px] font-extrabold uppercase tracking-wider">
+            {period.toUpperCase()} SALES REPORT
           </span>
-          <h2 className="text-xl sm:text-2xl font-black mt-1 text-white tracking-tight">
+          <h2 className="text-lg sm:text-xl font-black mt-0.5 text-slate-900 tracking-tight">
             {getPeriodLabel()}
           </h2>
-          <p className="text-slate-400 text-xs mt-1">
-            Audited store ledger: {totalOrdersCount} completed customer transactions.
+          <p className="text-slate-500 text-xs mt-0.5">
+            {totalOrdersCount} completed orders
           </p>
         </div>
-        <div className="text-left sm:text-right bg-slate-800/80 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-slate-700/60 sm:border-none w-full sm:w-auto">
-          <span className="text-xs text-slate-400 block font-medium">Net Gross Revenue</span>
-          <span className="text-2xl sm:text-3xl font-black text-emerald-400">
+        <div className="text-left sm:text-right">
+          <span className="text-xs text-slate-500 block font-medium">Net Revenue</span>
+          <span className="text-2xl font-black text-emerald-700">
             {formatCurrency(totalGrossRevenue)}
           </span>
         </div>
       </div>
 
-      {/* Key Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Gross Sales</span>
-            <div className="p-2 bg-emerald-50 rounded-xl text-emerald-600">
-              <DollarSign className="w-4 h-4" />
-            </div>
+      {/* Key Metric Cards - Small Rectangle Buttons */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Gross Sales</span>
+            <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
           </div>
-          <span className="text-2xl font-black text-slate-900 tracking-tight block">
+          <span className="text-lg font-black text-slate-900 tracking-tight block">
             {formatCurrency(totalGrossRevenue)}
           </span>
-          <div className="flex items-center space-x-1.5 mt-2 text-xs text-slate-500">
-            <ShoppingBag className="w-3.5 h-3.5 text-slate-400" />
-            <span>{totalItemsSold} items sold</span>
+          <div className="flex items-center space-x-1 mt-1 text-[11px] text-slate-500">
+            <ShoppingBag className="w-3 h-3 text-slate-400" />
+            <span>{totalItemsSold} items</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Gross Profit</span>
-            <div className="p-2 bg-blue-50 rounded-xl text-blue-600">
-              <TrendingUp className="w-4 h-4" />
-            </div>
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Gross Profit</span>
+            <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
           </div>
-          <span className="text-2xl font-black text-blue-600 tracking-tight block">
+          <span className="text-lg font-black text-blue-600 tracking-tight block">
             {formatCurrency(totalGrossProfit)}
           </span>
-          <div className="flex items-center space-x-1.5 mt-2 text-xs text-emerald-600 font-semibold">
-            <Percent className="w-3.5 h-3.5" />
-            <span>{profitMargin}% net margin</span>
+          <div className="flex items-center space-x-1 mt-1 text-[11px] text-emerald-600 font-semibold">
+            <Percent className="w-3 h-3" />
+            <span>{profitMargin}% margin</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Orders & Ticket</span>
-            <div className="p-2 bg-amber-50 rounded-xl text-amber-600">
-              <Receipt className="w-4 h-4" />
-            </div>
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Orders & Ticket</span>
+            <Receipt className="w-3.5 h-3.5 text-amber-600" />
           </div>
-          <span className="text-2xl font-black text-slate-900 tracking-tight block">
-            {totalOrdersCount} <span className="text-xs font-normal text-slate-400">orders</span>
+          <span className="text-lg font-black text-slate-900 tracking-tight block">
+            {totalOrdersCount} <span className="text-[11px] font-normal text-slate-400">orders</span>
           </span>
-          <div className="flex items-center space-x-1.5 mt-2 text-xs text-slate-500">
-            <span>Avg ticket: <strong className="text-slate-800">{formatCurrency(avgOrderValue)}</strong></span>
+          <div className="flex items-center space-x-1 mt-1 text-[11px] text-slate-500">
+            <span>Avg: <strong className="text-slate-800">{formatCurrency(avgOrderValue)}</strong></span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Cost & Tax</span>
-            <div className="p-2 bg-purple-50 rounded-xl text-purple-600">
-              <Layers className="w-4 h-4" />
-            </div>
+        <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Cost & Tax</span>
+            <Layers className="w-3.5 h-3.5 text-purple-600" />
           </div>
-          <span className="text-2xl font-black text-slate-900 tracking-tight block">
+          <span className="text-lg font-black text-slate-900 tracking-tight block">
             {formatCurrency(totalCOGS)}
           </span>
-          <div className="flex items-center space-x-1.5 mt-2 text-xs text-slate-500">
-            <span>Tax collected: <strong className="text-slate-800">{formatCurrency(totalTax)}</strong></span>
+          <div className="flex items-center space-x-1 mt-1 text-[11px] text-slate-500">
+            <span>Tax: <strong className="text-slate-800">{formatCurrency(totalTax)}</strong></span>
           </div>
         </div>
       </div>
@@ -684,37 +676,6 @@ export const SalesReportsSection: React.FC = () => {
                 <span className="text-[11px] text-amber-700">{paymentBreakdown.store_credit.count} txns</span>
               </div>
             </div>
-          </div>
-
-          {/* Cashier Performance */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center space-x-2">
-              <UserCheck className="w-4 h-4 text-emerald-600" />
-              <span>Cashier & Staff Sales Attribution</span>
-            </h3>
-
-            {cashierBreakdown.length > 0 ? (
-              <div className="divide-y divide-slate-100">
-                {cashierBreakdown.map((cashier) => (
-                  <div key={cashier.name} className="py-3 flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-slate-800 text-xs block">{cashier.name}</span>
-                      <span className="text-[11px] text-slate-400">{cashier.count} transactions completed</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-bold text-slate-900 text-xs block">
-                        {formatCurrency(cashier.revenue)}
-                      </span>
-                      <span className="text-[11px] text-emerald-600 font-semibold">
-                        {formatCurrency(cashier.profit)} profit
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-400">No staff sales recorded for this period.</p>
-            )}
           </div>
         </div>
 
