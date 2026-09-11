@@ -252,12 +252,12 @@ function StoreAppContent() {
             </div>
           </div>
 
-          {/* 2. Admin Portal - Strictly Requires Exactly 4 Clicks */}
+          {/* 2. Admin Management - Strictly Requires Exactly 4 Clicks */}
           <div
             id="hub-admin-card-trigger"
             onClick={handleHubAdminTriggerClick}
             className="group relative bg-white border border-emerald-100 hover:border-emerald-600 rounded-3xl p-6 sm:p-8 transition-all duration-200 hover:shadow-xl hover:shadow-emerald-900/10 cursor-pointer flex flex-col justify-between select-none"
-            title="Click 4 times to unlock Admin Portal"
+            title="Click 4 times to unlock Admin"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -345,7 +345,7 @@ function StoreAppContent() {
               id="hub-admin-url-trigger"
               onClick={handleHubAdminTriggerClick}
               className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1 cursor-pointer"
-              title="Click 4 times to unlock Admin Portal"
+              title="Click 4 times to unlock Admin"
             >
               your-domain/admin ({hubAdminClicks > 0 ? `${hubAdminClicks}/4` : '4 clicks'}) <ExternalLink className="w-3 h-3" />
             </button>

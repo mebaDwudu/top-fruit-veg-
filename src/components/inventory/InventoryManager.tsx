@@ -128,36 +128,27 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ onNavigateTo
   };
 
   return (
-    <div className="flex-1 p-4 sm:p-6 lg:p-8 bg-slate-100 overflow-y-auto space-y-6">
+    <div className="flex-1 p-4 sm:p-6 lg:p-8 bg-slate-50 overflow-y-auto space-y-5">
       {/* Top Header & Action Row */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <div className="flex items-center space-x-2">
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-              {isCashier ? 'Produce Stock & Price Check' : 'Inventory & Stock'}
-            </h2>
-            {isCashier && (
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black uppercase">
-                Cashier View
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-slate-500">
-            {isCashier
-              ? 'Real-time stock availability and item prices at Pitch 18 Brixton'
-              : 'Monitor real-time stock levels, catalog pricing, and reorder alerts'}
+          <h2 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+            Inventory
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage stock levels, pricing, and catalog
           </p>
         </div>
 
         {!isCashier && (
-          <div className="flex items-center space-x-3 w-full sm:w-auto">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
             <button
               id="export-inventory-csv-btn"
               onClick={handleExportCSV}
-              className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-2 rounded-xl text-xs font-bold shadow-2xs transition-colors cursor-pointer"
             >
-              <Download className="w-4 h-4 text-slate-500" />
-              <span>Export CSV</span>
+              <Download className="w-3.5 h-3.5 text-slate-500" />
+              <span>Export</span>
             </button>
 
             <button
@@ -166,60 +157,60 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({ onNavigateTo
                 setEditingProduct(null);
                 setIsProductModalOpen(true);
               }}
-              className="flex-1 sm:flex-none flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+              className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Add New Product</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add</span>
             </button>
           </div>
         )}
       </div>
 
       {/* Metrics Row */}
-      <div className={`grid gap-4 ${isCashier ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total SKUs</span>
-            <Boxes className="w-5 h-5 text-emerald-600" />
+      <div className={`grid gap-3 ${isCashier ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Items</span>
+            <Boxes className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-2xl font-bold text-slate-900">{products.length}</p>
-          <p className="text-xs text-slate-500 mt-1">{totalUnitsInStock} total units in storage</p>
+          <p className="text-xl font-black text-slate-950">{products.length}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">{totalUnitsInStock} in storage</p>
         </div>
 
         {!isCashier && (
           <>
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Cost Value</span>
-                <DollarSign className="w-5 h-5 text-blue-600" />
+            <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-slate-400 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Cost</span>
+                <DollarSign className="w-4 h-4 text-slate-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalInventoryCost)}</p>
-              <p className="text-xs text-slate-500 mt-1">Acquisition capital invested</p>
+              <p className="text-xl font-black text-slate-950">{formatCurrency(totalInventoryCost)}</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Capital invested</p>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Retail Value</span>
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+            <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center justify-between text-slate-400 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Retail</span>
+                <TrendingUp className="w-4 h-4 text-emerald-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{formatCurrency(totalRetailValuation)}</p>
-              <p className="text-xs text-emerald-600 font-semibold mt-1">
-                +{formatCurrency(totalRetailValuation - totalInventoryCost)} potential profit
+              <p className="text-xl font-black text-slate-950">{formatCurrency(totalRetailValuation)}</p>
+              <p className="text-[11px] text-emerald-700 font-bold mt-0.5">
+                +{formatCurrency(totalRetailValuation - totalInventoryCost)} profit
               </p>
             </div>
           </>
         )}
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Stock Alerts</span>
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Alerts</span>
+            <AlertTriangle className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="flex items-baseline space-x-2">
-            <p className="text-2xl font-bold text-amber-600">{safeLowStock.length}</p>
-            <span className="text-xs text-rose-600 font-bold">({safeOutOfStock.length} out of stock)</span>
+          <div className="flex items-baseline space-x-1.5">
+            <p className="text-xl font-black text-amber-600">{safeLowStock.length}</p>
+            <span className="text-[11px] text-rose-600 font-bold">({safeOutOfStock.length} out)</span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Items requiring restock</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Need restock</p>
         </div>
       </div>
 

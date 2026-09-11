@@ -322,8 +322,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
                 if (currentRole === 'cashier') {
                   setPendingTab('admin');
                   setPinPromptReason({
-                    title: 'Boss Admin Portal Authorization',
-                    desc: 'Enter Boss Admin PIN (Default: 1234) to open the executive management webpage.',
+                    title: 'Admin Authorization',
+                    desc: 'Enter Admin PIN to open management settings.',
                   });
                   setIsPinModalOpen(true);
                 } else {

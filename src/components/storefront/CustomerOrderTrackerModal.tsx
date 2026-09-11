@@ -42,10 +42,23 @@ export const CustomerOrderTrackerModal: React.FC<CustomerOrderTrackerModalProps>
 
   useEffect(() => {
     if (isOpen) {
-      const prevBodyOverflow = document.body.style.overflow;
+      const scrollY = window.scrollY;
+      const prevPosition = document.body.style.position;
+      const prevTop = document.body.style.top;
+      const prevWidth = document.body.style.width;
+      const prevOverflow = document.body.style.overflow;
+
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
+
       return () => {
-        document.body.style.overflow = prevBodyOverflow;
+        document.body.style.position = prevPosition;
+        document.body.style.top = prevTop;
+        document.body.style.width = prevWidth;
+        document.body.style.overflow = prevOverflow;
+        window.scrollTo(0, scrollY);
       };
     }
   }, [isOpen]);
@@ -79,9 +92,9 @@ export const CustomerOrderTrackerModal: React.FC<CustomerOrderTrackerModalProps>
   const isPickup = matchedOrder?.fulfillmentType === 'pickup';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/30">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/30 backdrop-blur-xs overscroll-none touch-none" onClick={onClose}>
       <div
-        className="bg-white w-full max-w-xl rounded-xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-white w-full max-w-xl rounded-xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] touch-pan-y overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

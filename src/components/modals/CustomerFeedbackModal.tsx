@@ -1,18 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { CustomerFeedback } from '../../types/store';
-import { sanitizeText, sanitizeEmail, sanitizePhone } from '../../utils/sanitize';
-import {
-  X,
-  Star,
-  MessageSquare,
-  CheckCircle2,
-  Send,
-  Heart,
-  Store,
-  Leaf,
-  ShoppingBag,
-} from 'lucide-react';
+import { sanitizeText, sanitizeEmail } from '../../utils/sanitize';
+import { X, Star, CheckCircle2, Send } from 'lucide-react';
 
 interface CustomerFeedbackModalProps {
   isOpen: boolean;
@@ -25,59 +14,59 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
   onClose,
   preselectedProductId,
 }) => {
-  const { addFeedback, products, settings } = useStore();
+  const { addFeedback, products } = useStore();
 
   const [rating, setRating] = useState<number>(5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
-  const [category, setCategory] = useState<CustomerFeedback['category']>('Produce Quality');
   const [customerName, setCustomerName] = useState('');
-  const [customerContact, setCustomerContact] = useState('');
-  const [selectedProdId, setSelectedProdId] = useState<string>(preselectedProductId || '');
+  const [email, setEmail] = useState('');
   const [comment, setComment] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  // Lock mobile viewport scrolling completely when open so background never moves
+  useEffect(() => {
+    if (isOpen) {
+      const scrollY = window.scrollY;
+      const prevPosition = document.body.style.position;
+      const prevTop = document.body.style.top;
+      const prevWidth = document.body.style.width;
+      const prevOverflow = document.body.style.overflow;
 
-  const getRatingLabel = (r: number) => {
-    switch (r) {
-      case 5:
-        return '5/5 - Outstanding Quality & Service';
-      case 4:
-        return '4/5 - Very Good Quality';
-      case 3:
-        return '3/5 - Good & Fresh';
-      case 2:
-        return '2/5 - Fair Quality';
-      case 1:
-        return '1/5 - Needs Improvement';
-      default:
-        return '';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        document.body.style.position = prevPosition;
+        document.body.style.top = prevTop;
+        document.body.style.width = prevWidth;
+        document.body.style.overflow = prevOverflow;
+        window.scrollTo(0, scrollY);
+      };
     }
-  };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!comment.trim()) {
-      setErrorMsg('Please enter your feedback comments.');
+      setErrorMsg('Please enter your feedback.');
       return;
     }
 
-    const cleanName = sanitizeText(customerName, 80) || 'Anonymous Customer';
-    const cleanContact = customerContact.trim()
-      ? customerContact.includes('@')
-        ? sanitizeEmail(customerContact)
-        : sanitizePhone(customerContact)
-      : undefined;
+    const cleanName = sanitizeText(customerName, 80) || 'Customer';
+    const cleanEmail = email.trim() ? sanitizeEmail(email) : undefined;
     const cleanComment = sanitizeText(comment, 600);
-
-    const selectedProduct = products.find((p) => p.id === selectedProdId);
+    const selectedProduct = preselectedProductId ? products.find((p) => p.id === preselectedProductId) : undefined;
 
     addFeedback({
       customerName: cleanName,
-      customerContact: cleanContact,
+      customerContact: cleanEmail,
       rating,
-      category,
+      category: 'General',
       productId: selectedProduct?.id,
       productName: selectedProduct?.name,
       comment: cleanComment,
@@ -90,78 +79,82 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
   const handleResetAndClose = () => {
     setIsSubmitted(false);
     setRating(5);
-    setCategory('Produce Quality');
     setCustomerName('');
-    setCustomerContact('');
-    setSelectedProdId('');
+    setEmail('');
     setComment('');
+    setErrorMsg(null);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden text-slate-900 border border-emerald-100 flex flex-col">
-        {/* Header */}
-        <div className="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">
-              <MessageSquare className="w-5 h-5" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/35 backdrop-blur-xs overscroll-none touch-none"
+      onClick={handleResetAndClose}
+    >
+      <div
+        className="w-full max-w-md bg-[#FAF7F2] border border-slate-200 rounded-2xl shadow-xl overflow-hidden text-slate-900 flex flex-col touch-pan-y overscroll-contain"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Clean Header matching page aesthetic */}
+        <div className="px-5 py-4 border-b border-slate-200/80 bg-white flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+              ★
             </div>
             <div>
-              <h3 className="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
-                <span>Customer Feedback & Review</span>
+              <h3 className="font-bold text-sm sm:text-base text-slate-900 leading-tight">
+                Customer Feedback
               </h3>
-              <p className="text-xs text-emerald-400">
-                {settings.storeName || 'Top Fruit and Veg'} • Pitch 18 Brixton Market
+              <p className="text-[11px] text-slate-500 font-medium">
+                Top Fruit & Veg • Pitch 18 Brixton
               </p>
             </div>
           </div>
 
           <button
             onClick={handleResetAndClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
             title="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
         {isSubmitted ? (
-          <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 mx-auto">
-              <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+          <div className="p-6 text-center space-y-3 bg-white">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
             </div>
-            <div className="space-y-1.5">
-              <h4 className="text-xl font-black text-slate-900">Thank You For Your Feedback!</h4>
-              <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-                Your review has been sent directly to the stall admin and management team. We appreciate your support for Pitch 18 Brixton Market!
+            <div className="space-y-1">
+              <h4 className="text-base font-bold text-slate-900">Thank You!</h4>
+              <p className="text-xs text-slate-600 max-w-xs mx-auto">
+                Your feedback has been received. We appreciate your support for Pitch 18 Brixton Market.
               </p>
             </div>
-
-            <div className="pt-3 flex justify-center gap-3">
+            <div className="pt-2">
               <button
                 onClick={handleResetAndClose}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer"
               >
-                Back to Storefront
+                Close
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5 bg-[#FAF7F2]">
             {errorMsg && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-bold">
+              <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-medium">
                 {errorMsg}
               </div>
             )}
 
-            {/* Interactive Star Rating */}
-            <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-4 text-center space-y-2">
-              <label className="text-xs font-extrabold text-slate-800 uppercase tracking-wider block">
-                How Was Your Experience / Produce?
-              </label>
-              <div className="flex items-center justify-center gap-2">
+            {/* Clean 5-Star Rating */}
+            <div className="bg-white border border-slate-200 rounded-xl p-3 text-center space-y-1">
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+                Rating
+              </span>
+              <div className="flex items-center justify-center gap-1.5">
                 {[1, 2, 3, 4, 5].map((starVal) => {
                   const activeVal = hoverRating || rating;
                   const isFilled = starVal <= activeVal;
@@ -172,12 +165,12 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
                       onMouseEnter={() => setHoverRating(starVal)}
                       onMouseLeave={() => setHoverRating(null)}
                       onClick={() => setRating(starVal)}
-                      className="p-1.5 rounded-xl transition-transform hover:scale-125 focus:outline-hidden cursor-pointer"
+                      className="p-1 rounded-lg transition-transform hover:scale-115 focus:outline-hidden cursor-pointer"
                     >
                       <Star
-                        className={`w-7 h-7 transition-colors ${
+                        className={`w-6 h-6 transition-colors ${
                           isFilled
-                            ? 'text-amber-400 fill-amber-400 drop-shadow-xs'
+                            ? 'text-amber-400 fill-amber-400'
                             : 'text-slate-300'
                         }`}
                       />
@@ -185,116 +178,67 @@ export const CustomerFeedbackModal: React.FC<CustomerFeedbackModalProps> = ({
                   );
                 })}
               </div>
-              <p className="text-xs font-extrabold text-emerald-800">
-                {getRatingLabel(hoverRating || rating)}
-              </p>
             </div>
 
-            {/* Category Select */}
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Feedback Topic *
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:outline-hidden focus:border-emerald-500 focus:bg-white"
-              >
-                <option value="Produce Quality">Produce Freshness & Quality</option>
-                <option value="Customer Service">Customer Service & Friendliness</option>
-                <option value="Stall Experience">Stall Location & Collection</option>
-                <option value="Fruit Request">Request a New Fruit / Vegetable</option>
-                <option value="General">General Comment / Suggestion</option>
-              </select>
-            </div>
-
-            {/* Specific Product (Optional) */}
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Specific Product (Optional)
-              </label>
-              <select
-                value={selectedProdId}
-                onChange={(e) => setSelectedProdId(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
-              >
-                <option value="">-- General Stall Feedback --</option>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.category})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Name & Contact */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Name and Email in simple clean rows */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Your Name (Optional)
+                <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                  Name (Optional)
                 </label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  onBlur={() => {
-                    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
-                  }}
-                  placeholder="e.g. David Ade"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                  placeholder="Your name"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-600"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Phone / Email (Optional)
+                <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                  Email (Optional)
                 </label>
                 <input
-                  type="text"
-                  value={customerContact}
-                  onChange={(e) => setCustomerContact(e.target.value)}
-                  onBlur={() => {
-                    window.scrollTo({ top: window.scrollY, behavior: 'instant' });
-                  }}
-                  placeholder="For follow-up"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-600"
                 />
               </div>
             </div>
 
-            {/* Comment Message */}
+            {/* Feedback Message */}
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Your Review & Comments *
+              <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                Feedback *
               </label>
               <textarea
                 required
                 rows={3}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                onBlur={() => {
-                  window.scrollTo({ top: window.scrollY, behavior: 'instant' });
-                }}
-                placeholder="Tell us what you liked about our yams, plantains, mangoes, or how we can serve you better..."
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-500 focus:bg-white"
+                placeholder="Share your thoughts about our fruits, vegetables, or service..."
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-600 resize-none"
               />
             </div>
 
-            {/* Submit button */}
-            <div className="pt-2 flex items-center justify-end space-x-2">
+            {/* Submit buttons */}
+            <div className="pt-1 flex items-center justify-end space-x-2">
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="px-4 py-2.5 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="px-3.5 py-2 text-slate-600 hover:text-slate-900 text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center space-x-1.5 transition-all shadow-md cursor-pointer"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-xs"
               >
-                <Send className="w-3.5 h-3.5" />
-                <span>Submit Feedback to Admin</span>
+                <Send className="w-3 h-3" />
+                <span>Submit</span>
               </button>
             </div>
           </form>

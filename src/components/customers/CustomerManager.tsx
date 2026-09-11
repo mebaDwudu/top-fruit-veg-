@@ -117,21 +117,14 @@ export const CustomerManager: React.FC = () => {
   return (
     <div className="flex-1 p-4 sm:p-6 lg:p-8 bg-emerald-50/30 overflow-y-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
         <div>
-          <div className="flex items-center space-x-2">
-            <span className="p-2 rounded-xl bg-purple-100 text-purple-800">
-              <Users className="w-5 h-5 text-purple-700" />
-            </span>
-            <div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                Customer Accounts & Loyalty
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Manage registered customer profiles, tabs, loyalty points, and purchase histories.
-              </p>
-            </div>
-          </div>
+          <h2 className="text-xl font-black text-slate-950 tracking-tight">
+            Customers
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage profiles and loyalty points
+          </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
@@ -139,10 +132,10 @@ export const CustomerManager: React.FC = () => {
             <button
               onClick={() => setIsClearAllModalOpen(true)}
               className="flex items-center space-x-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-              title="Clean all customer accounts"
+              title="Clean customer list"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Clean All History</span>
+              <span>Clean</span>
             </button>
           )}
 
@@ -152,65 +145,57 @@ export const CustomerManager: React.FC = () => {
             className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>Add Customer</span>
+            <span>Add</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Registered
+              Accounts
             </span>
-            <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
-              <Users className="w-4 h-4" />
-            </span>
+            <Users className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-2xl font-black text-slate-900">{customers.length}</p>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">Customer accounts</p>
+          <p className="text-xl font-black text-slate-950">{customers.length}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Profiles</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Total Spent
+              Spent
             </span>
-            <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-              <DollarSign className="w-4 h-4" />
-            </span>
+            <DollarSign className="w-4 h-4 text-slate-600" />
           </div>
-          <p className="text-2xl font-black text-slate-900">{formatCurrency(totalCustomerSpend)}</p>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">Lifetime value</p>
+          <p className="text-xl font-black text-slate-950">{formatCurrency(totalCustomerSpend)}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Total value</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Points Active
+              Points
             </span>
-            <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-              <Award className="w-4 h-4" />
-            </span>
+            <Award className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-black text-amber-600">{totalPoints.toLocaleString()} pts</p>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">Redeemable rewards</p>
+          <p className="text-xl font-black text-amber-600">{totalPoints.toLocaleString()} pts</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Active</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              VIP / Gold
+              VIP
             </span>
-            <span className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
-              <Star className="w-4 h-4" />
-            </span>
+            <Star className="w-4 h-4 text-purple-600" />
           </div>
-          <p className="text-2xl font-black text-purple-600">
+          <p className="text-xl font-black text-purple-600">
             {customers.filter((c) => c.tier === 'VIP' || c.tier === 'Gold').length}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">Loyal tier members</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Tier members</p>
         </div>
       </div>
 

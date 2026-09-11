@@ -189,66 +189,45 @@ export const SalesHistory: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 p-4 sm:p-6 lg:p-8 bg-emerald-50/30 overflow-y-auto space-y-6">
+    <div className="flex-1 p-4 sm:p-6 lg:p-8 bg-slate-50 overflow-y-auto space-y-5">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs">
         <div>
-          <div className="flex items-center space-x-2">
-            <span className="p-2 rounded-xl bg-emerald-100 text-emerald-800">
-              <Receipt className="w-5 h-5 text-emerald-700" />
-            </span>
-            <div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                Sales Ledger & Daily Summary
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Check exact sales by day, week, month, year, or select any specific date.
-              </p>
-            </div>
-          </div>
+          <h2 className="text-xl font-black text-slate-950 tracking-tight">
+            Sales
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Ledger and daily transaction history
+          </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
             id="export-sales-btn"
             onClick={handleExportCSV}
-            className="flex items-center space-x-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            className="flex items-center space-x-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" />
-            <span>Export CSV</span>
+            <span>Export</span>
           </button>
         </div>
       </div>
 
       {/* Timeframe Filter Buttons & Calendar Picker */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+      <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           {/* Quick Period Buttons */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-emerald-600" />
-              View:
-            </span>
-
             <button
               onClick={() => setTimeframe('today')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 timeframe === 'today'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="w-3 h-3" />
               <span>Today</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-md ${
-                  timeframe === 'today'
-                    ? 'bg-emerald-700/60 text-emerald-100'
-                    : 'bg-slate-200 text-slate-600'
-                }`}
-              >
-                Fresh Daily
-              </span>
             </button>
 
             <button
@@ -259,7 +238,7 @@ export const SalesHistory: React.FC = () => {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              This Week
+              Week
             </button>
 
             <button
@@ -270,7 +249,7 @@ export const SalesHistory: React.FC = () => {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              This Month
+              Month
             </button>
 
             <button
@@ -281,7 +260,7 @@ export const SalesHistory: React.FC = () => {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              This Year
+              Year
             </button>
 
             <button
@@ -292,15 +271,15 @@ export const SalesHistory: React.FC = () => {
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              All Time
+              All
             </button>
           </div>
 
           {/* Dedicated Mini Calendar Picker Button */}
-          <div className="flex items-center gap-2 bg-emerald-50/60 border border-emerald-200/80 px-3 py-1.5 rounded-xl">
-            <CalendarDays className="w-4 h-4 text-emerald-700 shrink-0" />
+          <div className="flex items-center gap-2 bg-emerald-50/60 border border-emerald-200/80 px-2.5 py-1 rounded-xl">
+            <CalendarDays className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
             <label className="text-xs font-bold text-emerald-900 whitespace-nowrap">
-              Pick Any Date:
+              Date:
             </label>
             <input
               type="date"
@@ -309,7 +288,7 @@ export const SalesHistory: React.FC = () => {
                 setCustomCalendarDate(e.target.value);
                 setTimeframe('custom_date');
               }}
-              className="bg-white border border-emerald-300 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+              className="bg-white border border-emerald-300 rounded-lg px-2 py-0.5 text-xs font-bold text-slate-800 focus:outline-hidden cursor-pointer"
             />
           </div>
         </div>
@@ -317,76 +296,65 @@ export const SalesHistory: React.FC = () => {
         {/* Small Notice / Helper */}
         <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
           <span>
-            Showing <strong className="text-slate-800">{getTimeframeLabel()}</strong> •{' '}
-            {timeframe === 'today'
-              ? 'Today counter resets automatically every midnight for next day sales.'
-              : `Audited range: ${getTimeframeLabel()}`}
+            Showing <strong className="text-slate-800">{getTimeframeLabel()}</strong>
           </span>
           <span className="font-semibold text-emerald-700">
-            {completedInTimeframe.length} completed transactions
+            {completedInTimeframe.length} orders
           </span>
         </div>
       </div>
 
       {/* Financial KPIs for Selected Timeframe */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              {timeframe === 'today' ? "Today's Gross Sales" : 'Gross Revenue'}
+              Revenue
             </span>
-            <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
-              <DollarSign className="w-4 h-4" />
-            </span>
+            <DollarSign className="w-4 h-4 text-slate-600" />
           </div>
-          <p className="text-2xl font-black text-slate-900">{formatCurrency(timeframeRevenue)}</p>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">
-            {completedInTimeframe.length} receipts generated
+          <p className="text-xl font-black text-slate-950">{formatCurrency(timeframeRevenue)}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            {completedInTimeframe.length} receipts
           </p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Gross Profit
+              Profit
             </span>
-            <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-              <TrendingUp className="w-4 h-4" />
-            </span>
+            <TrendingUp className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-2xl font-black text-slate-900">{formatCurrency(timeframeProfit)}</p>
-          <p className="text-[11px] text-emerald-700 font-bold mt-1">
+          <p className="text-xl font-black text-slate-950">{formatCurrency(timeframeProfit)}</p>
+          <p className="text-[11px] text-emerald-700 font-bold mt-0.5">
             {timeframeRevenue > 0
               ? ((timeframeProfit / timeframeRevenue) * 100).toFixed(1)
               : '0.0'}
-            % gross margin
+            % margin
           </p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Units Sold
+              Units
             </span>
-            <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-              <Receipt className="w-4 h-4" />
-            </span>
+            <Receipt className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-black text-slate-900">{timeframeItemsCount}</p>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">Produce items dispatched</p>
+          <p className="text-xl font-black text-slate-950">{timeframeItemsCount}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Dispatched</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
+        <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Avg. Basket
+              Average
             </span>
-            <span className="p-1.5 bg-purple-50 text-purple-600 rounded-lg">
-              <Receipt className="w-4 h-4" />
-            </span>
+            <Receipt className="w-4 h-4 text-purple-600" />
           </div>
-          <p className="text-2xl font-black text-slate-900">{formatCurrency(avgOrderValue)}</p>
-          <p className="text-[11px] text-slate-500 mt-1 font-medium">Per sale average</p>
+          <p className="text-xl font-black text-slate-950">{formatCurrency(avgOrderValue)}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Per order</p>
         </div>
       </div>
 

@@ -405,7 +405,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         {/* Secondary Fast Filters & Search Row */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-slate-100 text-xs">
           {/* Quick Search */}
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative w-full max-w-md">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -414,55 +414,6 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               placeholder="Search fruits, veg, herbs..."
               className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-slate-900 focus:bg-white"
             />
-          </div>
-
-          {/* Filter Pills */}
-          <div className="flex items-center space-x-1.5">
-            <button
-              onClick={() =>
-                setSelectedOrganicFilter((prev) => (prev === 'organic' ? 'all' : 'organic'))
-              }
-              className={`px-3 py-2 rounded-lg font-medium flex items-center space-x-1 transition-colors cursor-pointer ${
-                selectedOrganicFilter === 'organic'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              <Leaf className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Organic</span>
-            </button>
-
-            <button
-              onClick={() =>
-                setSelectedAvailabilityFilter((prev) =>
-                  prev === 'in-stock' ? 'all' : 'in-stock'
-                )
-              }
-              className={`px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer ${
-                selectedAvailabilityFilter === 'in-stock'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200'
-              }`}
-            >
-              <span>In Stock</span>
-            </button>
-
-            {/* Sort Selection */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 text-xs font-medium focus:outline-hidden focus:border-slate-900 focus:bg-white"
-            >
-              <option value="name_asc">A–Z</option>
-              <option value="name_desc">Z–A</option>
-              {showPrices && (
-                <>
-                  <option value="price_asc">Price Low</option>
-                  <option value="price_desc">Price High</option>
-                </>
-              )}
-              <option value="newest">Newest</option>
-            </select>
           </div>
         </div>
       </section>
@@ -657,9 +608,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div
                 id="drawer-brand-admin-trigger"
-                onClick={handleSecretAdminTrigger}
-                className="flex items-center space-x-2.5 cursor-pointer group select-none"
-                title="Top Fruit and Veg (Click 4 times for Admin Portal)"
+                className="flex items-center space-x-2.5 group select-none"
+                title="Top Fruit & Veg"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-2xs text-xl">
                   🥭
@@ -821,15 +771,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         </div>
 
         {/* Drawer Footer */}
-        <div className="pt-3 border-t border-slate-100">
-          <div
-            id="drawer-admin-portal-trigger"
-            onClick={handleSecretAdminTrigger}
-            className="text-center text-[10px] text-slate-400 select-none cursor-pointer hover:text-slate-600 transition-colors"
-            title="Admin Portal (Click 4 times)"
-          >
-            <span>Staff / Admin Portal</span>
-          </div>
+        <div className="pt-2 border-t border-slate-100 text-center text-[10px] text-slate-400">
+          <span>Pitch 18 Brixton Market</span>
         </div>
       </aside>
 
@@ -856,11 +799,11 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 href="#/home"
                 id="header-brand-admin-trigger"
                 onClick={(e) => {
-                  handleSecretAdminTrigger();
-                  handleNavClick(e, '#/home');
+                  e.preventDefault();
+                  onSwitchToStaff();
                 }}
                 className="flex items-center space-x-2.5 cursor-pointer select-none group"
-                title="Top Fruit & Veg (Click 4 times for Admin Portal)"
+                title="Top Fruit & Veg"
               >
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 transition-colors flex items-center justify-center text-white text-xl shadow-xs">
                   🥭
@@ -1386,22 +1329,21 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               <div className="space-y-3">
                 <div
                   id="footer-brand-admin-trigger"
-                  onClick={handleSecretAdminTrigger}
-                  className="flex items-center space-x-2.5 cursor-pointer group select-none"
-                  title="Top Fruit and Veg • Pitch 18 (Click 4 times for Admin Portal)"
+                  className="flex items-center space-x-2.5 select-none"
+                  title="Top Fruit & Veg • Pitch 18"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-lg shadow-2xs group-hover:bg-emerald-700 transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-lg shadow-2xs">
                     🥭
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-base text-slate-900 group-hover:text-emerald-900 transition-colors">
+                    <h3 className="font-extrabold text-base text-slate-900">
                       Top Fruit & Veg
                     </h3>
                     <p className="text-[11px] text-emerald-700 font-bold">Pitch 18 Brixton Market</p>
                   </div>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Brixton's trusted family produce stall since 1998. Supplying the freshest tropical fruits, Jamaican yellow yams, green plantains, scotch bonnet peppers, and fresh daily greens.
+                  Brixton's trusted family produce stall. Supplying the freshest tropical fruits, Jamaican yellow yams, green plantains, scotch bonnet peppers, and fresh daily greens.
                 </p>
                 <div className="flex items-center gap-2 pt-1 text-xs text-emerald-800 font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -1494,7 +1436,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   </div>
                 </div>
                 <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100 text-[11px] text-emerald-900 font-medium">
-                  📍 Located on Pope's Road opposite Brixton Station archways.
+                  📍 Located at Pitch 18 opposite Brixton Station archways.
                 </div>
               </div>
 
@@ -1533,17 +1475,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               <div className="flex items-center space-x-1.5">
                 <span>© {new Date().getFullYear()} Top Fruit and Veg Ltd. Pitch 18 Brixton Market. All rights reserved.</span>
               </div>
-              <div className="flex items-center space-x-3 text-slate-500">
-                <button
-                  id="admin-portal-trigger-btn"
-                  onClick={handleSecretAdminTrigger}
-                  className="hover:text-emerald-700 transition-colors cursor-pointer"
-                  title="Admin Portal (Click 4 times)"
-                >
-                  Admin Portal Access
-                </button>
-                <span>•</span>
-                <span>Pope's Road, London SW9 8PB</span>
+              <div className="flex items-center space-x-3 text-slate-400">
+                <span>Fresh Local & Caribbean Produce</span>
               </div>
             </div>
           </div>

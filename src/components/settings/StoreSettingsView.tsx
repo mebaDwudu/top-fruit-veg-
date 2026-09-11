@@ -421,7 +421,7 @@ export const StoreSettingsView: React.FC = () => {
                   placeholder="••••••"
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-indigo-500"
                 />
-                <span className="text-[10px] text-slate-400">Used to unlock Financial Reports, Settings, and Admin Portal.</span>
+                <span className="text-[10px] text-slate-400">Used to unlock Financial Reports and Settings.</span>
               </div>
 
               <div>
