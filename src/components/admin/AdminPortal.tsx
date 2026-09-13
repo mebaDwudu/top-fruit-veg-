@@ -9,6 +9,7 @@ import { SupplierManager } from '../suppliers/SupplierManager';
 import { CustomerManager } from '../customers/CustomerManager';
 import { StoreSettingsView } from '../settings/StoreSettingsView';
 import { CustomerOrdersView } from './CustomerOrdersView';
+import { CustomerOrdersPage } from './CustomerOrdersPage';
 import { CustomerFeedbackView } from './CustomerFeedbackView';
 import { ShareStoreModal } from '../modals/ShareStoreModal';
 import {
@@ -191,7 +192,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   ];
 
   return (
-    <div className="min-h-screen w-full bg-slate-50/50 text-slate-900 flex font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex font-sans selection:bg-emerald-500 selection:text-white">
       {/* Mobile Backdrop */}
       {isMobileSidebarOpen && (
         <div
@@ -233,9 +234,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           </div>
 
           {/* Minimal 1-Line Revenue Badge */}
-          <div className="flex items-center justify-between px-2.5 py-1.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-xs">
-            <span className="text-slate-500 text-[11px] font-medium">Revenue</span>
-            <span className="font-bold text-emerald-800">{formatCurrency(totalGrossRevenue)}</span>
+          <div className="flex items-center justify-between px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">
+            <span className="text-slate-600 text-[11px] font-medium">Revenue</span>
+            <span className="font-bold text-emerald-900">{formatCurrency(totalGrossRevenue)}</span>
           </div>
 
           {/* Clean 1-word Nav Buttons */}
@@ -246,11 +247,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 <button
                   key={item.id}
                   onClick={() => {
-                    if (item.id === 'orders' && onOpenCustomerOrders) {
-                      onOpenCustomerOrders();
-                    } else {
-                      setActiveSection(item.id);
-                    }
+                    setActiveSection(item.id);
                     setIsMobileSidebarOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
@@ -363,9 +360,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         <main className="flex-1 p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto w-full space-y-4">
           {/* ORDERS (First thing seen upon opening admin) */}
           {activeSection === 'orders' && (
-            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-2xs p-3 sm:p-5">
-              <CustomerOrdersView onOpenDedicatedPage={onOpenCustomerOrders} />
-            </div>
+            <CustomerOrdersPage
+              isEmbedded={true}
+              onSwitchToStorefront={onSwitchToStorefront}
+            />
           )}
 
           {/* OVERVIEW (Minimal, small rectangle cards, minimal graph, no cashier attribution) */}

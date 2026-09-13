@@ -26,13 +26,15 @@ import {
 } from 'lucide-react';
 
 interface CustomerOrdersPageProps {
-  onBackToAdmin: () => void;
+  onBackToAdmin?: () => void;
   onSwitchToStorefront?: () => void;
+  isEmbedded?: boolean;
 }
 
 export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
   onBackToAdmin,
   onSwitchToStorefront,
+  isEmbedded = false,
 }) => {
   const {
     currentRole,
@@ -217,38 +219,121 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 pb-16">
-      {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={onBackToAdmin}
-              className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 text-slate-500" />
-              <span>Back to Admin Dashboard</span>
-            </button>
+    <div className={isEmbedded ? 'space-y-4' : 'min-h-screen bg-slate-100 text-slate-900 pb-16'}>
+      {/* Top Navigation Bar / Embedded Toolbar */}
+      {!isEmbedded ? (
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center space-x-3">
+              {onBackToAdmin && (
+                <button
+                  onClick={onBackToAdmin}
+                  className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 text-slate-500" />
+                  <span>Back to Admin Dashboard</span>
+                </button>
+              )}
 
-            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+              <div className="h-5 w-px bg-slate-200 hidden sm:block" />
 
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                    Customer Orders
+                  </h1>
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-extrabold border border-emerald-300">
+                    {counts.all} Total
+                  </span>
+                  {counts.pending > 0 && (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                      {counts.pending} New
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 hidden sm:block">
+                  Live customer orders placed from any phone, PC, or device
+                </p>
+              </div>
+            </div>
+
+            {/* Right actions: manual refresh & Storefront button */}
+            <div className="flex items-center space-x-2.5">
+              <button
+                onClick={() => {
+                  setIsTestingSound(true);
+                  playOrderNotificationSound();
+                  setTimeout(() => setIsTestingSound(false), 1200);
+                }}
+                className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                title="Test chime alert"
+              >
+                <Volume2 className={`w-3.5 h-3.5 text-emerald-600 ${isTestingSound ? 'animate-bounce' : ''}`} />
+                <span className="hidden sm:inline">Test Alert</span>
+              </button>
+
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                title="Refresh live orders"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+              </button>
+
+              {onSwitchToStorefront && (
+                <button
+                  onClick={onSwitchToStorefront}
+                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
+                >
+                  <span>Storefront</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-2xs">
+              <ShoppingBag className="w-4 h-4 text-white" />
+            </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                   Customer Orders
-                </h1>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-extrabold border border-emerald-300">
+                </h2>
+                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-300">
                   {counts.all} Total
                 </span>
+                {counts.pending > 0 && (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                    {counts.pending} New
+                  </span>
+                )}
               </div>
-              <p className="text-[11px] text-slate-500 hidden sm:block">
+              <p className="text-[11px] text-slate-500">
                 Live customer orders placed from any phone, PC, or device
               </p>
             </div>
           </div>
 
-          {/* Right actions: manual refresh & Storefront button */}
-          <div className="flex items-center space-x-2.5">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                setIsTestingSound(true);
+                playOrderNotificationSound();
+                setTimeout(() => setIsTestingSound(false), 1200);
+              }}
+              className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
+              title="Test chime alert"
+            >
+              <Volume2 className={`w-3.5 h-3.5 text-emerald-600 ${isTestingSound ? 'animate-bounce' : ''}`} />
+              <span className="hidden sm:inline">Test Alert</span>
+            </button>
+
             <button
               onClick={handleManualRefresh}
               disabled={isRefreshing}
@@ -258,22 +343,12 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
               <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
             </button>
-
-            {onSwitchToStorefront && (
-              <button
-                onClick={onSwitchToStorefront}
-                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
-              >
-                <span>Storefront</span>
-                <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
-              </button>
-            )}
           </div>
         </div>
-      </header>
+      )}
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-5">
+      {/* Orders Content Area */}
+      <div className={isEmbedded ? 'space-y-4' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-5'}>
         {/* Status Count Pills */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
           <button
@@ -654,7 +729,7 @@ export const CustomerOrdersPage: React.FC<CustomerOrdersPageProps> = ({
             })}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 };

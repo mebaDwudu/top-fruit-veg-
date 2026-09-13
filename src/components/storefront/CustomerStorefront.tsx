@@ -371,14 +371,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   const renderProduceCatalogContent = () => (
     <div className="space-y-4">
       {/* Category Filter: Clean Minimal Single-Word Buttons */}
-      <section className="w-full bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-4 space-y-3 shadow-2xs">
+      <section className="w-full bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 space-y-3 shadow-2xs">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => setSelectedCategory('All')}
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer shrink-0 ${
               selectedCategory === 'All'
-                ? 'bg-slate-900 text-white font-semibold'
-                : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+                ? 'bg-emerald-700 text-white font-semibold shadow-xs'
+                : 'bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             All
@@ -392,8 +392,8 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer shrink-0 ${
                   isSelected
-                    ? 'bg-slate-900 text-white font-semibold'
-                    : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+                    ? 'bg-emerald-700 text-white font-semibold shadow-xs'
+                    : 'bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
                 {singleWord}
@@ -412,7 +412,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search fruits, veg, herbs..."
-              className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-slate-900 focus:bg-white"
+              className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-emerald-600 focus:bg-white transition-colors"
             />
           </div>
         </div>
@@ -434,7 +434,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 setSelectedOrganicFilter('all');
                 setSelectedAvailabilityFilter('all');
               }}
-              className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-xs"
             >
               Reset Filters
             </button>
@@ -451,12 +451,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               return (
                 <div
                   key={prod.id}
-                  className="group bg-white hover:border-emerald-400 border border-slate-200/90 rounded-2xl p-3 sm:p-3.5 card-hover-lift transition-all duration-300 flex flex-col justify-between"
+                  className="group bg-white hover:border-emerald-300 border border-slate-200 rounded-2xl p-3 sm:p-3.5 card-hover-lift transition-all duration-300 flex flex-col justify-between shadow-2xs"
                 >
                   {/* Fruit Image Container with Real Photo */}
                   <div
                     onClick={() => setSelectedProduct(prod)}
-                    className="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden cursor-pointer flex items-center justify-center"
+                    className="relative w-full aspect-square bg-slate-50 rounded-xl overflow-hidden cursor-pointer flex items-center justify-center border border-slate-100"
                   >
                     <img
                       src={meta.imageUrl}
@@ -466,7 +466,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
-                          'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=600&q=80';
+                           'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=600&q=80';
                       }}
                     />
 
@@ -521,14 +521,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
                       {/* Add / Quantity Stepper Button */}
                       {cartQty > 0 ? (
-                        <div className="flex items-center space-x-1 bg-emerald-50 border border-emerald-300 rounded-xl p-0.5 shadow-2xs">
+                        <div className="flex items-center space-x-1 bg-emerald-50 border border-emerald-200 rounded-xl p-0.5 shadow-2xs">
                           <button
                             onClick={() => handleUpdateCartQuantity(prod.id, cartQty - 1)}
                             className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-700 hover:bg-white transition-colors cursor-pointer"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="w-4 text-center font-bold text-xs text-emerald-800">
+                          <span className="w-4 text-center font-bold text-xs text-emerald-900">
                             {cartQty}
                           </span>
                           <button
@@ -551,7 +551,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                             isOutOfStock
                               ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                               : recentlyAddedId === prod.id
-                              ? 'bg-emerald-700 text-white shadow-emerald-500/20 scale-105'
+                              ? 'bg-emerald-800 text-white shadow-xs scale-105'
                               : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                           }`}
                         >
@@ -580,9 +580,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
   );
 
   return (
-    <div className={`relative min-h-screen w-full max-w-full text-slate-900 flex flex-row overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white ${
-      currentTab === 'landing' ? 'bg-white' : 'bg-emerald-50/40'
-    }`}>
+    <div className={`relative min-h-screen w-full max-w-full text-slate-900 flex flex-col overflow-x-hidden font-sans selection:bg-emerald-500 selection:text-white bg-slate-50`}>
       {/* Living animated backdrop with subtle gradient orbs & dot grid */}
       <LivingBackground />
       {/* ========================================================= */}
@@ -608,11 +606,15 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div
                 id="drawer-brand-admin-trigger"
-                className="flex items-center space-x-2.5 group select-none"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSecretAdminTrigger();
+                }}
+                className="flex items-center space-x-2.5 group select-none cursor-pointer"
                 title="Top Fruit & Veg"
               >
-                <div className="w-10 h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-2xs text-xl">
-                  🥭
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center text-white shadow-2xs">
+                  <Leaf className="w-5 h-5 text-white" />
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-sm font-extrabold text-slate-900 tracking-tight leading-none truncate">
@@ -623,7 +625,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
               {/* Mobile close button */}
               <button
                 onClick={() => setIsMobileSidebarOpen(false)}
-                className="p-1.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 cursor-pointer"
+                className="p-1.5 rounded-xl bg-slate-50 text-slate-600 hover:text-slate-900 cursor-pointer border border-slate-200"
                 title="Close Navigation"
               >
                 <X className="w-5 h-5" />
@@ -643,12 +645,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 onClick={(e) => handleNavClick(e, '#/home')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentTab === 'landing' && !isTrackerModalOpen && !isFeedbackModalOpen
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-emerald-600 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <span>🏠</span>
+                  <Home className={`w-4 h-4 ${currentTab === 'landing' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'text-white' : 'text-emerald-600'}`} />
                   <span>Home</span>
                 </div>
               </a>
@@ -660,15 +662,15 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 onClick={(e) => handleNavClick(e, '#/products')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-emerald-600 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <span>🥭</span>
+                  <ShoppingBag className={`w-4 h-4 ${currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'text-white' : 'text-emerald-600'}`} />
                   <span>Products</span>
                 </div>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full ${currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'}`}>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full ${currentTab === 'home' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 font-bold'}`}>
                   {products.length}
                 </span>
               </a>
@@ -680,12 +682,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 onClick={(e) => handleNavClick(e, '#/track-order')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   isTrackerModalOpen
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-emerald-600 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <Truck className="w-4 h-4 text-emerald-600" />
+                  <Truck className={`w-4 h-4 ${isTrackerModalOpen ? 'text-white' : 'text-emerald-600'}`} />
                   <span>Track Order</span>
                 </div>
               </a>
@@ -697,12 +699,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 onClick={(e) => handleNavClick(e, '#/about-us')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   currentTab === 'about_contact' && !isTrackerModalOpen && !isFeedbackModalOpen
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-emerald-600 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <span>📍</span>
+                  <MapPin className={`w-4 h-4 ${currentTab === 'about_contact' && !isTrackerModalOpen && !isFeedbackModalOpen ? 'text-white' : 'text-emerald-600'}`} />
                   <span>About Us</span>
                 </div>
               </a>
@@ -714,12 +716,12 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 onClick={(e) => handleNavClick(e, '#/feedback')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   isFeedbackModalOpen
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-emerald-600 text-white'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <span className="text-sm">⭐</span>
+                  <Star className={`w-4 h-4 ${isFeedbackModalOpen ? 'text-white' : 'text-emerald-600'}`} />
                   <span>Feedback</span>
                 </div>
               </a>
@@ -728,20 +730,20 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
           <div className="space-y-2">
             {/* Brixton Market Clean Info */}
-            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1 text-xs">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
               <div className="flex items-center justify-between font-bold text-slate-800">
                 <div className="flex items-center space-x-1.5">
                   <Store className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Brixton Market</span>
                 </div>
-                <span className="text-[10px] text-emerald-700 font-bold">Open Daily</span>
+                <span className="text-[10px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">Open Daily</span>
               </div>
               <p className="text-[11px] text-slate-500">
                 Pitch 18 Pope's Road, London SW9
               </p>
               <div className="flex items-center space-x-1 text-[11px] text-slate-700 pt-0.5">
                 <Phone className="w-3 h-3 text-emerald-600" />
-                <a href="tel:+447449338679" className="hover:text-emerald-700 font-semibold transition-colors">
+                <a href="tel:+447449338679" className="text-emerald-700 font-semibold hover:underline transition-colors">
                   +44 7449 338679
                 </a>
               </div>
@@ -761,7 +763,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
               <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="py-2.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer border border-slate-200"
+                className="py-2.5 px-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center justify-center space-x-1.5 transition-colors cursor-pointer border border-slate-200"
               >
                 <Share2 className="w-3.5 h-3.5 text-slate-600" />
                 <span>Share</span>
@@ -783,37 +785,36 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         {/* ========================================================= */}
         {/* FULL-WIDTH STICKY HEADER (AT THE VERY TOP OF THE WEBSITE) */}
         {/* ========================================================= */}
-        <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+        <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 sm:gap-6">
             {/* Logo & Mobile Menu Toggle */}
             <div className="flex items-center space-x-3 shrink-0">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 cursor-pointer transition-colors"
+                className="lg:hidden p-2 rounded-xl bg-slate-50 text-slate-700 hover:text-slate-950 border border-slate-200 cursor-pointer transition-colors"
                 title="Open Navigation Menu"
               >
                 <Menu className="w-5 h-5" />
               </button>
 
-              <a
-                href="#/home"
+              <div
                 id="header-brand-admin-trigger"
                 onClick={(e) => {
                   e.preventDefault();
-                  onSwitchToStaff();
+                  handleSecretAdminTrigger();
                 }}
                 className="flex items-center space-x-2.5 cursor-pointer select-none group"
                 title="Top Fruit & Veg"
               >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 transition-colors flex items-center justify-center text-white text-xl shadow-xs">
-                  🥭
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 transition-colors flex items-center justify-center text-white shadow-xs">
+                  <Leaf className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-tight group-hover:text-emerald-700 transition-colors">
                     Top Fruit & Veg
                   </h1>
                 </div>
-              </a>
+              </div>
             </div>
 
             {/* Desktop Navigation Links */}
@@ -941,10 +942,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                 href="https://wa.me/447449338679?text=Hello%20Top%20Fruit%20and%20Veg!%20I%20would%20like%20to%20place%20an%20order."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-emerald-700 hover:text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100/80 border border-emerald-200/80 text-xs font-semibold transition-colors duration-200"
+                className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-emerald-800 hover:text-slate-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold transition-colors duration-200"
                 title="Chat with stall on WhatsApp"
               >
-                <MessageCircle className="w-3.5 h-3.5" />
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
                 <span>WhatsApp</span>
               </a>
 
@@ -1026,24 +1027,16 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         </nav>
 
         {/* ========================================================= */}
-        {/* VIEW 0: LANDING PAGE (LIGHTER PALETTE: 5% YELLOW, 5% GREEN, 5% PINK, REST WHITE) */}
+        {/* VIEW 0: LANDING PAGE */}
         {/* ========================================================= */}
         {currentTab === 'landing' && (
-          <main
-            className="flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200"
-            style={{
-              background:
-                'radial-gradient(ellipse 70% 35% at 10% 5%, rgba(254, 240, 138, 0.22) 0%, transparent 60%), ' +
-                'radial-gradient(ellipse 70% 35% at 90% 10%, rgba(167, 243, 208, 0.22) 0%, transparent 60%), ' +
-                'radial-gradient(ellipse 60% 45% at 50% 95%, rgba(251, 207, 232, 0.20) 0%, transparent 60%), #ffffff',
-            }}
-          >
-            {/* Lighter Color Hero Banner: White with 5% Yellow, 5% Green, 5% Pink Accents */}
-            <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-7 md:p-8 lg:p-10 shadow-xs">
-              {/* Soft Ambient Corner Accents (5% Yellow, 5% Green, 5% Pink) */}
-              <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-yellow-100/50 blur-3xl pointer-events-none" />
-              <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-emerald-100/50 blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-20 left-1/3 w-64 h-64 rounded-full bg-pink-100/50 blur-3xl pointer-events-none" />
+          <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in duration-200">
+            {/* Hero Banner */}
+            <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200 p-5 sm:p-7 md:p-8 lg:p-10 shadow-xs">
+              {/* Soft Ambient Corner Accents */}
+              <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-emerald-100/40 blur-3xl pointer-events-none" />
+              <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-20 left-1/3 w-64 h-64 rounded-full bg-teal-100/20 blur-3xl pointer-events-none" />
 
               {/* Main Responsive Layout: Left Info & Actions */}
               <div className="relative z-10 max-w-3xl space-y-4">
@@ -1071,7 +1064,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     href="#/track-order"
                     id="hero-cta-track-order"
                     onClick={(e) => handleNavClick(e, '#/track-order')}
-                    className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                    className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                   >
                     Track Order
                   </a>
@@ -1080,7 +1073,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     href="https://wa.me/447449338679"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-pink-50/60 text-slate-700 hover:text-pink-700 border border-slate-200 hover:border-pink-200 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                    className="px-3.5 sm:px-4 py-2.5 bg-white hover:bg-emerald-50 text-emerald-800 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 shadow-2xs hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
                   >
                     <MessageCircle className="w-4 h-4 text-emerald-600" />
                     <span>WhatsApp</span>
@@ -1094,7 +1087,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     Pope's Road, London SW9 8PB
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-yellow-600 shrink-0" />
+                    <Clock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     Mon–Sat 8:00–18:30 • Sun 9:00–16:00
                   </span>
                 </div>
@@ -1322,21 +1315,20 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
         )}
 
         {/* Comprehensive Storefront Footer */}
-        <footer className="mt-auto border-t border-emerald-200/80 bg-white text-slate-700">
+        <footer className="mt-auto border-t border-slate-200 bg-white text-slate-700 font-pro-footer">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Col 1: Stall Heritage */}
               <div className="space-y-3">
                 <div
-                  id="footer-brand-admin-trigger"
                   className="flex items-center space-x-2.5 select-none"
                   title="Top Fruit & Veg • Pitch 18"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-lg shadow-2xs">
-                    🥭
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-2xs">
+                    <Leaf className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-base text-slate-900">
+                    <h3 className="font-pro-heading font-bold text-base text-slate-900 tracking-tight">
                       Top Fruit & Veg
                     </h3>
                     <p className="text-[11px] text-emerald-700 font-bold">Pitch 18 Brixton Market</p>
@@ -1346,14 +1338,14 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                   Brixton's trusted family produce stall. Supplying the freshest tropical fruits, Jamaican yellow yams, green plantains, scotch bonnet peppers, and fresh daily greens.
                 </p>
                 <div className="flex items-center gap-2 pt-1 text-xs text-emerald-800 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-600" />
                   <span>Fresh Wholesale Stock Daily at 5am</span>
                 </div>
               </div>
 
               {/* Col 2: Quick Links */}
               <div className="space-y-3">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                <h4 className="font-pro-heading text-xs font-bold uppercase tracking-wider text-slate-900">
                   Quick Navigation
                 </h4>
                 <ul className="space-y-2 text-xs">
@@ -1362,9 +1354,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       href="#/home"
                       id="footer-nav-home"
                       onClick={(e) => handleNavClick(e, '#/home')}
-                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-2"
                     >
-                      <span>🏠</span>
+                      <Home className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Home / Welcome</span>
                     </a>
                   </li>
@@ -1373,9 +1365,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       href="#/products"
                       id="footer-nav-products"
                       onClick={(e) => handleNavClick(e, '#/products')}
-                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-2"
                     >
-                      <span>🥭</span>
+                      <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Browse Fresh Produce</span>
                     </a>
                   </li>
@@ -1384,9 +1376,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       href="#/track-order"
                       id="footer-nav-track"
                       onClick={(e) => handleNavClick(e, '#/track-order')}
-                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-2"
                     >
-                      <Truck className="w-3.5 h-3.5 text-sky-600" />
+                      <Truck className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Track Your Order</span>
                     </a>
                   </li>
@@ -1395,9 +1387,9 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       href="#/feedback"
                       id="footer-nav-feedback"
                       onClick={(e) => handleNavClick(e, '#/feedback')}
-                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-2"
                     >
-                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                      <Star className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Customer Reviews & Feedback</span>
                     </a>
                   </li>
@@ -1406,10 +1398,10 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                       href="#/about-us"
                       id="footer-nav-about"
                       onClick={(e) => handleNavClick(e, '#/about-us')}
-                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                      className="text-slate-600 hover:text-emerald-700 font-medium transition-colors cursor-pointer flex items-center gap-2"
                     >
                       <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>About Stall & Contact</span>
+                      <span>About Stall & Location</span>
                     </a>
                   </li>
                 </ul>
@@ -1417,7 +1409,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
 
               {/* Col 3: Stall Opening Hours */}
               <div className="space-y-3">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                <h4 className="font-pro-heading text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Stall Opening Hours</span>
                 </h4>
@@ -1435,14 +1427,15 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     <span>5:00 AM Daily</span>
                   </div>
                 </div>
-                <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100 text-[11px] text-emerald-900 font-medium">
-                  📍 Located at Pitch 18 opposite Brixton Station archways.
+                <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 text-[11px] text-emerald-900 font-medium flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Located at Pitch 18 Pope's Road, Brixton SW9 8PB</span>
                 </div>
               </div>
 
               {/* Col 4: Contact & Orders */}
               <div className="space-y-3">
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                <h4 className="font-pro-heading text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Stall Contact & WhatsApp</span>
                 </h4>
@@ -1454,16 +1447,16 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
                     href="https://wa.me/447449338679"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-2xs"
+                    className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer"
                   >
                     <MessageCircle className="w-4 h-4" />
                     <span>Chat on WhatsApp</span>
                   </a>
                   <a
                     href="tel:+447449338679"
-                    className="w-full flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2 px-3 rounded-xl text-xs font-bold transition-all border border-slate-200"
+                    className="w-full flex items-center justify-center space-x-2 bg-white hover:bg-slate-50 text-slate-800 py-2 px-3 rounded-xl text-xs font-bold transition-all border border-slate-200"
                   >
-                    <Phone className="w-3.5 h-3.5 text-slate-600" />
+                    <Phone className="w-3.5 h-3.5 text-emerald-600" />
                     <span>+44 7449 338679</span>
                   </a>
                 </div>
@@ -1471,7 +1464,7 @@ export const CustomerStorefront: React.FC<CustomerStorefrontProps> = ({ onSwitch
             </div>
 
             {/* Bottom Bar */}
-            <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
+            <div className="mt-8 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
               <div className="flex items-center space-x-1.5">
                 <span>© {new Date().getFullYear()} Top Fruit and Veg Ltd. Pitch 18 Brixton Market. All rights reserved.</span>
               </div>
